@@ -3,7 +3,7 @@ package com.flightbooking.database
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
-import com.flightbooking.models.Users
+import com.flightbooking.tables.UsersTable
 
 object DatabaseFactory {
 
@@ -14,7 +14,7 @@ object DatabaseFactory {
         )
 
         transaction {
-            SchemaUtils.create(Users)
+            SchemaUtils.create(UsersTable)
         }
     }
 }
