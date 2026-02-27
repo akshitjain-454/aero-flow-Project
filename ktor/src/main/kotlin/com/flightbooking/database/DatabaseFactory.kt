@@ -9,7 +9,7 @@ object DatabaseFactory {
 
     fun init() {
         Database.connect(
-            url = "jdbc:sqlite:flight_app.db",
+            url = "jdbc:sqlite:data/flight_app.db",
             driver = "org.sqlite.JDBC"
         )
 
