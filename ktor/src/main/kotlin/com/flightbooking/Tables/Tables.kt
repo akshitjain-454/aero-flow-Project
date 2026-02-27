@@ -16,17 +16,17 @@ object UserTable : Table("User") {
 }
 
 
-data class Booking (
+object BookingTable : Table("Booking") {
 
-  val id: Int,
-  val bookingReference: String, 
-  val userId: Int,
-  val flightId: Int,
+  val id = integer("booking_id").autoIncrement()
+  val bookingReference = varchar("booking_reference", 100) 
+  val userId = integer("user_id").references(UserTable.id)
+  val flightId = integer("flight_id").references(FlightTable.id)
   val status: String,
   val createdAt: LocalDateTime
-)
+}
 
-data class Flight (
+object FlightTable : {
 
   val id: Int,
   val flightCode: String,
@@ -37,34 +37,34 @@ data class Flight (
   val arrivalTime: LocalDateTime,
   val price: BigDecimal,
   val status: String
-)
+}
 
-data class Aircraft (
+object AircraftTable : {
 
   val id: Int,
   val type: String,
   val numOfSeats: Int
-)
+}
 
-data class Airport (
+object AirportTable : {
 
   val id: Int,
   val name: String,
   val code: String,
   val city: String,
   val country: String
-)
+}
 
-data class Passenger (
+object PassengerTable : {
 
   val id: Int,
   val bookingId: Int,
   val firstname: String,
   val lastname: String,
   val passportCode: String?
-)
+}
 
-data class Payment (
+object PaymentTable : {
 
   val id: Int,
   val bookingId: Int,
@@ -75,37 +75,37 @@ data class Payment (
   val createdAt: LocalDateTime,
   val refundAmount: BigDecimal?,
   val refundDate: LocalDateTime?
-)
+}
 
-data class Complaint (
+object ComplaintTable : {
 
   val id: Int,
   val userId: Int,
   val message: String,
   val status: String,
   val createdAt : LocalDateTime
-)
+}
 
-data class Seat (
+object SeatTable : {
 
   val id: Int,
   val aircraftId: Int,
   val seatNumber: String,
   val seatClass: String
-)
+}
 
-data class TicketAssignment (
+object TicketAssignmentTable : {
 
   val id: Int,
   val passengerId: Int,
   val flightSeatId: Int
-)
+}
 
-data class FlightSeat (
+object FlightSeatTable : {
 
   val id: Int,
   val flightId: Int,
   val seatId: Int
-)
+}
 
 
