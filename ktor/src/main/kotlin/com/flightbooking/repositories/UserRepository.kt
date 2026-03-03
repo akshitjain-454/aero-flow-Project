@@ -8,14 +8,16 @@ import java.time.LocalDateTime
 
 class UserRepository {
 
-    fun createUser(user: User) = transaction {
-        UserTable.insert{
-            it[firstname] = user.firstname
-            it[lastname] = user.lastname
-            it[email] = user.email
-            it[passwordHash] = user.passwordHash
-            it[role] = user.role
-            it[createdAt] = LocalDateTime.now()
+    fun createUser(user: User) { 
+        transaction {
+            UserTable.insert{
+                it[firstname] = user.firstname
+                it[lastname] = user.lastname
+                it[email] = user.email
+                it[passwordHash] = user.passwordHash
+                it[role] = user.role
+                it[createdAt] = LocalDateTime.now()
+            }
         }
     }
 }
