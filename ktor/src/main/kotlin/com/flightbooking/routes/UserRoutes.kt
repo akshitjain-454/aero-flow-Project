@@ -14,14 +14,24 @@ fun Route.userRoutes() {
     val userRepository = UserRepository()
 
     post("/sign_up"){
-        val request = call.receive<User>() // will need changing in future to limit user input (Currently needs every field entered not just name email and password)
+        val params = call.receiveParameters() // will need changing in future to limit user input (Currently needs every field entered not just name email and password)
+
+        val firstname = params["firstname"]
+        val lastname = params["lastname"]
+        val email = params["email"]
+        val passwordHash = params["passwordHash"]
+        
+        if(firstname == null || lastname == null || email == null || passwordHash == null){
+            call.respond(HttpStatusCode.BadRequest, "Missing required field")
+            return@post
+        }
 
         val user = User(
             id = 0,
-            firstname = request.firstname,
-            lastname = request.lastname,
-            email = request.email,
-            passwordHash = request.passwordHash, //STILL TO HASH
+            firstname = firstname,
+            lastname = lastname,
+            email = email,
+            passwordHash = passwordHash, //STILL TO HASH
             role = "USER",
             createdAt = LocalDateTime.now()
         )
