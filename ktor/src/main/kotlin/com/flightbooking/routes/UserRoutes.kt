@@ -14,7 +14,7 @@ fun Route.userRoutes() {
     val userRepository = UserRepository()
 
     post("/sign_up"){
-        val params = call.receiveParameters() // will need changing in future to limit user input (Currently needs every field entered not just name email and password)
+        val params = call.receiveParameters()
 
         val firstname = params["firstname"]
         val lastname = params["lastname"]
