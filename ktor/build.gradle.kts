@@ -24,7 +24,9 @@ dependencies {
     implementation(libs.logback.classic)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
-    implementation("io.ktor:ktor-server-content-negotiation:2.3.4") // adjust version to your Ktor
+    implementation("org.mindrot:jbcrypt:0.4")
+    
+    implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-serialization-jackson:2.3.4")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
 

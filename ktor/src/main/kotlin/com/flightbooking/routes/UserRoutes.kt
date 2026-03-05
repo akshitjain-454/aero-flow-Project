@@ -8,6 +8,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.time.LocalDateTime
+import org.mindrot.jbcrypt.BCrypt
 
 fun Route.userRoutes() {
 
@@ -19,25 +20,58 @@ fun Route.userRoutes() {
         val firstname = params["firstname"]
         val lastname = params["lastname"]
         val email = params["email"]
-        val passwordHash = params["passwordHash"]
+        val password = params["password"]
         
-        if(firstname == null || lastname == null || email == null || passwordHash == null){
+        if(firstname == null || lastname == null || email == null || password == null){
             call.respond(HttpStatusCode.BadRequest, "Missing required field")
             return@post
         }
+
+        if(userRepository.getUserByEmail(email) != null){
+            call.respond(HttpStatusCode.BadRequest, "Email already registered")
+            return@post
+        }
+
+        val passwordHash = BCrypt.hashpw(password, BCrypt.gensalt())
 
         val user = User(
             id = 0,
             firstname = firstname,
             lastname = lastname,
             email = email,
-            passwordHash = passwordHash, //STILL TO HASH
+            passwordHash = passwordHash,
             role = "USER",
             createdAt = LocalDateTime.now()
         )
 
         userRepository.createUser(user)
         call.respond(HttpStatusCode.Created, "User registered successfully")
+    }
+
+    post("/login"){
+        val params = call.receiveParameters()
+
+        val email = params["email"]
+        val password = params["password"]
+
+        if (email == null || password == null) {
+            call.respond(HttpStatusCode.BadRequest, "Missing email or password")
+            return@post
+        }
+
+        val user = userRepository.getUserByEmail(email)
+
+        if (user == null) {
+            call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+            return@post
+        }
+
+        if (BCrypt.checkpw(password, user.passwordHash)) {
+            call.respond(HttpStatusCode.OK, "User login successful")
+        }
+        else {
+            call.respond(HttpStatusCode.Unauthorized, "Invalid password")
+        }
     }
     
 }

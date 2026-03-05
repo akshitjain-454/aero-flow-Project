@@ -20,4 +20,22 @@ class UserRepository {
             }
         }
     }
+
+    fun getUserByEmail(email: String): User? = transaction {
+        UserTable
+            .select{ UserTable.email eq email }
+            .map { resultRowToUser(it) }.singleOrNull()
+    }
+
+    fun resultRowToUser(row: ResultRow): User {
+        return User(
+            id = row[UserTable.id],
+            firstname = row[UserTable.firstname],
+            lastname = row[UserTable.lastname],
+            email = row[UserTable.email],
+            passwordHash = row[UserTable.passwordHash],
+            role = row[UserTable.role],
+            createdAt = row[UserTable.createdAt]
+        )
+    }
 }
