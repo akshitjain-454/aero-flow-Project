@@ -85,6 +85,35 @@ data class Complaint (
   val createdAt : LocalDateTime
 )
 
+data class FlightChangeRequest (
+
+  val id: Int,
+  val bookingId: Int,
+  val requestFlightId: Int,
+  val status: String,
+  val createdAt : LocalDateTime
+)
+
+data class PassengerInfoChangeRequest (
+
+  val id: Int,
+  val bookingId: Int,
+  val newFirstname: String,
+  val newLastname: String,
+  val newPassportCode: String,
+  val status: String,
+  val createdAt : LocalDateTime
+)
+
+data class Notification (
+
+  val id: Int,
+  val userId: Int,
+  val message: String,
+  val isRead: Boolean,
+  val createdAt : LocalDateTime
+)
+
 data class Seat (
 
   val id: Int,

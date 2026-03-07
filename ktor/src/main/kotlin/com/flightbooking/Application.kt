@@ -12,6 +12,8 @@ import io.ktor.server.response.*
 
 import com.flightbooking.database.DatabaseFactory
 import com.flightbooking.routes.userRoutes
+import com.flightbooking.routes.flightRoutes
+import com.flightbooking.routes.userInteractionRoutes
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -33,5 +35,7 @@ fun Application.module() {
             call.respondText("Flight Booking Running")
         }
         userRoutes()
+        flightRoutes()
+        userInteractionRoutes()
     }
 }

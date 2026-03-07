@@ -14,7 +14,22 @@ object DatabaseFactory {
         )
 
         transaction {
-            SchemaUtils.create(UserTable, BookingTable, FlightTable, AircraftTable, AirportTable, PassengerTable, PaymentTable, ComplaintTable, SeatTable, TicketAssignmentTable, FlightSeatTable)
+            SchemaUtils.create(
+                UserTable, 
+                BookingTable, 
+                FlightTable, 
+                AircraftTable, 
+                AirportTable, 
+                PassengerTable, 
+                PaymentTable, 
+                ComplaintTable, 
+                SeatTable, 
+                TicketAssignmentTable, 
+                FlightSeatTable, 
+                FlightChangeRequestTable, 
+                PassengerInfoChangeRequestTable, 
+                NotificationTable
+            )
             
         }
     }
