@@ -8,31 +8,22 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 
 fun Route.flightRoutes() {
 
     val flightRepository = FlightRepository()
 
-    route("/flights"){  
-        get("/all"){
-            val flights = flightRepository.getAllFlights()
-            call.respond(flights)
-        }
+    get("/search"){
+        val params = call.request.queryParameters
 
-        get("/search"){
-            val params = call.receiveParameters()
+        val fromCode = params["fromCode"]
+        val toCode = params["toCode"]
+        val date = params["date"]?.let { LocalDate.parse(it) }
+        val numOfPassengers = params["numOfPassengers"]?.toIntOrNull()
 
-            val fromCode = params["fromCode"]
-            val toCode = params["toCode"]
-
-            if (fromCode == null || toCode == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing airport codes")
-                return@get
-            }
-
-            val flights = flightRepository.searchFlights(fromCode, toCode)
-            call.respond(flights)
-        }
+        val flights = flightRepository.searchFlights(fromCode, toCode, date, numOfPassengers)
+        call.respond(flights)
     }
 }
