@@ -18,12 +18,12 @@ fun Route.flightRoutes() {
     get("/search"){
         val params = call.request.queryParameters
 
-        val fromCode = params["fromCode"]
-        val toCode = params["toCode"]
+        val fromCodes = call.request.queryParameters.getAll("from")
+        val toCodes = call.request.queryParameters.getAll("to")
         val date = params["date"]?.let { LocalDate.parse(it) }
         val numOfPassengers = params["numOfPassengers"]?.toIntOrNull()
 
-        val flights = flightRepository.searchFlights(fromCode, toCode, date, numOfPassengers)
+        val flights = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
         call.respond(flights)
     }
 }

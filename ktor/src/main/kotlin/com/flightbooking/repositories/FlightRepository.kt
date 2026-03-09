@@ -10,41 +10,37 @@ import java.time.LocalDate
 
 class FlightRepository {
 
-    fun searchFlights(fromCode: String?, toCode: String?, date: LocalDate?, numOfPassengers: Int?): List<Flight> = transaction {
+    fun searchFlights(fromCodes: List<String>?, toCodes: List<String>?, date: LocalDate?, numOfPassengers: Int?): List<Flight> = transaction {
 
-        val searchFromCode = fromCode ?: "LBA"
+        val searchFromCodes = fromCodes ?: listOf("LBA")
         val searchDate = date ?: LocalDate.now()
         val searchNumOfPassengers = numOfPassengers ?: 1
 
-        val from = AirportTable
-        .select { AirportTable.code eq searchFromCode }
-        .singleOrNull() ?: return@transaction emptyList()
-
-        val fromId = from[AirportTable.id]
+        val fromIds = AirportTable
+        .select { AirportTable.code inList searchFromCodes }
+        .map { it[AirportTable.id] } ?: return@transaction emptyList()
 
         val dayStart = searchDate.atStartOfDay()
         val dayEnd = searchDate.atTime(23, 59, 59)
 
-        if (toCode == null) {
+        if (toCodes == null) {
             FlightTable
             .select { 
-                (FlightTable.departureAirportId eq fromId) and 
+                (FlightTable.departureAirportId inList fromIds) and 
                 (FlightTable.departureTime greaterEq dayStart) and
                 (FlightTable.departureTime lessEq dayEnd)
             }
             .map { resultRowToFlight(it) }
         }
         else {
-            val to = AirportTable
-            .select { AirportTable.code eq toCode }
-            .singleOrNull() ?: return@transaction emptyList()
-
-            val toId = to[AirportTable.id]
+            val toIds = AirportTable
+            .select { AirportTable.code inList toCodes }
+            .map { it[AirportTable.id] } ?: return@transaction emptyList()
 
             FlightTable
             .select { 
-                (FlightTable.departureAirportId eq fromId) and 
-                (FlightTable.arrivalAirportId eq toId) and
+                (FlightTable.departureAirportId inList fromIds) and 
+                (FlightTable.arrivalAirportId inList toIds) and
                 (FlightTable.departureTime greaterEq dayStart) and
                 (FlightTable.departureTime lessEq dayEnd)
             }
