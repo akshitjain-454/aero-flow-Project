@@ -12,14 +12,14 @@ class FlightChangeRequestRepository {
         transaction {
             FlightChangeRequestTable.insert {
                 it[FlightChangeRequestTable.bookingId] = bookingId
-                it[FlightChangeRequestTable.requestedFlightId] = requestedFlightId
-                it[FlightChangeRequestTable.status] = "Pending" 
+                it[FlightChangeRequestTable.requestedFlightId] = requestFlightId
+                it[FlightChangeRequestTable.status] = "Pending"
                 it[FlightChangeRequestTable.createdAt] = LocalDateTime.now()
             }
         }
     }
 
-    fun getRequestByBookingId(bookingId:Int): List<FlightChangeRequest> {
+    fun getRequestByBookingId(bookingId: Int): List<FlightChangeRequest> {
         return transaction {
             FlightChangeRequestTable
                 .select { FlightChangeRequestTable.bookingId eq bookingId }
