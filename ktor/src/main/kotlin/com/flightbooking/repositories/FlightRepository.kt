@@ -18,7 +18,7 @@ class FlightRepository {
 
         val fromIds = AirportTable
         .select { AirportTable.code inList searchFromCodes }
-        .map { it[AirportTable.id] }
+        .map { it[AirportTable.id] } ?: return@transaction emptyList()
 
         val dayStart = searchDate.atStartOfDay()
         val dayEnd = searchDate.atTime(23, 59, 59)
@@ -35,7 +35,7 @@ class FlightRepository {
         else {
             val toIds = AirportTable
             .select { AirportTable.code inList toCodes }
-            .map { it[AirportTable.id] }
+            .map { it[AirportTable.id] } ?: return@transaction emptyList()
 
             FlightTable
             .select { 
