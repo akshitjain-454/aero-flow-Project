@@ -26,11 +26,7 @@ object DatabaseFactory {
                 SeatTable, 
                 TicketAssignmentTable, 
                 FlightSeatTable, 
-                FlightChangeRequestTable, 
-                PassengerInfoChangeRequestTable, 
-                NotificationTable
             )
-            
         }
     }
 }

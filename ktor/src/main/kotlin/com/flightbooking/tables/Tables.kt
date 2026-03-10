@@ -128,38 +128,3 @@ object FlightSeatTable : Table("FlightSeat") {
 
   override val primaryKey = PrimaryKey(id)
 }
-
-object FlightChangeRequestTable : Table("FlightChangeRequest") {
-
-  val id = integer("flight_change_request_id").autoIncrement()
-  val bookingId = integer("booking_id").references(BookingTable.id)
-  val requestedFlightId = integer("request_flight_id").references(FlightTable.id)
-  val status = varchar("status", 100)
-  val createdAt = datetime("created_at")
-
-  override val primaryKey = PrimaryKey(id)
-}
-
-object PassengerInfoChangeRequestTable : Table("PassengerInfoChangeRequest") {
-  
-  val id = integer("passenger_info_change_request_id").autoIncrement()
-  val bookingId = integer("booking_id").references(BookingTable.id)
-  val newFirstname = varchar("new_firstname", 100)
-  val newLastname = varchar("new_lastname", 100)
-  val newPassportCode = varchar("new_passport_code", 100)
-  val status = varchar("status", 100)
-  val createdAt = datetime("created_at")
-
-  override val primaryKey = PrimaryKey(id)
-}
-
-object NotificationTable : Table("Notification") {
-  
-  val id = integer("notification_id").autoIncrement()
-  val userId = integer("user_id").references(UserTable.id)
-  val message = varchar("message", 300)
-  val isRead = bool("is_read")
-  val createdAt = datetime("created_at")
-
-  override val primaryKey = PrimaryKey(id)
-}
