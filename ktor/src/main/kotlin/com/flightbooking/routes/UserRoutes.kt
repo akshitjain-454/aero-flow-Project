@@ -3,6 +3,7 @@ package com.flightbooking.routes
 import com.flightbooking.models.User
 import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.enums.UserRole
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -43,7 +44,7 @@ fun Route.userRoutes() {
             lastname = lastname,
             email = email,
             passwordHash = passwordHash,
-            role = "USER",
+            role = UserRole.USER,
             createdAt = LocalDateTime.now()
         )
 
