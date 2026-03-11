@@ -48,6 +48,12 @@ class FlightRepository {
         }
     }
 
+    fun getFlightByFlightCode(flightCode: String): Flight? = transaction {
+        FlightTable
+            .select{ FlightTable.flightCode eq flightCode }
+            .map { resultRowToFlight(it) }.singleOrNull()
+    }
+
     fun resultRowToFlight(row: ResultRow): Flight {
         return Flight(
             id = row[FlightTable.id],

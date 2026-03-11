@@ -15,6 +15,8 @@ import io.ktor.util.hex
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.database.DatabaseFactory
 import com.flightbooking.routes.userRoutes
+import com.flightbooking.routes.flightRoutes
+import com.flightbooking.routes.bookingRoutes
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -47,5 +49,7 @@ fun Application.module() {
             call.respondText("Flight Booking Running")
         }
         userRoutes()
+        flightRoutes()
+        bookingRoutes()
     }
 }
