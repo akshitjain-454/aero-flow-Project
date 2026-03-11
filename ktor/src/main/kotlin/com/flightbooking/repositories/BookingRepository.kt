@@ -2,6 +2,8 @@ package com.flightbooking.repositories
 
 import com.flightbooking.models.Booking
 import com.flightbooking.tables.BookingTable
+import com.flightbooking.tables.UserTable
+import com.flightbooking.tables.FlightTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -11,7 +13,10 @@ class BookingRepository {
     fun createBooking(booking: Booking) { 
         transaction {
             BookingTable.insert{
+                it[id] =  booking.id
                 it[bookingReference] = booking.bookingReference
+                it[userId] =  booking.userId
+                it[flightId]= booking.flightId
                 it[status] = booking.status
                 it[createdAt] = LocalDateTime.now()
             }
