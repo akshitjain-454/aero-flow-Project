@@ -25,6 +25,7 @@ dependencies {
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("io.ktor:ktor-server-sessions")
     
     implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-serialization-jackson:2.3.4")

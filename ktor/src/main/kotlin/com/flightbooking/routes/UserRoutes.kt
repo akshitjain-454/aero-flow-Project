@@ -2,6 +2,7 @@ package com.flightbooking.routes
 
 import com.flightbooking.models.User
 import com.flightbooking.repositories.UserRepository
+import com.flightbooking.sessions.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -9,6 +10,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.time.LocalDateTime
 import org.mindrot.jbcrypt.BCrypt
+import io.ktor.server.sessions.*
+
 
 fun Route.userRoutes() {
 
@@ -45,6 +48,13 @@ fun Route.userRoutes() {
         )
 
         userRepository.createUser(user)
+
+        call.sessions.set(
+            UserSession(
+                userId = user.userId,
+                role = user.role
+            )
+        )
         call.respond(HttpStatusCode.Created, "User registered successfully")
     }
 
@@ -67,6 +77,12 @@ fun Route.userRoutes() {
         }
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
+            call.sessions.set(
+                UserSession(
+                    userId = user.userId,
+                    role = user.role
+                )
+            )
             call.respond(HttpStatusCode.OK, "User login successful")
         }
         else {
