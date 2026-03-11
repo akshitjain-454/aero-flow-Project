@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    kotlin("plugin.serialization") version "1.9.22"
 }
+
 
 group = "com.FlightBooking"
 version = "0.0.1"

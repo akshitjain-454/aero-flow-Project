@@ -51,7 +51,7 @@ fun Route.userRoutes() {
 
         call.sessions.set(
             UserSession(
-                userId = user.userId,
+                userId = user.id,
                 role = user.role
             )
         )
@@ -79,7 +79,7 @@ fun Route.userRoutes() {
         if (BCrypt.checkpw(password, user.passwordHash)) {
             call.sessions.set(
                 UserSession(
-                    userId = user.userId,
+                    userId = user.id,
                     role = user.role
                 )
             )
@@ -90,4 +90,8 @@ fun Route.userRoutes() {
         }
     }
     
+    post("/logout"){
+        call.sessions.clear<UserSession>()
+        call.respond("Logged out")
+    }
 }
