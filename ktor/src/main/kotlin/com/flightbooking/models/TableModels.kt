@@ -1,5 +1,6 @@
 package com.flightbooking.models
 
+import com.flightbooking.enums.*
 import java.time.LocalDateTime
 import java.math.BigDecimal
 
@@ -10,7 +11,7 @@ data class User(
     val lastname: String,
     val email: String,
     val passwordHash: String,
-    val role: String,
+    val role: UserRole,
     val createdAt: LocalDateTime
 )
 
@@ -21,7 +22,7 @@ data class Booking (
   val bookingReference: String, 
   val userId: Int,
   val flightId: Int,
-  val status: String,
+  val status: BookingStatus,
   val createdAt: LocalDateTime
 )
 
@@ -35,7 +36,7 @@ data class Flight (
   val departureTime: LocalDateTime,
   val arrivalTime: LocalDateTime,
   val price: BigDecimal,
-  val status: String
+  val status: FlightStatus
 )
 
 data class Aircraft (
@@ -68,8 +69,8 @@ data class Payment (
   val id: Int,
   val bookingId: Int,
   val amount: BigDecimal,
-  val paymentStatus: String,
-  val paymentMethod: String,
+  val paymentStatus: PaymentStatus,
+  val paymentMethod: PaymentMethod,
   val transactionId: String,
   val createdAt: LocalDateTime,
   val refundAmount: BigDecimal?,
@@ -81,7 +82,7 @@ data class Complaint (
   val id: Int,
   val userId: Int,
   val message: String,
-  val status: String,
+  val status: ComplaintStatus,
   val createdAt : LocalDateTime
 )
 
@@ -90,7 +91,7 @@ data class Seat (
   val id: Int,
   val aircraftId: Int,
   val seatNumber: String,
-  val seatClass: String
+  val seatClass: SeatClass
 )
 
 data class TicketAssignment (
