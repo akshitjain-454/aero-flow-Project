@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    kotlin("plugin.serialization") version "1.9.22"
 }
+
 
 group = "com.FlightBooking"
 version = "0.0.1"
@@ -25,6 +27,7 @@ dependencies {
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("io.ktor:ktor-server-sessions")
     
     implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-serialization-jackson:2.3.4")
