@@ -4,23 +4,35 @@ import com.flightbooking.models.Booking
 import com.flightbooking.tables.BookingTable
 import com.flightbooking.tables.UserTable
 import com.flightbooking.tables.FlightTable
+import com.flightbooking.enums.BookingStatus
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.util.UUID
 
 class BookingRepository {
 
-    fun createBooking(booking: Booking) { 
-        transaction {
-            BookingTable.insert{
-                it[id] =  booking.id
-                it[bookingReference] = booking.bookingReference
-                it[userId] =  booking.userId
-                it[flightId]= booking.flightId
-                it[status] = booking.status
-                it[createdAt] = LocalDateTime.now()
-            }
-        }
+    fun createBooking(userId: Int, flightId: Int): Booking = transaction { 
+
+        val now = LocalDateTime.now()
+        val reference = generateBookingReference()
+
+        val bookingId = BookingTable.insert{
+            it[bookingReference] = reference
+            it[BookingTable.userId] = userId
+            it[BookingTable.flightId]= flightId
+            it[status] = BookingStatus.CREATED
+            it[createdAt] = now
+        } get BookingTable.id
+
+        Booking(
+            id = bookingId,
+            bookingReference = reference,
+            userId = userId,
+            flightId = flightId,
+            status = BookingStatus.CREATED,
+            createdAt = now
+        )
     }
 
     fun filterBooking(bookingReference: String): Booking? = transaction {
@@ -39,4 +51,9 @@ class BookingRepository {
             createdAt = row[BookingTable.createdAt],
         )
     }
+
+    fun generateBookingReference(): String {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 8).uppercase()
+    }
+
 }
