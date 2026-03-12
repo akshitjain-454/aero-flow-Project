@@ -54,11 +54,11 @@ fun Route.bookingRoutes() {
             call.respondRedirect("/booking/$reference/passengers")
         }
     }
+
     get("/review_bookings"){
         val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
         val bookings = bookingRepository.getBookingsByUserId(session.userId)
 
         call.respond(bookings)
     }
-
 }
