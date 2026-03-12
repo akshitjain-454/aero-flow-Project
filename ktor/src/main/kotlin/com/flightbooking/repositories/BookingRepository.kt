@@ -52,15 +52,21 @@ class BookingRepository {
             passportCode = passportCode
         ) 
     }
-
-    fun filterBooking(bookingReference: String): Booking? = transaction {
+    
+    fun getBookingsByUserId(userId: Int): List<Booking> = transaction {
         BookingTable
-            .select{ BookingTable.bookingReference eq bookingReference }
+            .select { BookingTable.userId eq userId }
+            .map { resultRowToBooking(it) }
+    }
+
+    fun getBookingByReference(bookingReference: String): Booking? = transaction {
+        BookingTable
+            .select { BookingTable.bookingReference eq bookingReference }
             .map { resultRowToBooking(it) }.singleOrNull()
     }
 
     fun resultRowToBooking(row: ResultRow): Booking {
-        return Booking(
+        return Booking (
             id = row[BookingTable.id],
             bookingReference = row[BookingTable.bookingReference],
             userId = row[BookingTable.userId],

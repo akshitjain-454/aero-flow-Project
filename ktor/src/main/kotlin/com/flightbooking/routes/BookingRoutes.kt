@@ -34,7 +34,7 @@ fun Route.bookingRoutes() {
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
 
-            val booking = bookingRepository.filterBooking(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Unauthorized, "Not the users booking") 
@@ -53,5 +53,12 @@ fun Route.bookingRoutes() {
 
             call.respondRedirect("/booking/$reference/passengers")
         }
+    }
+
+    get("/review_bookings"){
+        val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+        val bookings = bookingRepository.getBookingsByUserId(session.userId)
+
+        call.respond(bookings)
     }
 }

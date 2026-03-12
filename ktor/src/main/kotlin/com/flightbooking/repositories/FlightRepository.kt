@@ -50,7 +50,7 @@ class FlightRepository {
 
     fun getFlightByFlightCode(flightCode: String): Flight? = transaction {
         FlightTable
-            .select{ FlightTable.flightCode eq flightCode }
+            .select { FlightTable.flightCode eq flightCode }
             .map { resultRowToFlight(it) }.singleOrNull()
     }
 

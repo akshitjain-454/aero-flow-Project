@@ -23,7 +23,7 @@ class UserRepository {
 
     fun getUserByEmail(email: String): User? = transaction {
         UserTable
-            .select{ UserTable.email eq email }
+            .select { UserTable.email eq email }
             .map { resultRowToUser(it) }.singleOrNull()
     }
 
