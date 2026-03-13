@@ -1,4 +1,4 @@
-package com.flightbooking.routes 
+package com.flightbooking.routes
 
 import com.flightbooking.models.User
 import com.flightbooking.repositories.UserRepository
@@ -9,29 +9,27 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.time.LocalDateTime
-import org.mindrot.jbcrypt.BCrypt
 import io.ktor.server.sessions.*
-
+import org.mindrot.jbcrypt.BCrypt
+import java.time.LocalDateTime
 
 fun Route.userRoutes() {
 
     val userRepository = UserRepository()
 
-    post("/sign_up"){
+    post("/sign_up") {
         val params = call.receiveParameters()
-
         val firstname = params["firstname"]
         val lastname = params["lastname"]
         val email = params["email"]
         val password = params["password"]
-        
-        if(firstname == null || lastname == null || email == null || password == null){
+
+        if (firstname == null || lastname == null || email == null || password == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing required field")
             return@post
         }
 
-        if(userRepository.getUserByEmail(email) != null){
+        if (userRepository.getUserByEmail(email) != null) {
             call.respond(HttpStatusCode.BadRequest, "Email already registered")
             return@post
         }
@@ -50,18 +48,13 @@ fun Route.userRoutes() {
 
         userRepository.createUser(user)
 
-        call.sessions.set(
-            UserSession(
-                userId = user.id,
-                role = user.role
-            )
-        )
+        // set session
+        call.sessions.set(UserSession(user.id, user.role))
         call.respond(HttpStatusCode.Created, "User registered successfully")
     }
 
-    post("/login"){
+    post("/login") {
         val params = call.receiveParameters()
-
         val email = params["email"]
         val password = params["password"]
 
@@ -71,28 +64,17 @@ fun Route.userRoutes() {
         }
 
         val user = userRepository.getUserByEmail(email)
-
-        if (user == null) {
+        if (user == null || !BCrypt.checkpw(password, user.passwordHash)) {
             call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
             return@post
         }
 
-        if (BCrypt.checkpw(password, user.passwordHash)) {
-            call.sessions.set(
-                UserSession(
-                    userId = user.id,
-                    role = user.role
-                )
-            )
-            call.respond(HttpStatusCode.OK, "User login successful")
-        }
-        else {
-            call.respond(HttpStatusCode.Unauthorized, "Invalid password")
-        }
+        call.sessions.set(UserSession(user.id, user.role))
+        call.respond(HttpStatusCode.OK, "User login successful")
     }
-    
-    post("/logout"){
+
+    post("/logout") {
         call.sessions.clear<UserSession>()
-        call.respond("Logged out")
+        call.respond(HttpStatusCode.OK, "Logged out successfully")
     }
 }

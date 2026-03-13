@@ -1,43 +1,59 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.ktor)
+    kotlin("jvm") version "1.9.22"
+    id("io.ktor.plugin") version "3.4.0"
     kotlin("plugin.serialization") version "1.9.22"
+    application
 }
-
 
 group = "com.FlightBooking"
 version = "0.0.1"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    mainClass.set("io.ktor.server.netty.EngineMain") // Ktor Netty entry point
+}
+
+repositories {
+    mavenCentral()
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(21) // Java 21
 }
 
 dependencies {
-    implementation(libs.ktor.server.html.builder)
-    implementation(libs.kotlinx.html)
-    implementation(libs.ktor.server.core)
-    implementation(libs.kotlin.css)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.logback.classic)
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
+    // Ktor Core & Netty
+    implementation("io.ktor:ktor-server-core:3.4.0")
+    implementation("io.ktor:ktor-server-netty:3.4.0")
+    implementation("io.ktor:ktor-server-auth:3.4.0")
+    implementation("io.ktor:ktor-server-html-builder:3.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1") // Keep only HTML builder
+
+    // Logging
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+
+    // Testing
+    testImplementation("io.ktor:ktor-server-test-host:3.4.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
+
+    // BCrypt for password hashing
     implementation("org.mindrot:jbcrypt:0.4")
-    implementation("io.ktor:ktor-server-sessions")
-    
-    implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
-    implementation("io.ktor:ktor-serialization-jackson:2.3.4")
+
+    // Sessions
+    implementation("io.ktor:ktor-server-sessions:3.4.0")
+
+    // Content Negotiation + Jackson
+    implementation("io.ktor:ktor-server-content-negotiation:3.4.0")
+    implementation("io.ktor:ktor-serialization-jackson:3.4.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
 
-    //SQLite and jetbrains exposed
+    // SQLite + Exposed ORM
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     implementation("org.jetbrains.exposed:exposed-core:0.45.0")
     implementation("org.jetbrains.exposed:exposed-dao:0.45.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.45.0")
 
+    // Pebble Templates
+    implementation("io.ktor:ktor-server-pebble:3.4.0")
+    implementation("io.pebbletemplates:pebble:3.2.2")
 }
