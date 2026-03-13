@@ -17,6 +17,7 @@ import com.flightbooking.database.DatabaseFactory
 import com.flightbooking.routes.userRoutes
 import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
+import com.flightbooking.routes.complaintRoutes
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -51,5 +52,6 @@ fun Application.module() {
         userRoutes()
         flightRoutes()
         bookingRoutes()
+        complaintRoutes()
     }
 }

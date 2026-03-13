@@ -65,6 +65,22 @@ class BookingRepository {
             .map { resultRowToBooking(it) }.singleOrNull()
     }
 
+    fun cancelBooking(bookingReference: String): Booking? = transaction {
+        val booking = BookingTable.select { BookingTable.bookingReference eq bookingReference }
+            .map { resultRowToBooking(it) }
+            .singleOrNull() ?: return@transaction null
+
+        if (booking.status == BookingStatus.CANCELLED) {
+            return@transaction booking
+        }
+
+        BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
+            it[status] = BookingStatus.CANCELLED
+        }
+
+        booking.copy(status = BookingStatus.CANCELLED)
+    }
+
     fun resultRowToBooking(row: ResultRow): Booking {
         return Booking (
             id = row[BookingTable.id],
