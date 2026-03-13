@@ -28,7 +28,12 @@ fun Route.flightRoutes() {
     }
     get("/airports"){
         val search = call.request.queryParameters["search"] ?: ""
-        
+       
+        if(search.length < 2){
+            call.respond(emptyList<String>())
+            return@get
+        }
+
         val airports = flightRepository.getAirportBySearch(search)
 
         call.respond(airports)
