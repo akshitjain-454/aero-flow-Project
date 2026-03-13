@@ -26,4 +26,11 @@ fun Route.flightRoutes() {
         val flights = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
         call.respond(flights)
     }
+    get("/airports"){
+        val search = call.request.queryParameters["search"] ?: ""
+        
+        val airports = flightRepository.getAirportBySearch(search)
+
+        call.respond(airports)
+    }
 }
