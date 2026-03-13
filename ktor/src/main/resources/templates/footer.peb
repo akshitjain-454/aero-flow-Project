@@ -1,0 +1,99 @@
+<footer class="bg-[--navy] text-white pt-32 pb-16 -mt-12 rounded-t-[50px] shadow-[0_-20px_50px_rgba(0,0,0,0.05)] border-t border-white/10 relative z-10">
+    <div class="max-w-7xl mx-auto px-8 md:px-12 lg:px-16">
+
+        <!-- Top Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20 border-b border-white/10 pb-20">
+            
+            <div>
+                <div class="text-3xl font-bold tracking-widest serif text-[--sky-blue] mb-6">AETHERIA</div>
+                <p class="text-gray-400 font-light max-w-md text-sm leading-relaxed">
+                    Redefining global travel through uncompromising luxury, safety, and bespoke service.
+                    Join us above the horizon.
+                </p>
+            </div>
+
+            <div class="lg:pl-12">
+                <h4 class="text-[10px] uppercase tracking-[0.3em] text-[--gold-light] font-bold mb-4">
+                    The Concierge Brief
+                </h4>
+                <p class="text-gray-400 font-light text-sm mb-6">
+                    Subscribe for private guides and membership updates.
+                </p>
+
+                <form action="/subscribe" method="POST" class="flex flex-col sm:flex-row gap-4">
+                    <input 
+                        type="email"
+                        name="email"
+                        placeholder="Enter email address"
+                        required
+                        class="flex-1 bg-transparent border-b border-gray-600 pb-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[--sky-blue] text-sm"
+                    >
+                    <button 
+                        type="submit"
+                        class="bg-[--sky-blue] px-8 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-white hover:text-black transition-all"
+                    >
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Footer Navigation -->
+        <nav aria-label="Footer Navigation" class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-20">
+
+            <div>
+                <h4 class="text-[10px] uppercase tracking-[0.2em] font-bold mb-6 text-gray-500">About Us</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-300">
+                    <li><a href="/about" class="hover:text-[--sky-blue] transition-colors">Our Ethos</a></li>
+                    <li><a href="/fleet" class="hover:text-[--sky-blue] transition-colors">Fleet</a></li>
+                    <li><a href="/careers" class="hover:text-[--sky-blue] transition-colors">Careers</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-[10px] uppercase tracking-[0.2em] font-bold mb-6 text-gray-500">Help</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-300">
+                    <li><a href="/help" class="hover:text-[--sky-blue] transition-colors">Help Centre</a></li>
+                    <li><a href="/contact" class="hover:text-[--sky-blue] transition-colors">Contact Us</a></li>
+                    <li><a href="/status" class="hover:text-[--sky-blue] transition-colors">Flight Status</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-[10px] uppercase tracking-[0.2em] font-bold mb-6 text-gray-500">Manage</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-300">
+                    <li><a href="/book" class="hover:text-[--sky-blue] transition-colors">Book Flight</a></li>
+                    <li><a href="/manage" class="hover:text-[--sky-blue] transition-colors">Manage Booking</a></li>
+                    <li><a href="/before-you-fly" class="hover:text-[--sky-blue] transition-colors">Before You Fly</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-[10px] uppercase tracking-[0.2em] font-bold mb-6 text-gray-500">Experience</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-300">
+                    <li><a href="/loyalty" class="hover:text-[--sky-blue] transition-colors">Loyalty</a></li>
+                    <li><a href="/connect" class="hover:text-[--sky-blue] transition-colors">Connect</a></li>
+                    <li><a href="/accessible-travel" class="hover:text-[--sky-blue] transition-colors">Accessible Travel</a></li>
+                </ul>
+            </div>
+
+        </nav>
+
+        <!-- Bottom Section -->
+        <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 gap-6">
+
+            <div class="flex gap-x-8 text-[10px] uppercase tracking-widest font-bold text-gray-400">
+                <a href="/accessibility" class="hover:text-white transition-colors">Accessibility Statement</a>
+                <a href="/terms" class="hover:text-white transition-colors">Terms & Conditions</a>
+                <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
+            </div>
+
+            <div class="text-[10px] uppercase tracking-[0.2em] text-gray-600 font-bold">
+                &copy; {{ year }} Aetheria Aviation Corp.
+            </div>
+
+        </div>
+
+    </div>
+</footer>

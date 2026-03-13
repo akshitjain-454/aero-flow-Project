@@ -1,0 +1,73 @@
+{% extends "base.peb" %}
+
+{% block title %}Aetheria | Sky-High Elegance{% endblock %}
+
+{% block content %}
+
+<section class="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
+
+    <div class="absolute inset-0 -z-10 bg-slate-200">
+        <img src="https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1920&q=80"
+             class="w-full h-full object-cover opacity-30 grayscale">
+    </div>
+
+    <div class="text-center mb-12">
+        <h1 class="text-6xl md:text-8xl serif font-light leading-tight mb-4">
+            The Art of <span class="italic text-[--sky-blue]">Arrival</span>
+        </h1>
+
+        <p class="text-gray-400 uppercase tracking-[0.4em] text-[10px] font-bold">
+            Bespoke Private Flight Charters
+        </p>
+    </div>
+
+    <div class="float-card w-full max-w-5xl rounded-[40px] overflow-hidden">
+
+        <div class="flex border-b border-gray-100 px-8 py-4 gap-8">
+            <button class="text-[10px] uppercase tracking-widest font-extrabold text-[--sky-blue] border-b-2 border-[--sky-blue] pb-1">Round Trip</button>
+            <button class="text-[10px] uppercase tracking-widest font-extrabold text-gray-300 hover:text-black">One Way</button>
+            <button class="text-[10px] uppercase tracking-widest font-extrabold text-gray-300 hover:text-black">Multi-City</button>
+        </div>
+
+        <form action="/search" method="GET"
+              class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
+
+            <div>
+                <label class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">
+                    Origin
+                </label>
+
+                <input type="text" name="origin"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none">
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">
+                    Destination
+                </label>
+
+                <input type="text" name="destination"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none">
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">
+                    Departure
+                </label>
+
+                <input type="date"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none">
+            </div>
+
+            <button
+                class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue]">
+                Find Availability
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

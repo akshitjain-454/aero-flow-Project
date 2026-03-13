@@ -1,0 +1,124 @@
+{% extends "base.peb" %}
+
+{% block title %}Login | Aetheria{% endblock %}
+
+{% block head %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --sky-blue: #0066FF;
+    --pearl: #FAFAFA;
+    --charcoal: #1A1A1A;
+    --navy-deep: #050B18;
+}
+
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background: radial-gradient(circle at center, #0B1930 0%, #050B18 100%);
+}
+
+.serif { font-family: 'Playfair Display', serif; }
+
+.glass-card {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.6);
+}
+
+@keyframes subtlePan {
+    0% { transform: scale(1.1) translateX(0); }
+    100% { transform: scale(1.2) translateX(-20px); }
+}
+
+.animate-pan {
+    animation: subtlePan 20s infinite alternate ease-in-out;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden">
+
+<div class="absolute inset-0 z-0">
+<img src="https://images.unsplash.com/photo-1464039397811-476f652a343b?q=80&w=2000&auto=format&fit=crop"
+class="w-full h-full object-cover animate-pan opacity-70">
+
+<div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#050B18]/80"></div>
+</div>
+
+<main class="relative z-10 w-full max-w-[460px] px-6">
+
+<div class="glass-card rounded-[40px] overflow-hidden">
+
+<div class="p-10 md:p-14">
+
+<div class="text-center mb-12">
+<div class="inline-block text-2xl font-bold tracking-tighter serif text-[--sky-blue] mb-3">
+AETHERIA
+</div>
+
+<h1 class="text-3xl font-bold text-[--charcoal] tracking-tight">
+Member Concierge
+</h1>
+
+<p class="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">
+Private & Elite Access
+</p>
+</div>
+
+<form action="/login-endpoint" method="POST" class="space-y-8">
+
+<div>
+<label class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest">
+Email Address
+</label>
+
+<input type="email" name="email" required
+placeholder="concierge@aetheria.com"
+class="w-full bg-transparent border-b border-gray-200 pb-3 text-lg font-medium outline-none focus:border-[--sky-blue]">
+</div>
+
+<div>
+<label class="text-[10px] uppercase font-extrabold text-gray-400 tracking-widest">
+Password
+</label>
+
+<input type="password" name="password" required
+placeholder="••••••••"
+class="w-full bg-transparent border-b border-gray-200 pb-3 text-lg font-medium outline-none focus:border-[--sky-blue]">
+</div>
+
+<button type="submit"
+class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue]">
+Sign In
+</button>
+
+</form>
+
+</div>
+
+<div class="bg-gray-50/50 border-t border-gray-100 p-8 text-center text-sm">
+
+<p class="text-gray-500 font-light">
+Not an Aetherian member?
+<a href="/register" class="text-[--sky-blue] font-bold hover:underline ml-1">
+Join now
+</a>
+</p>
+
+</div>
+
+</div>
+
+</main>
+
+</div>
+
+{% endblock %}
