@@ -53,6 +53,26 @@ fun Route.bookingRoutes() {
 
             call.respondRedirect("/booking/$reference/passengers")
         }
+        post("/{reference}/cancel") {
+            val reference = call.parameters["reference"]?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
+            val booking = bookingRepository.getBookingByReference(reference)?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            
+            if (booking.userId != session.userId) {
+                return@post call.respond(HttpStatusCode.Unauthorized, "Not the user's booking")
+                }
+            
+            val cancelledBooking = bookingRepository.cancelBooking(reference)?: return@post call.respond(HttpStatusCode.InternalServerError, "Could not cancel booking")
+            
+            call.respond(
+                HttpStatusCode.OK,
+                mapOf(
+                    "message" to "Booking cancelled successfully",
+                    "bookingReference" to cancelledBooking.bookingReference,
+                    "status" to cancelledBooking.status.toString()
+                )
+            )
+        }
     }
 
     get("/review_bookings"){
