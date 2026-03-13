@@ -3,6 +3,8 @@ package com.flightbooking.repositories
 import com.flightbooking.models.Flight
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.tables.AirportTable
+import com.flightbooking.tables.FlightSeatTable
+import com.flightbooking.tables.TicketAssignmentTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -22,10 +24,18 @@ class FlightRepository {
 
         val dayStart = searchDate.atStartOfDay()
         val dayEnd = searchDate.atTime(23, 59, 59)
+        
+        val availableFlightIds = (FlightSeatTable leftJoin TicketAssignmentTable)
+        .slice(FlightSeatTable.flightId)
+        .selectAll()
+        .groupBy(FlightSeatTable.flightId)
+        .having { (FlightSeatTable.id.count() - TicketAssignmentTable.id.count()) greaterEq searchNumOfPassengers.toLong() }
+        .map { it[FlightSeatTable.flightId] }
 
         if (toCodes == null) {
             FlightTable
             .select { 
+                (FlightTable.id inList availableFlightIds) and 
                 (FlightTable.departureAirportId inList fromIds) and 
                 (FlightTable.departureTime greaterEq dayStart) and
                 (FlightTable.departureTime lessEq dayEnd)
@@ -39,6 +49,7 @@ class FlightRepository {
 
             FlightTable
             .select { 
+                (FlightTable.id inList availableFlightIds) and
                 (FlightTable.departureAirportId inList fromIds) and 
                 (FlightTable.arrivalAirportId inList toIds) and
                 (FlightTable.departureTime greaterEq dayStart) and
