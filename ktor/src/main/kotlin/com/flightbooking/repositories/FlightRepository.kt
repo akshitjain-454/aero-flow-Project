@@ -1,6 +1,7 @@
 package com.flightbooking.repositories
 
 import com.flightbooking.models.Flight
+import com.flightbooking.models.Airport
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.tables.AirportTable
 import com.flightbooking.tables.FlightSeatTable
@@ -63,6 +64,28 @@ class FlightRepository {
         FlightTable
             .select { FlightTable.flightCode eq flightCode }
             .map { resultRowToFlight(it) }.singleOrNull()
+    }
+
+    
+    fun getAirportBySearch(search: String): List<Airport>  = transaction {
+        AirportTable
+        .select { (AirportTable.name like "%$search%") or
+                  (AirportTable.code like "$search%") or
+                  (AirportTable.city like "%$search%") or
+                  (AirportTable.country like "%$search%")
+        }
+        .limit(10)
+        .map { resultRowToAirport(it) }
+    }
+
+    fun resultRowToAirport(row: ResultRow): Airport {
+        return Airport(
+            id = row[AirportTable.id],
+            name = row[AirportTable.name],
+            code = row[AirportTable.code],
+            city = row[AirportTable.city],
+            country = row[AirportTable.country]
+        )
     }
 
     fun resultRowToFlight(row: ResultRow): Flight {
