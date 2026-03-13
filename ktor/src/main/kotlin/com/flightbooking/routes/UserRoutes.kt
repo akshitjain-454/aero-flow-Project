@@ -18,7 +18,7 @@ fun Route.userRoutes() {
 
     val userRepository = UserRepository()
 
-    post("/sign_up"){
+    post("/sign_up") {
         val params = call.receiveParameters()
 
         val firstname = params["firstname"]
@@ -26,12 +26,12 @@ fun Route.userRoutes() {
         val email = params["email"]
         val password = params["password"]
         
-        if(firstname == null || lastname == null || email == null || password == null){
+        if(firstname == null || lastname == null || email == null || password == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing required field")
             return@post
         }
 
-        if(userRepository.getUserByEmail(email) != null){
+        if(userRepository.getUserByEmail(email) != null) {
             call.respond(HttpStatusCode.BadRequest, "Email already registered")
             return@post
         }
@@ -59,7 +59,7 @@ fun Route.userRoutes() {
         call.respond(HttpStatusCode.Created, "User registered successfully")
     }
 
-    post("/login"){
+    post("/login") {
         val params = call.receiveParameters()
 
         val email = params["email"]
@@ -91,7 +91,7 @@ fun Route.userRoutes() {
         }
     }
     
-    post("/logout"){
+    post("/logout") {
         call.sessions.clear<UserSession>()
         call.respond("Logged out")
     }
