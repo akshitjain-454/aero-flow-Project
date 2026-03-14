@@ -72,7 +72,7 @@ fun Route.bookingRoutes() {
                 val taken = bookingRepository.isSeatTaken(flightSeatId)
                 if(taken) { return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") }
                 
-                bookingRepository.ticketAssignment(passenger.id, flightSeatId) ?: return@post call.respond(HttpStatusCode.InternalServerError, "Could not assign ticket")
+                val ticketAssignment = bookingRepository.ticketAssignment(passenger.id, flightSeatId) ?: return@post call.respond(HttpStatusCode.InternalServerError, "Could not assign ticket")
             }
             
             call.respondRedirect("/booking/$reference/payment")

@@ -56,9 +56,9 @@ class BookingRepository {
         ) 
     }
 
-    fun ticketAssignment(passengerId: Int, seatId: Int): TicketAssignment? = transaction {
+    fun ticketAssignment(passengerId: Int, flightSeatId: Int): TicketAssignment? = transaction {
         val flightSeatId = FlightSeatTable
-        .select { FlightSeatTable.seatId eq seatId }
+        .select { FlightSeatTable.id eq flightSeatId }
         .map { it[FlightSeatTable.id] }
         .singleOrNull() ?: return@transaction null
 
@@ -74,8 +74,8 @@ class BookingRepository {
         ) 
     }
 
-    fun isSeatTaken(flightSeatId: Int): Boolean {
-        return !TicketAssignmentTable
+    fun isSeatTaken(flightSeatId: Int): Boolean = transaction {
+        !TicketAssignmentTable
         .select { TicketAssignmentTable.flightSeatId eq flightSeatId }
         .empty()
 
