@@ -1,8 +1,11 @@
 package com.flightbooking.repositories
 
 import com.flightbooking.models.Booking
-import com.flightbooking.tables.BookingTable
+import com.flightbooking.models.TicketAssignment
 import com.flightbooking.models.Passenger
+import com.flightbooking.tables.BookingTable
+import com.flightbooking.tables.TicketAssignmentTable
+import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.PassengerTable
 import com.flightbooking.tables.UserTable
 import com.flightbooking.tables.FlightTable
@@ -52,17 +55,30 @@ class BookingRepository {
             passportCode = passportCode
         ) 
     }
-    
-    fun getBookingsByUserId(userId: Int): List<Booking> = transaction {
-        BookingTable
-            .select { BookingTable.userId eq userId }
-            .map { resultRowToBooking(it) }
+
+    fun ticketAssignment(passengerId: Int, flightSeatId: Int): TicketAssignment? = transaction {
+        val flightSeatId = FlightSeatTable
+        .select { FlightSeatTable.id eq flightSeatId }
+        .map { it[FlightSeatTable.id] }
+        .singleOrNull() ?: return@transaction null
+
+        val ticketAssignmentId = TicketAssignmentTable.insert {
+            it[TicketAssignmentTable.passengerId] = passengerId
+            it[TicketAssignmentTable.flightSeatId] = flightSeatId
+        } get TicketAssignmentTable.id
+
+        TicketAssignment (
+            id = ticketAssignmentId,
+            passengerId = passengerId,
+            flightSeatId = flightSeatId
+        ) 
     }
 
-    fun getBookingByReference(bookingReference: String): Booking? = transaction {
-        BookingTable
-            .select { BookingTable.bookingReference eq bookingReference }
-            .map { resultRowToBooking(it) }.singleOrNull()
+    fun isSeatTaken(flightSeatId: Int): Boolean = transaction {
+        !TicketAssignmentTable
+        .select { TicketAssignmentTable.flightSeatId eq flightSeatId }
+        .empty()
+
     }
 
     fun cancelBooking(bookingReference: String): Booking? = transaction {
@@ -81,6 +97,24 @@ class BookingRepository {
         booking.copy(status = BookingStatus.CANCELLED)
     }
 
+    fun getPassengersByBookingId(bookingId: Int): List<Passenger> = transaction {
+        PassengerTable
+            .select { PassengerTable.bookingId eq bookingId }
+            .map { resultRowToPassenger(it) }
+    }
+
+    fun getBookingsByUserId(userId: Int): List<Booking> = transaction {
+        BookingTable
+            .select { BookingTable.userId eq userId }
+            .map { resultRowToBooking(it) }
+    }
+
+    fun getBookingByReference(bookingReference: String): Booking? = transaction {
+        BookingTable
+            .select { BookingTable.bookingReference eq bookingReference }
+            .map { resultRowToBooking(it) }.singleOrNull()
+    }
+
     fun resultRowToBooking(row: ResultRow): Booking {
         return Booking (
             id = row[BookingTable.id],
@@ -89,6 +123,16 @@ class BookingRepository {
             flightId = row[BookingTable.flightId],
             status = row[BookingTable.status],
             createdAt = row[BookingTable.createdAt],
+        )
+    }
+
+    fun resultRowToPassenger(row: ResultRow): Passenger {
+        return Passenger (
+            id = row[PassengerTable.id],
+            bookingId = row[PassengerTable.bookingId],
+            firstname = row[PassengerTable.firstname],
+            lastname = row[PassengerTable.lastname],
+            passportCode = row[PassengerTable.passportCode]
         )
     }
 
