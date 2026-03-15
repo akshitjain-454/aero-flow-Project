@@ -1,4 +1,4 @@
-package com.FlightBooking
+package com.flightbooking
 
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
@@ -9,8 +9,13 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
+import io.ktor.server.sessions.SessionStorageMemory
 import io.ktor.server.sessions.SessionTransportTransformerEncrypt
 import io.ktor.util.hex
+
+// --- PEBBLE IMPORTS ---
+import io.ktor.server.pebble.*
+import io.pebbletemplates.pebble.loader.ClasspathLoader
 
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.database.DatabaseFactory
@@ -29,26 +34,42 @@ fun Application.module() {
     install(ContentNegotiation) {
         jackson {
             enable(SerializationFeature.INDENT_OUTPUT)
-            registerModule(JavaTimeModule()) // <-- important for LocalDateTime
+            registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
 
-    install(Sessions){
-        cookie<UserSession>("user_session"){
+    install(Pebble) {
+        loader(ClasspathLoader().apply {
+            prefix = "templates"
+        })
+    }
+
+    install(Sessions) {
+        cookie<UserSession>("user_session") {
             cookie.path = "/"
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
-            val encryptKey = hex("ef82ffacc3920ae250206ead14bfcfff")
-            val signKey = hex("ab18cf1251005ede247e911a1e72ab67")
-            transform(SessionTransportTransformerEncrypt(encryptKey, signKey))
+            transform(SessionTransportTransformerEncrypt(
+                hex("ef82ffacc3920ae250206ead14bfcfff"),
+                hex("ab18cf1251005ede247e911a1e72ab67")
+            ))
         }
     }
 
-    routing{
-        get("/"){
-            call.respondText("Flight Booking Running")
+    routing {
+        get("/") {
+            call.respond(PebbleContent("index.peb", emptyMap<String, Any>()))
         }
+
+        get("/login") {
+            call.respond(PebbleContent("login.peb", emptyMap<String, Any>()))
+        }
+
+        get("/register") {
+            call.respond(PebbleContent("register.peb", emptyMap<String, Any>()))
+        }
+
         userRoutes()
         flightRoutes()
         bookingRoutes()

@@ -1,27 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Aetheria</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --sky-blue: #0066FF;
-            --pearl: #FAFAFA;
-            --charcoal: #1A1A1A;
-            --navy-deep: #050B18;
-        }
+{% extends "base.html" %}
 
+{% block title %}Login | Aetheria{% endblock %}
+
+{% block extra_css %}
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
             background: radial-gradient(circle at center, #0B1930 0%, #050B18 100%);
         }
-
-        .serif { font-family: 'Playfair Display', serif; }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.96);
@@ -39,15 +23,11 @@
         .animate-pan {
             animation: subtlePan 20s infinite alternate ease-in-out;
         }
+{% endblock %}
 
-        *:focus-visible {
-            outline: 3px solid var(--sky-blue);
-            outline-offset: 4px;
-        }
-    </style>
-</head>
-<body class="antialiased min-h-screen relative flex items-center justify-center overflow-hidden">
+{% block body_classes %}min-h-screen relative flex items-center justify-center overflow-hidden{% endblock %}
 
+{% block content %}
     <div class="absolute inset-0 z-0">
         <img src="https://images.unsplash.com/photo-1464039397811-476f652a343b?q=80&w=2000&auto=format&fit=crop" 
              alt="View of sunset clouds from an airplane window" 
@@ -68,7 +48,7 @@
                     <p class="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">Private & Elite Access</p>
                 </div>
 
-                <form action="/login-endpoint" method="POST" class="space-y-8">
+                <form action="/login" method="POST" class="space-y-8">
                     
                     <div class="group">
                         <label for="email" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Email Address</label>
@@ -94,13 +74,13 @@
             <div class="bg-gray-50/50 border-t border-gray-100 p-8 text-center text-sm">
                 <p class="text-gray-500 font-light">
                     Not an Aetherian member? 
-                    <a href="#" class="text-[--sky-blue] font-bold hover:underline ml-1">Join now</a>
+                    <a href="/register" class="text-[--sky-blue] font-bold hover:underline ml-1">Join now</a>
                 </p>
             </div>
         </div>
 
         <div class="text-center mt-10">
-            <a href="index.html" class="text-[10px] uppercase tracking-widest font-extrabold text-white/60 hover:text-white transition-colors inline-flex items-center">
+            <a href="/" class="text-[10px] uppercase tracking-widest font-extrabold text-white/60 hover:text-white transition-colors inline-flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Return to Homepage
             </a>
@@ -110,6 +90,4 @@
     <div class="absolute bottom-8 left-0 right-0 text-center text-[9px] uppercase tracking-widest text-white/30 font-bold">
         &copy; 2026 Aetheria Aviation &bull; The Art of Arrival
     </div>
-
-</body>
-</html>
+{% endblock %}

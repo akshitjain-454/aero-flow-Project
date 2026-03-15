@@ -1,34 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aetheria | Sky-High Elegance</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --sky-blue: #0066FF;
-            --pearl: #FAFAFA;
-            --charcoal: #1A1A1A;
-            --navy: #081225;
-            --gold: #B8860B;
-            --gold-light: #D4AF37;
-        }
+{% extends "base.html" %}
 
+{% block title %}Aetheria | Sky-High Elegance{% endblock %}
+
+{% block extra_css %}
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--pearl); 
             color: var(--charcoal);
             overflow-x: hidden;
             scroll-behavior: smooth;
         }
 
-        .serif { font-family: 'Playfair Display', serif; }
-
-        /* Floating Booking Card Styling */
         .float-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -36,7 +17,6 @@
             box-shadow: 0 40px 100px -20px rgba(0, 40, 100, 0.1);
         }
 
-        /* Thickened Navigation Underline */
         .nav-link {
             position: relative;
             padding-bottom: 6px;
@@ -54,24 +34,16 @@
             border-radius: 3px;
         }
         .nav-link:hover::after { width: 100%; }
-
-        /* WCAG Focus Rings */
-        *:focus-visible {
-            outline: 3px solid var(--sky-blue);
-            outline-offset: 4px;
-        }
         
         .focus-within-ring:focus-within {
             outline: 3px solid var(--sky-blue);
             outline-offset: 4px;
         }
 
-        /* Image Zoom Effects */
         .zoom-img { background-color: #E2E8F0; }
         .zoom-img img { transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         .zoom-img:hover img { transform: scale(1.08); }
 
-        /* No-JS Search Input styling */
         .custom-input {
             background-image: linear-gradient(var(--sky-blue), var(--sky-blue));
             background-size: 0% 2px;
@@ -82,7 +54,6 @@
         .custom-input:focus { background-size: 100% 2px; }
         input::-webkit-calendar-picker-indicator { display: none !important; }
 
-        /* Loyalty Glow Blobs */
         @keyframes ambientGlow {
             0% { transform: scale(1) translate(0, 0); opacity: 0.1; }
             50% { transform: scale(1.2) translate(20px, -20px); opacity: 0.2; }
@@ -91,10 +62,11 @@
         .glow-blob { animation: ambientGlow 8s infinite alternate ease-in-out; }
 
         .banner-fallback { background: linear-gradient(to right, #1A1A1A, #2D3748); }
-    </style>
-</head>
-<body class="antialiased relative">
+{% endblock %}
 
+{% block body_classes %}relative{% endblock %}
+
+{% block content %}
     <a href="#main-content" class="absolute -top-[100px] left-4 bg-[--sky-blue] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest z-[1000] focus:top-4 transition-all duration-300 rounded-b-xl shadow-2xl">
         Skip to main content
     </a>
@@ -114,7 +86,7 @@
             </ul>
         </nav>
         <div class="flex items-center gap-6 z-10">
-            <a href="login.peb" class="bg-black text-white px-8 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all shadow-md">
+            <a href="/login" class="bg-black text-white px-8 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all shadow-md">
                 Login
             </a>
         </div>
@@ -187,7 +159,7 @@
                     <p class="text-gray-400 text-sm md:text-base font-light leading-relaxed">Unlock priority boarding, complimentary upgrades, and exclusive global lounges.</p>
                 </div>
                 <div class="relative z-10">
-                    <a href="register.peb" class="bg-[--gold-light] text-black px-10 py-5 rounded-full text-xs uppercase tracking-widest font-extrabold hover:bg-white transition-all transform hover:scale-105 active:scale-95">Join Now</a>
+                    <a href="/register" class="bg-[--gold-light] text-black px-10 py-5 rounded-full text-xs uppercase tracking-widest font-extrabold hover:bg-white transition-all transform hover:scale-105 active:scale-95">Join Now</a>
                 </div>
             </div>
         </section>
@@ -436,6 +408,4 @@
             </div>
         </div>
     </footer>
-
-</body>
-</html>
+{% endblock %}
