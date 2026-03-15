@@ -54,12 +54,25 @@ fun Route.bookingRoutes() {
 
             call.respondRedirect("/booking/$reference/passengers")
         }
+        get("/{reference}/seats") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
+
+            if(booking.userId != session.userId) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+
+            val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
+            
+            call.respond(seats)
+        }
 
         post("/{reference}/seat_and_ticket_assignment") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
-            val booking = bookingRepository.getBookingByReference(reference)?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
 
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
@@ -69,10 +82,13 @@ fun Route.bookingRoutes() {
             for(passenger in passengers) {
                 val flightSeatId = params["passenger_${passenger.id}"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat for passenger ${passenger.id}")
                 
-                val taken = bookingRepository.isSeatTaken(flightSeatId)
-                if(taken) { return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") }
-                
-                val ticketAssignment = bookingRepository.ticketAssignment(passenger.id, flightSeatId) ?: return@post call.respond(HttpStatusCode.InternalServerError, "Could not assign ticket")
+                try {
+                    bookingRepository.ticketAssignment(passenger.id, flightSeatId)
+                }
+                catch(e: Exception) {
+                    return@post call.respond(HttpStatusCode.Conflict, "Seat already taken")
+                }
+               
             }
             
             call.respondRedirect("/booking/$reference/payment")
