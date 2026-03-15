@@ -50,24 +50,16 @@ fun Application.module() {
             cookie.path = "/"
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
-            transform(SessionTransportTransformerEncrypt(
-                hex("ef82ffacc3920ae250206ead14bfcfff"),
-                hex("ab18cf1251005ede247e911a1e72ab67")
-            ))
+            val encryptKey = hex("ef82ffacc3920ae250206ead14bfcfff")
+            val signKey = hex("ab18cf1251005ede247e911a1e72ab67")
+            
+            transform(SessionTransportTransformerEncrypt(encryptKey, signKey))
         }
     }
 
     routing {
         get("/") {
             call.respond(PebbleContent("index.peb", emptyMap<String, Any>()))
-        }
-
-        get("/login") {
-            call.respond(PebbleContent("login.peb", emptyMap<String, Any>()))
-        }
-
-        get("/register") {
-            call.respond(PebbleContent("register.peb", emptyMap<String, Any>()))
         }
 
         userRoutes()
