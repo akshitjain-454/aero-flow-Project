@@ -31,7 +31,7 @@ suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, A
         PebbleContent(
             template,
             model + mapOf(
-                "userId" to (session?.userId),
+                "userId" to (session?.userId ?: -1),
                 "isAdmin" to (session?.role == UserRole.ADMIN)
             )
         )
