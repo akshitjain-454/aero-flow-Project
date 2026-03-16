@@ -12,6 +12,9 @@ import io.ktor.server.routing.*
 import java.time.LocalDateTime
 import org.mindrot.jbcrypt.BCrypt
 import io.ktor.server.sessions.*
+// --- PEBBLE IMPORTS ---
+import io.ktor.server.pebble.*
+import io.pebbletemplates.pebble.loader.ClasspathLoader
 
 
 fun Route.userRoutes() {
@@ -58,7 +61,6 @@ fun Route.userRoutes() {
         )
         call.respond(HttpStatusCode.Created, "User registered successfully")
     }
-
     post("/login") {
         val params = call.receiveParameters()
 
@@ -89,6 +91,13 @@ fun Route.userRoutes() {
         else {
             call.respond(HttpStatusCode.Unauthorized, "Invalid password")
         }
+    }
+    get("/login") {
+        call.respond(PebbleContent("login.peb", emptyMap<String, Any>()))
+    }
+
+    get("/register") {
+        call.respond(PebbleContent("register.peb", emptyMap<String, Any>()))
     }
     
     post("/logout") {
