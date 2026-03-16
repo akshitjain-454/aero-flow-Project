@@ -18,11 +18,26 @@ import io.ktor.server.pebble.*
 import io.pebbletemplates.pebble.loader.ClasspathLoader
 
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.enums.UserRole
 import com.flightbooking.database.DatabaseFactory
 import com.flightbooking.routes.userRoutes
 import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
 import com.flightbooking.routes.complaintRoutes
+
+suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
+    val session = sessions.get<UserSession>()
+    respond(
+        PebbleContent(
+            template,
+            model + mapOf(
+                "userId" to (session?.userId ?: -1),
+                "isAdmin" to (session?.role == UserRole.ADMIN)
+            )
+        )
+    )
+}
+
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -59,7 +74,7 @@ fun Application.module() {
 
     routing {
         get("/") {
-            call.respond(PebbleContent("index.peb", emptyMap<String, Any>()))
+            call.respondPebble("index.peb")
         }
 
         userRoutes()
