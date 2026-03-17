@@ -2,23 +2,37 @@ package com.flightbooking.routes
 
 import com.flightbooking.repositories.ComplaintRepository
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.respondPebble
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-
-// ---> ADD THIS IMPORT FOR PEBBLE <---
 import io.ktor.server.pebble.PebbleContent
 
 fun Route.complaintRoutes() {
 
     val complaintRepository = ComplaintRepository()
 
+    // GET /complaints — renders the complaints page (linked from Help dropdown)
+    get("/complaints") {
+        val session = call.sessions.get<UserSession>()
+        val complaints = if (session != null) {
+            complaintRepository.getComplaintsByUserId(session.userId)
+        } else {
+            emptyList()
+        }
+        call.respondPebble("complaints.peb", mapOf("complaints" to complaints))
+    }
+
     route("/complaints") {
+
+        // POST /complaints/submit — submits a new complaint
         post("/submit") {
-            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val session = call.sessions.get<UserSession>() 
+                ?: return@post call.respondRedirect("/login")
+            
             val params = call.receiveParameters()
             val message = params["message"]?.trim()
 
@@ -26,33 +40,19 @@ fun Route.complaintRoutes() {
                 return@post call.respond(HttpStatusCode.BadRequest, "Complaint message is required")
             }
 
-            val complaint = complaintRepository.createComplaint(userId = session.userId, message = message)
-
-            call.respond(
-                HttpStatusCode.Created,
-                mapOf(
-                    "message" to "Complaint submitted successfully",
-                    "complaintId" to complaint.id,
-                    "status" to complaint.status.toString(),
-                    "createdAt" to complaint.createdAt.toString()
-                )
-            )
-        }
-        
-        // ---> THIS IS THE ONLY PART YOU CHANGE <---
-        get("/my") {
-            //val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
-            val fakeUserId = 1
-            // 1. Get the complaints from your database
-            val complaints = complaintRepository.getComplaintsByUserId(fakeUserId)
+            complaintRepository.createComplaint(userId = session.userId, message = message)
             
-            // 2. Pass them into the Pebble template!
-            call.respond(
-                PebbleContent(
-                    "complaints.peb", 
-                    mapOf("complaints" to complaints)
-                )
-            )
+            // Redirect back to complaints page after submitting
+            call.respondRedirect("/complaints")
+        }
+
+        // GET /complaints/my — same page but session-gated
+        get("/my") {
+            val session = call.sessions.get<UserSession>() 
+                ?: return@get call.respondRedirect("/login")
+            
+            val complaints = complaintRepository.getComplaintsByUserId(session.userId)
+            call.respondPebble("complaints.peb", mapOf("complaints" to complaints))
         }
     }
 }

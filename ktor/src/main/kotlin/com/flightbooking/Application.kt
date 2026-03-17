@@ -18,11 +18,39 @@ import io.ktor.server.pebble.*
 import io.pebbletemplates.pebble.loader.ClasspathLoader
 
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.enums.UserRole
 import com.flightbooking.database.DatabaseFactory
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.routes.userRoutes
 import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
 import com.flightbooking.routes.complaintRoutes
+
+suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
+    val session = sessions.get<UserSession>()
+    val userRepository = UserRepository()
+
+    val extraModel = if (session != null && session.userId > 0) {
+        val user = userRepository.getUserById(session.userId)
+        mapOf(
+            "userId"       to session.userId,
+            "isAdmin"      to (session.role == UserRole.ADMIN),
+            "isLoggedIn"   to true,
+            "userInitials" to if (user != null)
+                                  "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"
+                              else "?"
+        )
+    } else {
+        mapOf(
+            "userId"       to -1,
+            "isAdmin"      to false,
+            "isLoggedIn"   to false,
+            "userInitials" to ""
+        )
+    }
+
+    respond(PebbleContent(template, model + extraModel))
+}
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -50,24 +78,16 @@ fun Application.module() {
             cookie.path = "/"
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
-            transform(SessionTransportTransformerEncrypt(
-                hex("ef82ffacc3920ae250206ead14bfcfff"),
-                hex("ab18cf1251005ede247e911a1e72ab67")
-            ))
+            val encryptKey = hex("ef82ffacc3920ae250206ead14bfcfff")
+            val signKey = hex("ab18cf1251005ede247e911a1e72ab67")
+            
+            transform(SessionTransportTransformerEncrypt(encryptKey, signKey))
         }
     }
 
     routing {
         get("/") {
-            call.respond(PebbleContent("index.peb", emptyMap<String, Any>()))
-        }
-
-        get("/login") {
-            call.respond(PebbleContent("login.peb", emptyMap<String, Any>()))
-        }
-
-        get("/register") {
-            call.respond(PebbleContent("register.peb", emptyMap<String, Any>()))
+            call.respondPebble("index.peb")
         }
         complaintRoutes()
         userRoutes()
