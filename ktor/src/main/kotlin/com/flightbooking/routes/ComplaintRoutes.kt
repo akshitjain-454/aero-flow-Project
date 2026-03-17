@@ -9,13 +9,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
+// ---> ADD THIS IMPORT FOR PEBBLE <---
+import io.ktor.server.pebble.PebbleContent
+
 fun Route.complaintRoutes() {
 
     val complaintRepository = ComplaintRepository()
 
     route("/complaints") {
         post("/submit") {
-            val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val params = call.receiveParameters()
             val message = params["message"]?.trim()
 
@@ -23,7 +26,7 @@ fun Route.complaintRoutes() {
                 return@post call.respond(HttpStatusCode.BadRequest, "Complaint message is required")
             }
 
-            val complaint = complaintRepository.createComplaint(userId = session.userId,message = message)
+            val complaint = complaintRepository.createComplaint(userId = session.userId, message = message)
 
             call.respond(
                 HttpStatusCode.Created,
@@ -35,10 +38,21 @@ fun Route.complaintRoutes() {
                 )
             )
         }
+        
+        // ---> THIS IS THE ONLY PART YOU CHANGE <---
         get("/my") {
-            val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
-            val complaints = complaintRepository.getComplaintsByUserId(session.userId)
-            call.respond(complaints)
+            //val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val fakeUserId = 1
+            // 1. Get the complaints from your database
+            val complaints = complaintRepository.getComplaintsByUserId(fakeUserId)
+            
+            // 2. Pass them into the Pebble template!
+            call.respond(
+                PebbleContent(
+                    "complaints.peb", 
+                    mapOf("complaints" to complaints)
+                )
+            )
         }
     }
 }

@@ -69,10 +69,9 @@ fun Application.module() {
         get("/register") {
             call.respond(PebbleContent("register.peb", emptyMap<String, Any>()))
         }
-
+        complaintRoutes()
         userRoutes()
         flightRoutes()
         bookingRoutes()
-        complaintRoutes()
     }
 }
