@@ -2,6 +2,7 @@ package com.flightbooking.routes
 
 import com.flightbooking.models.Flight
 import com.flightbooking.repositories.FlightRepository
+import com.flightbooking.respondPebble
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -37,5 +38,17 @@ fun Route.flightRoutes() {
         val airports = flightRepository.getAirportBySearch(search)
 
         call.respond(airports)
+    }
+    get("/airports/search") { //Used when js isn't available so search button needed
+        val search = call.request.queryParameters["search"] ?: ""
+       
+        if(search.length < 2) {
+            call.respond(emptyList<String>())
+            return@get
+        }
+
+        val airports = flightRepository.getAirportBySearch(search)
+
+        call.respondPebble("index.peb", mapOf("airports" to airports))
     }
 }
