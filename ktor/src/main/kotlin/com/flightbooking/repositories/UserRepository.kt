@@ -38,4 +38,11 @@ class UserRepository {
             createdAt = row[UserTable.createdAt]
         )
     }
+    
+    fun getUserById(id: Int): User? = transaction {
+    UserTable
+        .select { UserTable.id eq id }
+        .map { resultRowToUser(it) }.singleOrNull()
+    }
+
 }

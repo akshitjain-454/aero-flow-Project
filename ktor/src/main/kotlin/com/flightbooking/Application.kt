@@ -20,6 +20,7 @@ import io.pebbletemplates.pebble.loader.ClasspathLoader
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.enums.UserRole
 import com.flightbooking.database.DatabaseFactory
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.routes.userRoutes
 import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
@@ -27,17 +28,29 @@ import com.flightbooking.routes.complaintRoutes
 
 suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
     val session = sessions.get<UserSession>()
-    respond(
-        PebbleContent(
-            template,
-            model + mapOf(
-                "userId" to (session?.userId ?: -1),
-                "isAdmin" to (session?.role == UserRole.ADMIN)
-            )
-        )
-    )
-}
+    val userRepository = UserRepository()
 
+    val extraModel = if (session != null && session.userId > 0) {
+        val user = userRepository.getUserById(session.userId)
+        mapOf(
+            "userId"       to session.userId,
+            "isAdmin"      to (session.role == UserRole.ADMIN),
+            "isLoggedIn"   to true,
+            "userInitials" to if (user != null)
+                                  "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"
+                              else "?"
+        )
+    } else {
+        mapOf(
+            "userId"       to -1,
+            "isAdmin"      to false,
+            "isLoggedIn"   to false,
+            "userInitials" to ""
+        )
+    }
+
+    respond(PebbleContent(template, model + extraModel))
+}
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -76,10 +89,9 @@ fun Application.module() {
         get("/") {
             call.respondPebble("index.peb")
         }
-
+        complaintRoutes()
         userRoutes()
         flightRoutes()
         bookingRoutes()
-        complaintRoutes()
     }
 }

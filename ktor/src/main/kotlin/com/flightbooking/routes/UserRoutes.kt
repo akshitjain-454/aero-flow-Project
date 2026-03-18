@@ -26,19 +26,17 @@ fun Route.userRoutes() {
         val params = call.receiveParameters()
 
         val firstname = params["firstname"]
-        val lastname = params["lastname"]
-        val email = params["email"]
-        val password = params["password"]
-        
-        if(firstname == null || lastname == null || email == null || password == null) {
-            //Shouldn't happen due to being handled in front end
+        val lastname  = params["lastname"]
+        val email     = params["email"]
+        val password  = params["password"]
+
+        if (firstname == null || lastname == null || email == null || password == null) {
             call.respond(HttpStatusCode.BadRequest, "Missing required field")
             return@post
         }
 
-        if(userRepository.getUserByEmail(email) != null) {
-            //call.respond(HttpStatusCode.BadRequest, "Email already registered")
-            return@post call.respondPebble("login.peb", mapOf("error" to "Already a user. Please log in!"))
+        if (userRepository.getUserByEmail(email) != null) {
+            return@post call.respondPebble("register.peb", mapOf("error" to "Already a member. Please Sign in instead!"))
         }
 
         val passwordHash = BCrypt.hashpw(password, BCrypt.gensalt())
@@ -46,57 +44,46 @@ fun Route.userRoutes() {
         val user = User(
             id = 0,
             firstname = firstname,
-            lastname = lastname,
-            email = email,
+            lastname  = lastname,
+            email     = email,
             passwordHash = passwordHash,
-            role = UserRole.USER,
+            role      = UserRole.USER,
             createdAt = LocalDateTime.now()
         )
 
         userRepository.createUser(user)
 
-        call.sessions.set(
-            UserSession(
-                userId = user.id,
-                role = user.role
-            )
-        )
-        call.respondPebble("index.peb")
-        //call.respond(HttpStatusCode.Created, "User registered successfully")
+        // Fetch back the saved user to get the real DB-assigned ID
+        val savedUser = userRepository.getUserByEmail(email)!!
+
+        call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role))
+        call.respondRedirect("/")
     }
+
     post("/login") {
         val params = call.receiveParameters()
 
-        val email = params["email"]
+        val email    = params["email"]
         val password = params["password"]
 
         if (email == null || password == null) {
-            //Shouldn't happen due to being handled in front end
             return@post call.respond(HttpStatusCode.BadRequest, "Missing email or password")
         }
 
         val user = userRepository.getUserByEmail(email)
 
         if (user == null) {
-            //call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
             return@post call.respondPebble("login.peb", mapOf("error" to "Invalid Credentials"))
         }
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
-            call.sessions.set(
-                UserSession(
-                    userId = user.id,
-                    role = user.role
-                )
-            )
-            call.respondPebble("index.peb")
-            //call.respond(HttpStatusCode.OK, "User login successful")
-        }
-        else {
-            //call.respond(HttpStatusCode.Unauthorized, "Invalid password")
+            call.sessions.set(UserSession(userId = user.id, role = user.role))
+            call.respondRedirect("/")
+        } else {
             call.respondPebble("login.peb", mapOf("error" to "Invalid Password"))
         }
     }
+
     get("/login") {
         call.respondPebble("login.peb")
     }
@@ -107,7 +94,6 @@ fun Route.userRoutes() {
     
     post("/logout") {
         call.sessions.clear<UserSession>()
-        //call.respond("Logged out")
         call.respondRedirect("/")
     }
 }
