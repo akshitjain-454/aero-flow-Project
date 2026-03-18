@@ -17,9 +17,11 @@ import com.flightbooking.tables.FlightTable
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.PaymentMethod
 import com.flightbooking.enums.PaymentStatus
+import com.flightbooking.enums.SeatClass
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.UUID
 import java.math.BigDecimal
 
@@ -90,16 +92,20 @@ class BookingRepository {
         ) 
     }
 
-    fun ticketAssignment(passengerId: Int, flightSeatId: Int): TicketAssignment = transaction {
+    fun ticketAssignment(passengerId: Int, flightSeatId: Int, ticketPrice: BigDecimal, seatNumber: String): TicketAssignment = transaction {
         val ticketAssignmentId = TicketAssignmentTable.insert {
             it[TicketAssignmentTable.passengerId] = passengerId
             it[TicketAssignmentTable.flightSeatId] = flightSeatId
+            it[TicketAssignmentTable.ticketPrice] = ticketPrice
+            it[TicketAssignmentTable.seatNumber] = seatNumber
         } get TicketAssignmentTable.id
 
         TicketAssignment (
             id = ticketAssignmentId,
             passengerId = passengerId,
-            flightSeatId = flightSeatId
+            flightSeatId = flightSeatId,
+            ticketPrice = ticketPrice,
+            seatNumber = seatNumber
         ) 
     }
 
@@ -119,21 +125,43 @@ class BookingRepository {
         booking.copy(status = BookingStatus.CANCELLED)
     }
 
+    fun calculatePrice(flightPrice: BigDecimal, seatClass: SeatClass?, date: LocalDate?): BigDecimal = transaction {
+        val now = LocalDate.now()
+        val seatClassMultiplier = when (seatClass) { 
+            SeatClass.ECONOMY -> BigDecimal("1.0")
+            SeatClass.BUSINESS -> BigDecimal("1.75")
+            SeatClass.FIRST -> BigDecimal("3.0")
+            null -> BigDecimal("1.0")
+        }
+        val dateMultiplier = when {
+            date == null -> BigDecimal("1.0")
+            date == now -> BigDecimal("1.75")
+            date <= now.plusDays(3) -> BigDecimal("1.5")
+            date <= now.plusWeeks(1) -> BigDecimal("1.25")
+            date <= now.plusWeeks(2) -> BigDecimal("1.15")
+            date <= now.plusWeeks(4) -> BigDecimal("1.1")
+            else -> BigDecimal("1.0")
+        }
+        val ticketPrice = flightPrice.multiply(seatClassMultiplier).multiply(dateMultiplier)
+
+        return@transaction ticketPrice
+    }
+
     fun getSeatsByFlightId(flightId: Int): List<SeatAvailability> = transaction { 
         FlightSeatTable
-        .join(SeatTable, JoinType.INNER, FlightSeatTable.seatId, SeatTable.id )
-        .join(TicketAssignmentTable, JoinType.LEFT, FlightSeatTable.id, TicketAssignmentTable.flightSeatId)
-        .select { FlightSeatTable.flightId eq flightId }
-        .map { 
-            val available = (it[TicketAssignmentTable.id] == null)
+            .join(SeatTable, JoinType.INNER, FlightSeatTable.seatId, SeatTable.id )
+            .join(TicketAssignmentTable, JoinType.LEFT, FlightSeatTable.id, TicketAssignmentTable.flightSeatId)
+            .select { FlightSeatTable.flightId eq flightId }
+            .map { 
+                val available = (it[TicketAssignmentTable.id] == null)
 
-            SeatAvailability(
-                flightSeatId = it[FlightSeatTable.id],
-                seatNumber = it[SeatTable.seatNumber],
-                seatClass = it[SeatTable.seatClass],
-                available = available
-            )
-         }
+                SeatAvailability(
+                    flightSeatId = it[FlightSeatTable.id],
+                    seatNumber = it[SeatTable.seatNumber],
+                    seatClass = it[SeatTable.seatClass],
+                    available = available
+                )
+            }
     }
 
     fun getPassengersByBookingId(bookingId: Int): List<Passenger> = transaction {
@@ -152,6 +180,13 @@ class BookingRepository {
         BookingTable
             .select { BookingTable.bookingReference eq bookingReference }
             .map { resultRowToBooking(it) }.singleOrNull()
+    }
+
+    fun getTicketPriceByPassengerId(passengerId: Int): BigDecimal? = transaction {
+        val ticketPrice = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passengerId }
+            .map { it[TicketAssignmentTable.ticketPrice] }.singleOrNull()
+        return@transaction ticketPrice
     }
 
     fun resultRowToBooking(row: ResultRow): Booking {

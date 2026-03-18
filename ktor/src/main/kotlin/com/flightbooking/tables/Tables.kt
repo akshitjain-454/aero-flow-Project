@@ -38,7 +38,7 @@ object FlightTable : Table("Flight") {
   val aircraftId = integer("aircraft_id").references(AircraftTable.id) 
   val departureTime = datetime("departure_time")
   val arrivalTime = datetime("arrival_time")
-  val price = decimal("price", 10, 2)
+  val minPrice = decimal("min_price", 10, 2)
   val status = enumerationByName("status", 30, FlightStatus::class)
 
   override val primaryKey = PrimaryKey(id)
@@ -116,6 +116,8 @@ object TicketAssignmentTable : Table("TicketAssignment") {
   val id = integer("ticket_assignment_id").autoIncrement()
   val passengerId = integer("passenger_id").references(PassengerTable.id)
   val flightSeatId = integer("flight_seat_id").references(FlightSeatTable.id).uniqueIndex()
+  val ticketPrice = decimal("ticketPrice", 10, 2)
+  val seatNumber = varchar("seat_number", 100)
 
   override val primaryKey = PrimaryKey(id)
 }

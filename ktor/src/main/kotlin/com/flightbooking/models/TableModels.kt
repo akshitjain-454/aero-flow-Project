@@ -35,7 +35,7 @@ data class Flight (
   val aircraftId: Int, 
   val departureTime: LocalDateTime,
   val arrivalTime: LocalDateTime,
-  val price: BigDecimal,
+  val minPrice: BigDecimal,
   val status: FlightStatus
 )
 
@@ -98,7 +98,9 @@ data class TicketAssignment (
 
   val id: Int,
   val passengerId: Int,
-  val flightSeatId: Int
+  val flightSeatId: Int,
+  val ticketPrice: BigDecimal,
+  val seatNumber: String
 )
 
 data class FlightSeat (
