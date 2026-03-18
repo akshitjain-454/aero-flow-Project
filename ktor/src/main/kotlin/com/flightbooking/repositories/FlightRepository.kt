@@ -66,6 +66,12 @@ class FlightRepository {
             .map { resultRowToFlight(it) }.singleOrNull()
     }
 
+    fun getFlightByFlightId(flightId: Int): Flight? = transaction {
+        FlightTable
+            .select { FlightTable.id eq flightId }
+            .map { resultRowToFlight(it) }.singleOrNull()
+    }
+
     
     fun getAirportBySearch(search: String): List<Airport>  = transaction {
         AirportTable

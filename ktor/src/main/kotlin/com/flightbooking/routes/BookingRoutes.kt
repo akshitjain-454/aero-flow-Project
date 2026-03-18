@@ -3,6 +3,8 @@ package com.flightbooking.routes
 import com.flightbooking.repositories.BookingRepository
 import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.enums.PaymentMethod
+import com.flightbooking.respondPebble
 import io.ktor.server.sessions.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -68,7 +70,7 @@ fun Route.bookingRoutes() {
             call.respond(seats)
         }
 
-        post("/{reference}/seat_and_ticket_assignment") {
+        post("/{reference}/ticket_assignment") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
@@ -92,6 +94,34 @@ fun Route.bookingRoutes() {
             }
             
             call.respondRedirect("/booking/$reference/payment")
+        }
+
+        get("/{reference}/payment") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
+            
+            val flight = flightRepository.getFlightByFlightId(booking.flightId) ?: return@get call.respond(HttpStatusCode.NotFound, "Flight not found")
+            val price = 1.00.toBigDecimal() //TODO: Get cost of booking
+            
+            call.respondPebble("payment.peb", mapOf("price" to price))
+        }
+
+
+        post("/{reference}/payment") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val params = call.receiveParameters()
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+
+            val amount = 1.00.toBigDecimal() //TODO get cost of booking
+            val paymentMethodParam = params["payment_method"]
+
+            val paymentMethod = PaymentMethod.valueOf(paymentMethodParam!!)
+
+            val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
+            call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
+
         }
 
         post("/{reference}/cancel") {

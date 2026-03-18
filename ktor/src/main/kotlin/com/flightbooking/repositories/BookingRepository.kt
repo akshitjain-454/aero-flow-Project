@@ -2,21 +2,26 @@ package com.flightbooking.repositories
 
 import com.flightbooking.models.Booking
 import com.flightbooking.models.Seat
+import com.flightbooking.models.Payment
 import com.flightbooking.models.SeatAvailability
 import com.flightbooking.models.TicketAssignment
 import com.flightbooking.models.Passenger
 import com.flightbooking.tables.BookingTable
 import com.flightbooking.tables.SeatTable
+import com.flightbooking.tables.PaymentTable
 import com.flightbooking.tables.TicketAssignmentTable
 import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.PassengerTable
 import com.flightbooking.tables.UserTable
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.enums.BookingStatus
+import com.flightbooking.enums.PaymentMethod
+import com.flightbooking.enums.PaymentStatus
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.UUID
+import java.math.BigDecimal
 
 class BookingRepository {
 
@@ -39,6 +44,32 @@ class BookingRepository {
             flightId = flightId,
             status = BookingStatus.CREATED,
             createdAt = now
+        )
+    }
+
+    fun createPayment(bookingId: Int, amount: BigDecimal, paymentMethod: PaymentMethod): Payment = transaction { 
+        val now = LocalDateTime.now()
+        val transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, 10).uppercase()
+
+        val paymentId = PaymentTable.insert{
+            it[PaymentTable.bookingId] = bookingId
+            it[PaymentTable.amount] = amount
+            it[PaymentTable.paymentStatus]= PaymentStatus.COMPLETED
+            it[PaymentTable.paymentMethod] = paymentMethod
+            it[PaymentTable.transactionId] = transactionId
+            it[createdAt] = now
+        } get PaymentTable.id
+
+        Payment (
+            id = paymentId,
+            bookingId = bookingId,
+            amount = amount,
+            paymentStatus = PaymentStatus.COMPLETED,
+            paymentMethod = paymentMethod,
+            transactionId = transactionId,
+            createdAt = now,
+            refundAmount = null,
+            refundDate = null
         )
     }
 
