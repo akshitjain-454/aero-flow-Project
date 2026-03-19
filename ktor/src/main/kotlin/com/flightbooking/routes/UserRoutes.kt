@@ -56,7 +56,7 @@ fun Route.userRoutes() {
         // Fetch back the saved user to get the real DB-assigned ID
         val savedUser = userRepository.getUserByEmail(email)!!
 
-        call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role))
+        call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role, initials = "${savedUser.firstname.first().uppercaseChar()}${savedUser.lastname.first().uppercaseChar()}"))
         call.respondRedirect("/")
     }
 
@@ -77,7 +77,7 @@ fun Route.userRoutes() {
         }
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
-            call.sessions.set(UserSession(userId = user.id, role = user.role))
+            call.sessions.set(UserSession(userId = user.id, role = user.role, initials = "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"))
             call.respondRedirect("/")
         } else {
             call.respondPebble("login.peb", mapOf("error" to "Invalid Password"))

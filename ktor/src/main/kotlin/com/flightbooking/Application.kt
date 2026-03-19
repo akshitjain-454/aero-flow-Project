@@ -28,28 +28,17 @@ import com.flightbooking.routes.complaintRoutes
 
 suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
     val session = sessions.get<UserSession>()
-    val userRepository = UserRepository()
-
-    val extraModel = if (session != null && session.userId > 0) {
-        val user = userRepository.getUserById(session.userId)
-        mapOf(
-            "userId"       to session.userId,
-            "isAdmin"      to (session.role == UserRole.ADMIN),
-            "isLoggedIn"   to true,
-            "userInitials" to if (user != null)
-                                  "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"
-                              else "?"
+    respond(
+        PebbleContent(
+            template,
+            model + mapOf(
+                "userId" to (session?.userId ?: -1),
+                "isAdmin" to (session?.role == UserRole.ADMIN),
+                "isLoggedIn"   to (session != null),
+                "userInitials" to (session?.initials ?: "")
+            )
         )
-    } else {
-        mapOf(
-            "userId"       to -1,
-            "isAdmin"      to false,
-            "isLoggedIn"   to false,
-            "userInitials" to ""
-        )
-    }
-
-    respond(PebbleContent(template, model + extraModel))
+    )
 }
 
 fun main(args: Array<String>) {

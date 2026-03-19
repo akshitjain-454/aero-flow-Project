@@ -6,5 +6,6 @@ import com.flightbooking.enums.UserRole
 @Serializable
 data class UserSession(
     val userId: Int,
-    val role: UserRole
+    val role: UserRole,
+    val initials: String
 )
