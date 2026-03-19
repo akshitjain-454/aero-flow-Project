@@ -39,8 +39,8 @@ fun Route.flightRoutes() {
 
         call.respond(airports)
     }
-    get("/airports/search") { //Used when js isn't available so search button needed
-        val search = call.request.queryParameters["search"] ?: ""
+    get("/airports/search") { //Used when js isn't available so search button needed 
+        val search = call.request.queryParameters["search"] ?: "" 
        
         if(search.length < 2) {
             call.respond(emptyList<String>())
@@ -48,7 +48,7 @@ fun Route.flightRoutes() {
         }
 
         val airports = flightRepository.getAirportBySearch(search)
-
-        call.respondPebble("index.peb", mapOf("airports" to airports))
+        
+        call.respondPebble("index.peb", mapOf("airports" to airports)) //returns airports to be used in front end to display in search bar.
     }
 }
