@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Complaints</title>
+</head>
+<body>
+    <h1>All Complaints</h1>
+
+    {% if complaints is empty %}
+        <p>No complaints found.</p>
+    {% else %}
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User ID</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Update Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.id }}</td>
+                        <td>{{ complaint.userId }}</td>
+                        <td>{{ complaint.message }}</td>
+                        <td>{{ complaint.status }}</td>
+                        <td>{{ complaint.createdAt }}</td>
+                        <td>
+                            <form method="post" action="/admin/complaints/{{ complaint.id }}/status">
+                                <select name="status">
+                                    <option value="OPEN">OPEN</option>
+                                    <option value="IN_REVIEW">IN_REVIEW</option>
+                                    <option value="RESOLVED">RESOLVED</option>
+                                    <option value="CLOSED">CLOSED</option>
+                                </select>
+                                <button type="submit">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <p><a href="/admin">Back to Admin Dashboard</a></p>
+</body>
+</html>

@@ -78,7 +78,13 @@ fun Route.userRoutes() {
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
             call.sessions.set(UserSession(userId = user.id, role = user.role, initials = "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"))
-            call.respondRedirect("/")
+            
+            //determine whether the user is customer(user) or admin
+            if (user.role == UserRole.ADMIN) {
+                call.respondRedirect("/admin")
+            } else {
+                call.respondRedirect("/")
+            }
         } else {
             call.respondPebble("login.peb", mapOf("error" to "Invalid Password"))
         }
