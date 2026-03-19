@@ -33,28 +33,33 @@ class ComplaintRepository {
             .select { ComplaintTable.userId eq userId }
             .map { resultRowToComplaint(it) }
     }
-
-    //Admin part
+    //admin part：getAllComplaints()，getComplaintById(),updateComplaintStatus()
     fun getAllComplaints(): List<Complaint> = transaction {
         ComplaintTable
             .selectAll()
             .orderBy(ComplaintTable.createdAt, SortOrder.DESC)
             .map { resultRowToComplaint(it) }
     }
-    //Admin part
-    fun updateComplaintStatus(complaintId: Int, newStatus: ComplaintStatus): Complaint? = transaction {
-        val existingComplaint = ComplaintTable
-            .select { ComplaintTable.id eq complaintId }
+
+    fun getComplaintById(id: Int): Complaint? = transaction {
+        ComplaintTable
+            .select { ComplaintTable.id eq id }
             .map { resultRowToComplaint(it) }
             .singleOrNull()
-        if (existingComplaint == null) {
-            return@transaction null
-        }
+    }
 
-        ComplaintTable.update({ ComplaintTable.id eq complaintId }) {
+    fun updateComplaintStatus(id: Int, newStatus: ComplaintStatus): Complaint? = transaction {
+        val updatedRows = ComplaintTable.update({ ComplaintTable.id eq id }) {
             it[status] = newStatus
         }
-        existingComplaint.copy(status = newStatus)
+        if (updatedRows == 0) {
+            null
+        } else {
+            ComplaintTable
+                .select { ComplaintTable.id eq id }
+                .map { resultRowToComplaint(it) }
+                .singleOrNull()
+        }
     }
 
     private fun resultRowToComplaint(row: ResultRow): Complaint {

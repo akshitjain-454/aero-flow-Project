@@ -3,7 +3,6 @@ package com.flightbooking.routes
 import com.flightbooking.enums.ComplaintStatus
 import com.flightbooking.enums.UserRole
 import com.flightbooking.repositories.ComplaintRepository
-import com.flightbooking.respondPebble
 import com.flightbooking.sessions.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,6 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.adminRoutes() {
+
     val complaintRepository = ComplaintRepository()
 
     route("/admin") {
@@ -24,9 +24,18 @@ fun Route.adminRoutes() {
                 return@get call.respondRedirect("/login")
             }
             if (session.role != UserRole.ADMIN) {
-                return@get call.respond(HttpStatusCode.Forbidden, "Admin only")
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admins only")
+                )
             }
-            call.respondPebble("admin/index.peb")
+            call.respond(
+                mapOf(
+                    "message" to "Welcome to admin page",
+                    "role" to session.role.name,
+                    "userId" to session.userId
+                )
+            )
         }
 
         get("/complaints") {
@@ -36,46 +45,86 @@ fun Route.adminRoutes() {
                 return@get call.respondRedirect("/login")
             }
             if (session.role != UserRole.ADMIN) {
-                return@get call.respond(HttpStatusCode.Forbidden, "Admin only")
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
             }
             val complaints = complaintRepository.getAllComplaints()
-            call.respondPebble(
-                "admin/complaints.peb",
-                mapOf("complaints" to complaints)
-            )
+            call.respond(complaints)
         }
 
         post("/complaints/{id}/status") {
-            val idText = call.parameters["id"]
+            val session = call.sessions.get<UserSession>()
 
-            if (idText == null) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Missing complaint id")
+            if (session == null) {
+                return@post call.respondRedirect("/login")
             }
-            
-            val complaintId = idText.toIntOrNull()
+            if (session.role != UserRole.ADMIN) {
+                return@post call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val complaintIdText = call.parameters["id"]
+            val complaintId = complaintIdText?.toIntOrNull()
 
             if (complaintId == null) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Invalid complaint id")
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Invalid complaint id")
+                )
             }
 
             val params = call.receiveParameters()
-            val statusText = params["status"]
+            val statusText = params["status"]?.trim()?.uppercase()
 
-            if (statusText == null) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Missing status")
+            if (statusText.isNullOrBlank()) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Missing status")
+                )
             }
 
             val newStatus = try {
                 ComplaintStatus.valueOf(statusText)
             } catch (error: IllegalArgumentException) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Invalid complaint status")
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf(
+                        "error" to "Invalid status",
+                        "allowedStatuses" to ComplaintStatus.values().map { it.name }
+                    )
+                )
+            }
+
+            val complaint = complaintRepository.getComplaintById(complaintId)
+
+            if (complaint == null) {
+                return@post call.respond(
+                    HttpStatusCode.NotFound,
+                    mapOf("error" to "Complaint not found")
+                )
             }
 
             val updatedComplaint = complaintRepository.updateComplaintStatus(complaintId, newStatus)
+
             if (updatedComplaint == null) {
-                return@post call.respond(HttpStatusCode.NotFound, "Complaint not found")
+                return@post call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Failed to update complaint status")
+                )
             }
-            call.respondRedirect("/admin/complaints")
+            call.respond(
+                HttpStatusCode.OK,
+                mapOf(
+                    "message" to "Complaint status updated successfully",
+                    "complaintId" to updatedComplaint.id,
+                    "oldStatus" to complaint.status.name,
+                    "newStatus" to updatedComplaint.status.name
+                )
+            )
         }
     }
 }
