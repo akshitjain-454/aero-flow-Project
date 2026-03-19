@@ -85,9 +85,9 @@ fun Route.bookingRoutes() {
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
             for(passenger in passengers) {
                 val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing flight seat id for passenger ${passenger.id}")
-                val seatClassParam = params["passenger_${passenger.id}_seat_class"]?.toString() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat class for passenger ${passenger.id}")
+                val seatClassParam = params["passenger_${passenger.id}_seat_class"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat class for passenger ${passenger.id}")
                 val seatClass = SeatClass.valueOf(seatClassParam)
-                val seatNumber = params["passenger_${passenger.id}_seat_number"]?.toString() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat number for passenger ${passenger.id}")
+                val seatNumber = params["passenger_${passenger.id}_seat_number"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat number for passenger ${passenger.id}")
                 val date = flight.departureTime.toLocalDate()
                 val ticketPrice = bookingRepository.calculatePrice(flight.minPrice, seatClass, date)
 
@@ -123,11 +123,10 @@ fun Route.bookingRoutes() {
             val params = call.receiveParameters()
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
 
-            val amount = 1.00.toBigDecimal() //TODO get cost of booking
+            val amountParam = params["amount"] ?: return@post call.respond(HttpStatusCode.BadRequest, "No amount paid")
+            val amount = BigDecimal(amountParam)
             val paymentMethodParam = params["payment_method"]
-
             val paymentMethod = PaymentMethod.valueOf(paymentMethodParam!!)
-
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
             call.respond(payment)
             //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
