@@ -20,43 +20,43 @@ class FlightRepository {
         val searchNumOfPassengers = numOfPassengers ?: 1
 
         val fromIds = AirportTable
-        .select { AirportTable.code inList searchFromCodes }
-        .map { it[AirportTable.id] }
+            .select { AirportTable.code inList searchFromCodes }
+            .map { it[AirportTable.id] }
 
         val dayStart = searchDate.atStartOfDay()
         val dayEnd = searchDate.atTime(23, 59, 59)
         
         val availableFlightIds = (FlightSeatTable leftJoin TicketAssignmentTable)
-        .slice(FlightSeatTable.flightId)
-        .selectAll()
-        .groupBy(FlightSeatTable.flightId)
-        .having { (FlightSeatTable.id.count() - TicketAssignmentTable.id.count()) greaterEq searchNumOfPassengers.toLong() }
-        .map { it[FlightSeatTable.flightId] }
+            .slice(FlightSeatTable.flightId)
+            .selectAll()
+            .groupBy(FlightSeatTable.flightId)
+            .having { (FlightSeatTable.id.count() - TicketAssignmentTable.id.count()) greaterEq searchNumOfPassengers.toLong() }
+            .map { it[FlightSeatTable.flightId] }
 
         if (toCodes == null) {
             FlightTable
-            .select { 
-                (FlightTable.id inList availableFlightIds) and 
-                (FlightTable.departureAirportId inList fromIds) and 
-                (FlightTable.departureTime greaterEq dayStart) and
-                (FlightTable.departureTime lessEq dayEnd)
-            }
-            .map { resultRowToFlight(it) }
+                .select { 
+                    (FlightTable.id inList availableFlightIds) and 
+                    (FlightTable.departureAirportId inList fromIds) and 
+                    (FlightTable.departureTime greaterEq dayStart) and
+                    (FlightTable.departureTime lessEq dayEnd)
+                }
+                .map { resultRowToFlight(it) }
         }
         else {
             val toIds = AirportTable
-            .select { AirportTable.code inList toCodes }
-            .map { it[AirportTable.id] }
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
 
-            FlightTable
-            .select { 
-                (FlightTable.id inList availableFlightIds) and
-                (FlightTable.departureAirportId inList fromIds) and 
-                (FlightTable.arrivalAirportId inList toIds) and
-                (FlightTable.departureTime greaterEq dayStart) and
-                (FlightTable.departureTime lessEq dayEnd)
-            }
-            .map { resultRowToFlight(it) }
+                FlightTable
+                .select { 
+                    (FlightTable.id inList availableFlightIds) and
+                    (FlightTable.departureAirportId inList fromIds) and 
+                    (FlightTable.arrivalAirportId inList toIds) and
+                    (FlightTable.departureTime greaterEq dayStart) and
+                    (FlightTable.departureTime lessEq dayEnd)
+                }
+                .map { resultRowToFlight(it) }
         }
     }
 
@@ -66,16 +66,22 @@ class FlightRepository {
             .map { resultRowToFlight(it) }.singleOrNull()
     }
 
+    fun getFlightByFlightId(flightId: Int): Flight? = transaction {
+        FlightTable
+            .select { FlightTable.id eq flightId }
+            .map { resultRowToFlight(it) }.singleOrNull()
+    }
+
     
     fun getAirportBySearch(search: String): List<Airport>  = transaction {
         AirportTable
-        .select { (AirportTable.name like "%$search%") or
-                  (AirportTable.code like "$search%") or
-                  (AirportTable.city like "%$search%") or
-                  (AirportTable.country like "%$search%")
-        }
-        .limit(10)
-        .map { resultRowToAirport(it) }
+            .select { (AirportTable.name like "%$search%") or
+                    (AirportTable.code like "$search%") or
+                    (AirportTable.city like "%$search%") or
+                    (AirportTable.country like "%$search%")
+            }
+            .limit(10)
+            .map { resultRowToAirport(it) }
     }
 
     fun resultRowToAirport(row: ResultRow): Airport {
@@ -97,7 +103,7 @@ class FlightRepository {
             aircraftId = row[FlightTable.aircraftId],
             departureTime = row[FlightTable.departureTime],
             arrivalTime = row[FlightTable.arrivalTime],
-            price = row[FlightTable.price],
+            minPrice = row[FlightTable.minPrice],
             status = row[FlightTable.status]
         )
     }
