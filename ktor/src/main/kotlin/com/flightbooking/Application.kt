@@ -17,7 +17,7 @@ import io.ktor.util.hex
 import io.ktor.server.pebble.*
 import io.pebbletemplates.pebble.loader.ClasspathLoader
 
-import com.flightbooking.sessions.UserSession
+import com.flightbooking.sessions.*
 import com.flightbooking.enums.UserRole
 import com.flightbooking.database.DatabaseFactory
 import com.flightbooking.repositories.UserRepository
@@ -26,6 +26,7 @@ import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
 import com.flightbooking.routes.complaintRoutes
 import com.flightbooking.routes.adminRoutes
+import kotlin.time.Duration.Companion.minutes
 
 suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
     val session = sessions.get<UserSession>()
@@ -70,6 +71,16 @@ fun Application.module() {
             cookie.extensions["SameSite"] = "lax"
             val encryptKey = hex("ef82ffacc3920ae250206ead14bfcfff")
             val signKey = hex("ab18cf1251005ede247e911a1e72ab67")
+            
+            transform(SessionTransportTransformerEncrypt(encryptKey, signKey))
+        }
+        cookie<VerificationSession>("verification_session") {
+            cookie.path = "/register"
+            cookie.maxAge = 15.minutes
+            cookie.httpOnly = true
+            cookie.extensions["SameSite"] = "lax"
+            val encryptKey = hex("ab20f82cfea398ffffac69ae2d14bf50")
+            val signKey = hex("fde2eb1e7e911a29cf151a22ab905f57")
             
             transform(SessionTransportTransformerEncrypt(encryptKey, signKey))
         }
