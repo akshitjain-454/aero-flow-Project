@@ -33,6 +33,34 @@ class ComplaintRepository {
             .select { ComplaintTable.userId eq userId }
             .map { resultRowToComplaint(it) }
     }
+    //admin part：getAllComplaints()，getComplaintById(),updateComplaintStatus()
+    fun getAllComplaints(): List<Complaint> = transaction {
+        ComplaintTable
+            .select { ComplaintTable.status neq ComplaintStatus.CLOSED } //The closed status is not displayed
+            .orderBy(ComplaintTable.createdAt, SortOrder.DESC)
+            .map { resultRowToComplaint(it) }
+    }
+
+    fun getComplaintById(id: Int): Complaint? = transaction {
+        ComplaintTable
+            .select { ComplaintTable.id eq id }
+            .map { resultRowToComplaint(it) }
+            .singleOrNull()
+    }
+
+    fun updateComplaintStatus(id: Int, newStatus: ComplaintStatus): Complaint? = transaction {
+        val updatedRows = ComplaintTable.update({ ComplaintTable.id eq id }) {
+            it[status] = newStatus
+        }
+        if (updatedRows == 0) {
+            null
+        } else {
+            ComplaintTable
+                .select { ComplaintTable.id eq id }
+                .map { resultRowToComplaint(it) }
+                .singleOrNull()
+        }
+    }
 
     private fun resultRowToComplaint(row: ResultRow): Complaint {
         return Complaint(

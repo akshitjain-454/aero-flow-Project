@@ -4,6 +4,8 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
 import com.flightbooking.tables.*
+//Only for testing
+import com.flightbooking.database.seed.DefaultDataSeeder
 
 object DatabaseFactory {
 
@@ -27,6 +29,8 @@ object DatabaseFactory {
                 TicketAssignmentTable, 
                 FlightSeatTable, 
             )
+            //Only for testing
+            DefaultDataSeeder.seed()
         }
     }
 }

@@ -25,6 +25,7 @@ import com.flightbooking.routes.userRoutes
 import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
 import com.flightbooking.routes.complaintRoutes
+import com.flightbooking.routes.adminRoutes
 
 suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
     val session = sessions.get<UserSession>()
@@ -82,5 +83,6 @@ fun Application.module() {
         userRoutes()
         flightRoutes()
         bookingRoutes()
+        adminRoutes()
     }
 }

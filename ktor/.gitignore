@@ -38,3 +38,7 @@ out/
 ### Database files ###
 /data/*.db
 *.db
+
+### Test/session cookie files ###
+cookies.txt
+admin_cookies.txt
