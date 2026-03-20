@@ -24,8 +24,7 @@ fun Route.adminRoutes() {
                 return@get call.respondRedirect("/login")
             }
             if (session.role != UserRole.ADMIN) {
-                return@get call.respond(
-                    HttpStatusCode.Forbidden,
+                return@get call.respond(HttpStatusCode.Forbidden,
                     mapOf("error" to "Admins only")
                 )
             }
@@ -45,8 +44,7 @@ fun Route.adminRoutes() {
                 return@get call.respondRedirect("/login")
             }
             if (session.role != UserRole.ADMIN) {
-                return@get call.respond(
-                    HttpStatusCode.Forbidden,
+                return@get call.respond(HttpStatusCode.Forbidden,
                     mapOf("error" to "Admin only")
                 )
             }
@@ -61,8 +59,7 @@ fun Route.adminRoutes() {
                 return@post call.respondRedirect("/login")
             }
             if (session.role != UserRole.ADMIN) {
-                return@post call.respond(
-                    HttpStatusCode.Forbidden,
+                return@post call.respond(HttpStatusCode.Forbidden,
                     mapOf("error" to "Admin only")
                 )
             }
@@ -71,8 +68,7 @@ fun Route.adminRoutes() {
             val complaintId = complaintIdText?.toIntOrNull()
 
             if (complaintId == null) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
+                return@post call.respond(HttpStatusCode.BadRequest,
                     mapOf("error" to "Invalid complaint id")
                 )
             }
@@ -81,8 +77,7 @@ fun Route.adminRoutes() {
             val statusText = params["status"]?.trim()?.uppercase()
 
             if (statusText.isNullOrBlank()) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
+                return@post call.respond(HttpStatusCode.BadRequest,
                     mapOf("error" to "Missing status")
                 )
             }
@@ -90,8 +85,7 @@ fun Route.adminRoutes() {
             val newStatus = try {
                 ComplaintStatus.valueOf(statusText)
             } catch (error: IllegalArgumentException) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
+                return@post call.respond(HttpStatusCode.BadRequest,
                     mapOf(
                         "error" to "Invalid status",
                         "allowedStatuses" to ComplaintStatus.values().map { it.name }
@@ -102,8 +96,7 @@ fun Route.adminRoutes() {
             val complaint = complaintRepository.getComplaintById(complaintId)
 
             if (complaint == null) {
-                return@post call.respond(
-                    HttpStatusCode.NotFound,
+                return@post call.respond(HttpStatusCode.NotFound,
                     mapOf("error" to "Complaint not found")
                 )
             }
@@ -111,13 +104,11 @@ fun Route.adminRoutes() {
             val updatedComplaint = complaintRepository.updateComplaintStatus(complaintId, newStatus)
 
             if (updatedComplaint == null) {
-                return@post call.respond(
-                    HttpStatusCode.InternalServerError,
+                return@post call.respond(HttpStatusCode.InternalServerError,
                     mapOf("error" to "Failed to update complaint status")
                 )
             }
-            call.respond(
-                HttpStatusCode.OK,
+            call.respond(HttpStatusCode.OK,
                 mapOf(
                     "message" to "Complaint status updated successfully",
                     "complaintId" to updatedComplaint.id,

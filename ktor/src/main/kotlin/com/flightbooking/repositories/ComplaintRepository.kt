@@ -36,7 +36,7 @@ class ComplaintRepository {
     //admin part：getAllComplaints()，getComplaintById(),updateComplaintStatus()
     fun getAllComplaints(): List<Complaint> = transaction {
         ComplaintTable
-            .selectAll()
+            .select { ComplaintTable.status neq ComplaintStatus.CLOSED } //The closed status is not displayed
             .orderBy(ComplaintTable.createdAt, SortOrder.DESC)
             .map { resultRowToComplaint(it) }
     }
