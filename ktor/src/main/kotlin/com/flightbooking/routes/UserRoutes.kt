@@ -25,14 +25,20 @@ fun Route.userRoutes() {
     post("/register") {
         val params = call.receiveParameters()
 
-        val firstname = params["firstname"]
-        val lastname  = params["lastname"]
-        val email     = params["email"]
+        val firstname = params["firstname"]?.trim()
+        val lastname  = params["lastname"]?.trim()
+        val email     = params["email"]?.trim()
         val password  = params["password"]
 
         if (firstname == null || lastname == null || email == null || password == null) {
-            call.respond(HttpStatusCode.BadRequest, "Missing required field")
-            return@post
+            //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
+            return@post call.respondPebble("register.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
+        }
+
+        val atIndex = email.indexOf('@')
+
+        if(atIndex <= 0 || email.indexOf('.', atIndex) <= atIndex + 1 ||  email.last() != '.') {
+            return@post call.respondPebble("register.peb", mapOf("error" to "Email isn't in valid format")) //shouldnt happen unless frontend is bypassed
         }
 
         if (userRepository.getUserByEmail(email) != null) {
@@ -63,11 +69,18 @@ fun Route.userRoutes() {
     post("/login") {
         val params = call.receiveParameters()
 
-        val email    = params["email"]
+        val email    = params["email"]?.trim()
         val password = params["password"]
 
         if (email == null || password == null) {
-            return@post call.respond(HttpStatusCode.BadRequest, "Missing email or password")
+            //return@post call.respond(HttpStatusCode.BadRequest, "Missing email or password")
+            return@post call.respondPebble("login.peb", mapOf("error" to "Missing email or password")) //shouldnt happen unless frontend is bypassed
+        }
+
+        val atIndex = email.indexOf('@')
+
+        if(atIndex <= 0 || email.indexOf('.', atIndex) <= atIndex + 1 ||  email.last() != '.') {
+            return@post call.respondPebble("login.peb", mapOf("error" to "Email isn't in valid format")) //shouldnt happen unless frontend is bypassed
         }
 
         val user = userRepository.getUserByEmail(email)
