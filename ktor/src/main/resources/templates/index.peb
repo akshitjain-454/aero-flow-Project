@@ -295,40 +295,50 @@
                     <button class="text-[10px] uppercase tracking-widest font-extrabold text-gray-300 hover:text-black transition-all pb-1">One Way</button>
                     <button class="text-[10px] uppercase tracking-widest font-extrabold text-gray-300 hover:text-black transition-all pb-1">Multi-City</button>
                 </div>
+            <form action="/flights" method="GET" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-5 gap-8 items-end">
+    <div class="relative group">
+        <label for="origin" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
+        <input type="text" id="origin" name="origin" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+    </div>
 
-                <form action="/search" method="GET" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
-                    <div class="relative group">
-                        <label for="origin" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
-                        <input type="text" id="origin" name="origin" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
-                    </div>
+    <div class="relative group">
+        <label for="destination" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
+        <input type="text" id="destination" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+    </div>
 
-                    <div class="relative group">
-                        <label for="destination" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
-                        <input type="text" id="destination" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
-                    </div>
+    <div>
+        <label for="date" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Departure</label>
+        <input type="date" id="date" name="date" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none text-gray-400 cursor-pointer focus:border-[--sky-blue] transition-colors">
+    </div>
 
-                    <div>
-                        <label for="date" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Departure</label>
-                        <input type="date" id="date" name="date" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none text-gray-400 cursor-pointer focus:border-[--sky-blue] transition-colors">
-                    </div>
+    <div>
+        <label class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Passengers</label>
+        <div class="flex items-center border-b border-gray-200 pb-2 gap-4">
+            <button type="button" onclick="changePassengers(-1)" class="w-7 h-7 rounded-full border border-gray-300 text-gray-400 hover:border-[--sky-blue] hover:text-[--sky-blue] transition-all text-base font-bold flex items-center justify-center flex-shrink-0">−</button>
+            <span id="passenger-display" class="text-lg font-medium text-center flex-1">1</span>
+            <input type="hidden" id="numOfPassengers" name="numOfPassengers" value="1">
+            <button type="button" onclick="changePassengers(1)" class="w-7 h-7 rounded-full border border-gray-300 text-gray-400 hover:border-[--sky-blue] hover:text-[--sky-blue] transition-all text-base font-bold flex items-center justify-center flex-shrink-0">+</button>
+        </div>
+        <p class="text-[9px] text-gray-300 mt-1 uppercase tracking-widest">Max 9</p>
+    </div>
 
-                    <button type="submit" class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-500 active:scale-95 shadow-lg">
-                        Find Availability
-                    </button>
+    <button type="submit" class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-500 active:scale-95 shadow-lg">
+        Find Availability
+    </button>
 
-                    <datalist id="locations">
-                        <option value="Amsterdam (AMS) — Netherlands">
-                        <option value="Aspen (ASE) — United States">
-                        <option value="Dubai (DXB) — United Arab Emirates">
-                        <option value="Hong Kong (HKG) — China">
-                        <option value="London (LHR) — United Kingdom">
-                        <option value="Maldives (MLE) — Maldives">
-                        <option value="New York (JFK) — United States">
-                        <option value="Paris (CDG) — France">
-                        <option value="Singapore (SIN) — Singapore">
-                        <option value="Tokyo (HND) — Japan">
-                    </datalist>
-                </form>
+    <datalist id="locations">
+        <option value="Amsterdam (AMS) — Netherlands">
+        <option value="Aspen (ASE) — United States">
+        <option value="Dubai (DXB) — United Arab Emirates">
+        <option value="Hong Kong (HKG) — China">
+        <option value="London (LHR) — United Kingdom">
+        <option value="Maldives (MLE) — Maldives">
+        <option value="New York (JFK) — United States">
+        <option value="Paris (CDG) — France">
+        <option value="Singapore (SIN) — Singapore">
+        <option value="Tokyo (HND) — Japan">
+    </datalist>
+</form>
             </div>
         </section>
 
@@ -636,5 +646,13 @@
         const insideProfile = document.getElementById('profile-menu-wrapper')?.contains(e.target);
         if (!insideHelp && !insideHelpDrop && !insideProfile) closeAllMenus();
     });
+    function changePassengers(delta) {
+    const input = document.getElementById('numOfPassengers');
+    const display = document.getElementById('passenger-display');
+    const current = parseInt(input.value) || 1;
+    const next = Math.min(9, Math.max(1, current + delta));
+    input.value = next;
+    display.textContent = next;
+}
 </script>
 {% endblock %}

@@ -101,4 +101,9 @@ class FlightRepository {
             status = row[FlightTable.status]
         )
     }
+    fun getAirportsByIds(ids: List<Int>): List<Airport> = transaction {
+    AirportTable
+        .select { AirportTable.id inList ids }
+        .map { resultRowToAirport(it) }
+}
 }
