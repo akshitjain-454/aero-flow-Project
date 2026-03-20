@@ -39,10 +39,10 @@ class UserRepository {
         )
     }
     
-    fun getUserById(id: Int): User? = transaction {
-    UserTable
-        .select { UserTable.id eq id }
-        .map { resultRowToUser(it) }.singleOrNull()
-    }
+    // fun getUserById(id: Int): User? = transaction {
+    //     UserTable
+    //         .select { UserTable.id eq id }
+    //         .map { resultRowToUser(it) }.singleOrNull()
+    // } UNUSED 
 
 }
