@@ -48,15 +48,15 @@ class FlightRepository {
                 .select { AirportTable.code inList toCodes }
                 .map { it[AirportTable.id] }
 
-                FlightTable
-                .select { 
-                    (FlightTable.id inList availableFlightIds) and
-                    (FlightTable.departureAirportId inList fromIds) and 
-                    (FlightTable.arrivalAirportId inList toIds) and
-                    (FlightTable.departureTime greaterEq dayStart) and
-                    (FlightTable.departureTime lessEq dayEnd)
-                }
-                .map { resultRowToFlight(it) }
+            FlightTable
+            .select { 
+                (FlightTable.id inList availableFlightIds) and
+                (FlightTable.departureAirportId inList fromIds) and 
+                (FlightTable.arrivalAirportId inList toIds) and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+            }
+            .map { resultRowToFlight(it) }
         }
     }
 
