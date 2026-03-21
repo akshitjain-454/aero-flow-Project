@@ -145,7 +145,7 @@ fun Route.bookingRoutes() {
 
             for(ticket in ticketInfo) {
                 userRepository.sendEmail(
-                    to = user.email,
+                    email = user.email,
                     subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
                     body = """
                         Passenger: ${ticket.passengerName}
