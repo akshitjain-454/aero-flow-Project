@@ -2,6 +2,7 @@ package com.flightbooking.routes
 
 import com.flightbooking.repositories.BookingRepository
 import com.flightbooking.repositories.FlightRepository
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.enums.PaymentMethod
 import com.flightbooking.enums.SeatClass
@@ -18,6 +19,7 @@ fun Route.bookingRoutes() {
 
     val bookingRepository = BookingRepository()
     val flightRepository = FlightRepository()
+    val userRepository = UserRepository()
 
     route("/booking") {
 
@@ -130,6 +132,31 @@ fun Route.bookingRoutes() {
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
             call.respond(payment)
             //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
+        }
+
+        post("/{reference}/send_tickets") { //button on paymentConfirmation.peb
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respond(HttpStatusCode.NotFound, "Logged in user not found")
+
+            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
+            val ticketInfo = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
+
+            for(ticket in ticketInfo) {
+                userRepository.sendEmail(
+                    to = user.email,
+                    subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
+                    body = """
+                        Passenger: ${ticket.passengerName}
+                        From: ${ticket.departureAirport}
+                        To: ${ticket.arrivalAirport}
+                        Departure: ${ticket.dateTime}
+                        Seat: ${ticket.seatNumber}
+                        Booking Reference: ${ticket.bookingReference}
+                    """.trimIndent()
+                )
+            }
         }
 
         post("/{reference}/cancel") {
