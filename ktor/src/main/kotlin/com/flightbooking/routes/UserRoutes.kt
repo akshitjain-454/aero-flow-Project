@@ -54,9 +54,9 @@ fun Route.userRoutes() {
             val params = call.receiveParameters()
             val vfySession = call.sessions.get<VerificationSession>() ?: return@post call.respondRedirect("/register")
 
-            val otpParam = params["otp"]?.trim() ?: return@post call.respondPebble("verify.peb", mapOf("error" to "No code entered"))
+            val otpParam = params["otp_param"]?.trim() ?: return@post call.respondPebble("verify.peb", mapOf("error" to "No code entered"))
 
-            if(otpTPParam != vfySession.otp) {
+            if(otpParam != vfySession.otp) {
                 return@post call.respondPebble("verify.peb", mapOf("error" to "The code you entered was incorrect"))
             }
             call.respondRedirect("/register/details")
