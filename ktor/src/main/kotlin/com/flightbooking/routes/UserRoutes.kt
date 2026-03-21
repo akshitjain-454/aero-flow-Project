@@ -41,9 +41,9 @@ fun Route.userRoutes() {
             if (userRepository.getUserByEmail(email) != null) {
                 return@post call.respondPebble("getemail.peb", mapOf("error" to "Already a member. Please Sign in instead!"))
             }
-            val OTP = (100000..999999).random().toString()
-            userRepository.sendEmail(email, "Verify Your Email", "Your one time code is: $OTP")
-            call.sessions.set(VerificationSession(email, OTP))
+            val otp = (100000..999999).random().toString()
+            userRepository.sendEmail(email, "Verify Your Email", "Your one time code is: $otp")
+            call.sessions.set(VerificationSession(email, otp))
             call.respondRedirect("/register/verify")
 
         }
@@ -54,9 +54,9 @@ fun Route.userRoutes() {
             val params = call.receiveParameters()
             val vfySession = call.sessions.get<VerificationSession>() ?: return@post call.respondRedirect("/register")
 
-            val OTPParam = params["OTP_param"]?.trim() ?: return@post call.respondPebble("verify.peb", mapOf("error" to "No code entered"))
+            val otpParam = params["otp"]?.trim() ?: return@post call.respondPebble("verify.peb", mapOf("error" to "No code entered"))
 
-            if(OTPParam != vfySession.OTP) {
+            if(otpTPParam != vfySession.otp) {
                 return@post call.respondPebble("verify.peb", mapOf("error" to "The code you entered was incorrect"))
             }
             call.respondRedirect("/register/details")
@@ -114,7 +114,7 @@ fun Route.userRoutes() {
 
         val atIndex = email.indexOf('@')
 
-        if(atIndex <= 0 || email.indexOf('.', atIndex) <= atIndex + 1 ||  email.last() != '.') {
+        if(atIndex <= 0 || email.indexOf('.', atIndex) <= atIndex + 1 ||  email.last() == '.') {
             return@post call.respondPebble("login.peb", mapOf("error" to "Email isn't in valid format")) //shouldnt happen unless frontend is bypassed
         }
 
