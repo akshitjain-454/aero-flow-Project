@@ -5,6 +5,9 @@ import com.flightbooking.tables.UserTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.util.Properties
+import jakarta.mail.*
+import jakarta.mail.internet.*
 
 class UserRepository {
 
@@ -26,6 +29,28 @@ class UserRepository {
             .select { UserTable.email eq email }
             .map { resultRowToUser(it) }.singleOrNull()
     }
+
+    fun sendEmail(email: String, subject: String, body: String) {
+        val props = Properties().apply {
+            put("mail.smtp.host", "smtp.gmail.com")
+            put("mail.smtp.port", "587")
+            put("mail.smtp.auth", "true")
+            put("mail.smtp.starttls.enable", "true")
+        }
+
+        val emailsession = Session.getInstance(props, object : Authenticator() {
+            override fun getPasswordAuthentication() = PasswordAuthentication("aeroflow.noreplys@gmail.com", "hgenhbdcynhmbmuz")
+        })
+
+        MimeMessage(emailsession).apply {
+            setFrom(InternetAddress("aeroflow.noreplys@gmail.com"))
+            setRecipients(Message.RecipientType.TO, InternetAddress.parse(email))
+            setSubject(subject)
+            setText(body)
+            Transport.send(this)
+        }
+    }
+    
 
     fun resultRowToUser(row: ResultRow): User {
         return User(

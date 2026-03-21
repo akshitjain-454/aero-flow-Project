@@ -25,6 +25,8 @@ dependencies {
     // Auth & Sessions
     implementation("io.ktor:ktor-server-auth:2.3.4")
     implementation("io.ktor:ktor-server-sessions:2.3.4")
+    //Java mail
+    implementation("com.sun.mail:jakarta.mail:2.0.1")
 
     // Content Negotiation + Jackson
     implementation("io.ktor:ktor-server-content-negotiation:2.3.4")
