@@ -70,7 +70,8 @@ fun Route.bookingRoutes() {
 
             val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
             
-            call.respond(seats)
+            //call.respond(seats)
+            call.respondPebble("payment.peb", mapOf("seats" to seats))
         }
 
         post("/{reference}/ticket_assignment") {
@@ -115,8 +116,8 @@ fun Route.bookingRoutes() {
                 price = price.add(ticketPrice)
             }
 
-            call.respond(price)
-            //call.respondPebble("payment.peb", mapOf("price" to price))
+            //call.respond(price)
+            call.respondPebble("payment.peb", mapOf("price" to price))
         }
 
         post("/{reference}/payment") {
@@ -141,9 +142,9 @@ fun Route.bookingRoutes() {
             val user = userRepository.getUserById(session.userId) ?: return@post call.respond(HttpStatusCode.NotFound, "Logged in user not found")
 
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
-            val ticketInfo = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
+            val ticketsInfo = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
 
-            for(ticket in ticketInfo) {
+            for(ticket in ticketsInfo) {
                 userRepository.sendEmail(
                     email = user.email,
                     subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
@@ -157,6 +158,8 @@ fun Route.bookingRoutes() {
                     """.trimIndent()
                 )
             }
+            call.respond(ticketsInfo)
+            //call.respondPebble("tickets.peb", mapOf("tickets" to ticketsInfo))
         }
 
         post("/{reference}/cancel") {
