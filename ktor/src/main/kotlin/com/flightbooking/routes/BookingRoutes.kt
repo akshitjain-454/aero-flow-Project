@@ -71,7 +71,7 @@ fun Route.bookingRoutes() {
             val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
             
             //call.respond(seats)
-            call.respondPebble("payment.peb", mapOf("seats" to seats))
+            call.respondPebble("seats.peb", mapOf("seats" to seats))
         }
 
         post("/{reference}/ticket_assignment") {
@@ -111,7 +111,7 @@ fun Route.bookingRoutes() {
             val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
             var price = BigDecimal.ZERO
-            for(passenger in passengers){
+            for(passenger in passengers) {
                 val ticketPrice = bookingRepository.getTicketPriceByPassengerId(passenger.id) ?: return@get call.respond(HttpStatusCode.NotFound, "Ticket price not found")
                 price = price.add(ticketPrice)
             }
@@ -125,11 +125,15 @@ fun Route.bookingRoutes() {
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
 
-            val amountParam = params["amount"] ?: return@post call.respond(HttpStatusCode.BadRequest, "No amount paid")
-            val amount = BigDecimal(amountParam)
-            val paymentMethodParam = params["payment_method"]
-            val paymentMethod = PaymentMethod.valueOf(paymentMethodParam!!)
+            var amount = BigDecimal.ZERO
+            for(passenger in passengers) {
+                val ticketPrice = bookingRepository.getTicketPriceByPassengerId(passenger.id) ?: return@post call.respond(HttpStatusCode.NotFound, "Ticket price not found")
+                amount = amount.add(ticketPrice)
+            }
+            val paymentMethodParam = params["payment_method"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing payment method")
+            val paymentMethod = PaymentMethod.valueOf(paymentMethodParam)
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
             call.respond(payment)
             //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
