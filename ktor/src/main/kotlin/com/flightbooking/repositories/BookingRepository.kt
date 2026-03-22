@@ -4,6 +4,7 @@ import com.flightbooking.models.Booking
 import com.flightbooking.models.Seat
 import com.flightbooking.models.Payment
 import com.flightbooking.models.SeatAvailability
+import com.flightbooking.models.TicketInfo
 import com.flightbooking.models.TicketAssignment
 import com.flightbooking.models.Passenger
 import com.flightbooking.tables.BookingTable
@@ -12,6 +13,7 @@ import com.flightbooking.tables.PaymentTable
 import com.flightbooking.tables.TicketAssignmentTable
 import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.PassengerTable
+import com.flightbooking.tables.AirportTable
 import com.flightbooking.tables.UserTable
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.enums.BookingStatus
@@ -153,7 +155,7 @@ class BookingRepository {
             .join(TicketAssignmentTable, JoinType.LEFT, FlightSeatTable.id, TicketAssignmentTable.flightSeatId)
             .select { FlightSeatTable.flightId eq flightId }
             .map { 
-                val available = (it[TicketAssignmentTable.id] == null)
+                val available = (it.getOrNull(TicketAssignmentTable.id) == null)
 
                 SeatAvailability(
                     flightSeatId = it[FlightSeatTable.id],
@@ -187,6 +189,39 @@ class BookingRepository {
             .select { TicketAssignmentTable.passengerId eq passengerId }
             .map { it[TicketAssignmentTable.ticketPrice] }.singleOrNull()
         return@transaction ticketPrice
+    }
+
+    fun getTicketInfoByPassengerAndBooking(passenger: Passenger, booking: Booking): TicketInfo = transaction {
+        val passengerName = passenger.firstname + " " + passenger.lastname
+        val bookingReference = booking.bookingReference
+        val flightId = booking.flightId
+
+        val flight = FlightTable
+            .select { FlightTable.id eq flightId }
+            .singleOrNull() ?: throw IllegalStateException("Flight not found")
+            
+        val seatNumber = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passenger.id }
+            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Seat not found")
+        
+        val departureAirport = AirportTable
+            .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Departure Airport not found")
+            val arrivalAirport = AirportTable
+            .select { AirportTable.id eq flight[FlightTable.arrivalAirportId] }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Arrival Airport not found")
+
+
+        val dateTime = flight[FlightTable.departureTime]
+        
+        TicketInfo(
+            passengerName = passengerName,
+            bookingReference = bookingReference,
+            seatNumber = seatNumber,
+            departureAirport = departureAirport,
+            arrivalAirport = arrivalAirport,
+            dateTime = dateTime,
+        )
     }
 
     fun resultRowToBooking(row: ResultRow): Booking {
