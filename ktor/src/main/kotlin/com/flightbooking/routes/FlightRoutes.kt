@@ -26,6 +26,7 @@ fun Route.flightRoutes() {
 
         val flights = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
         call.respond(flights)
+        //call.respondPebble("flightsearch.peb", mapOf("flights" to flights))
     }
     get("/airports") {
         val search = call.request.queryParameters["search"] ?: ""
