@@ -154,8 +154,8 @@ fun Route.bookingRoutes() {
                     subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
                     body = """
                         Passenger: ${ticket.passengerName}
-                        From: ${ticket.departureAirport}
-                        To: ${ticket.arrivalAirport}
+                        From: ${ticket.departureAirportNameCode}
+                        To: ${ticket.arrivalAirportNameCode}
                         Departure: ${ticket.dateTime}
                         Seat: ${ticket.seatNumber}
                         Booking Reference: ${ticket.bookingReference}
@@ -192,6 +192,9 @@ fun Route.bookingRoutes() {
         val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
         val bookings = bookingRepository.getBookingsByUserId(session.userId)
 
-        call.respond(bookings)
+        val bookingsInfo = bookings.map { bookingRepository.getBookingInfoByBooking(it) }
+
+        call.respond(bookingsInfo)
+        //call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
     }
 }
