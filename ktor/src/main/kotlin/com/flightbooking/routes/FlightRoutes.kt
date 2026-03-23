@@ -25,7 +25,7 @@ fun Route.flightRoutes() {
         val numOfPassengers = params["numOfPassengers"]?.toIntOrNull()
 
         val flightsInfo = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
-        call.respond(flightsInfo)
+        //call.respond(flightsInfo)
         call.respondPebble("flightsearch.peb", mapOf("flightsInfo" to flightsInfo))
     }
     get("/airports") {

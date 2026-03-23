@@ -304,7 +304,7 @@
 
                     <div class="relative group">
                         <label for="destination" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
-                        <input type="text" id="to" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+                        <input type="text" id="to" name="to" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
                     </div>
 
                     <div>
@@ -636,5 +636,17 @@
         const insideProfile = document.getElementById('profile-menu-wrapper')?.contains(e.target);
         if (!insideHelp && !insideHelpDrop && !insideProfile) closeAllMenus();
     });
+    document.querySelector('form[action="/search"]').addEventListener('submit', function() {
+    const originInput = document.getElementById('origin');
+    const destInput = document.getElementById('destination');
+
+    const extractCode = (val) => {
+        const match = val.match(/\(([A-Z]{3})\)/);
+        return match ? match[1] : val;
+    };
+
+    originInput.value = extractCode(originInput.value);
+    destInput.value = extractCode(destInput.value);
+});
 </script>
 {% endblock %}
