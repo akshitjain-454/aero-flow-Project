@@ -5,6 +5,7 @@ import com.flightbooking.models.Seat
 import com.flightbooking.models.Payment
 import com.flightbooking.models.SeatAvailability
 import com.flightbooking.models.TicketInfo
+import com.flightbooking.models.BookingInfo
 import com.flightbooking.models.TicketAssignment
 import com.flightbooking.models.Passenger
 import com.flightbooking.tables.BookingTable
@@ -204,10 +205,10 @@ class BookingRepository {
             .select { TicketAssignmentTable.passengerId eq passenger.id }
             .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Seat not found")
         
-        val departureAirport = AirportTable
+        val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
             .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Departure Airport not found")
-            val arrivalAirport = AirportTable
+        val arrivalAirportNameCode = AirportTable
             .select { AirportTable.id eq flight[FlightTable.arrivalAirportId] }
             .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Arrival Airport not found")
 
@@ -218,9 +219,42 @@ class BookingRepository {
             passengerName = passengerName,
             bookingReference = bookingReference,
             seatNumber = seatNumber,
-            departureAirport = departureAirport,
-            arrivalAirport = arrivalAirport,
+            departureAirportNameCode = departureAirportNameCode,
+            arrivalAirportNameCode = arrivalAirportNameCode,
             dateTime = dateTime,
+        )
+    }
+
+    fun getBookingInfoByBooking(booking: Booking): BookingInfo = transaction  {
+        val flight = FlightTable
+            .select { FlightTable.id eq booking.flightId }
+            .singleOrNull() ?: throw IllegalStateException("Flight not found")
+
+        val departureAirportNameCode = AirportTable
+            .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Departure Airport not found")
+        val arrivalAirportNameCode = AirportTable
+            .select { AirportTable.id eq flight[FlightTable.arrivalAirportId] }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Arrival Airport not found")
+        
+        val dateTime = flight[FlightTable.departureTime]
+
+        val numOfPassengers = PassengerTable
+            .select { PassengerTable.bookingId eq booking.id }
+            .count()
+        val amountPaid = PaymentTable
+            .select { PaymentTable.bookingId eq booking.id }
+            .map { it[PaymentTable.amount] }.singleOrNull()
+
+        BookingInfo(
+            bookingReference = booking.bookingReference,
+            flightCode = flight[FlightTable.flightCode],
+            bookingStatus = booking.status,
+            numOfPassengers = numOfPassengers,
+            departureAirportNameCode = departureAirportNameCode,
+            arrivalAirportNameCode = arrivalAirportNameCode,
+            departureTime = dateTime,
+            amountPaid = amountPaid
         )
     }
 
