@@ -299,12 +299,12 @@
                 <form action="/search" method="GET" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
                     <div class="relative group">
                         <label for="origin" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
-                        <input type="text" id="origin" name="origin" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+                        <input type="text" id="origin" name="from" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
                     </div>
 
                     <div class="relative group">
                         <label for="destination" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
-                        <input type="text" id="destination" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+                        <input type="text" id="to" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
                     </div>
 
                     <div>

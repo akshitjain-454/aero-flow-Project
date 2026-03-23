@@ -22,6 +22,7 @@ data class TicketInfo(
 )
 
 data class FlightInfo(
+    val flightCode: String ,
     val departureAirport: String,
     val departureAirportCode: String,
     val arrivalAirport: String,

@@ -24,7 +24,7 @@ class FlightRepository {
         val searchNumOfPassengers = numOfPassengers ?: 1
 
         val fromIds = AirportTable
-            .select { AirportTable.code inList searchFromCodes }
+            .select { AirportTable.code inList searchFromCodes }    
             .map { it[AirportTable.id] }
 
         val dayStart = searchDate.atStartOfDay()
@@ -56,6 +56,7 @@ class FlightRepository {
                     val depAirport = getAirportById(it[FlightTable.departureAirportId])
                     val arrAirport = getAirportById(it[FlightTable.arrivalAirportId])
                     FlightInfo(
+                        flightCode = it[FlightTable.flightCode],
                         departureAirport = depAirport.name,
                         departureAirportCode = depAirport.code,
                         arrivalAirport = arrAirport.name,
