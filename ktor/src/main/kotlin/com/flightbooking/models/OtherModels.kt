@@ -1,6 +1,7 @@
 package com.flightbooking.models
 
 import com.flightbooking.enums.SeatClass
+import com.flightbooking.enums.FlightStatus
 import java.time.LocalDateTime
 import java.math.BigDecimal
 
@@ -27,4 +28,15 @@ data class FlightInfo(
     val arrivalAirportCode: String,
     val departureTime: LocalDateTime,
     val priceFrom: BigDecimal
+)
+
+data class BookingsPerFlightReport(
+    val flightId: Int,
+    val flightCode: String,
+    val departureAirportId: Int,
+    val arrivalAirportId: Int,
+    val departureTime: LocalDateTime,
+    val arrivalTime: LocalDateTime,
+    val flightStatus: FlightStatus,
+    val bookingCount: Long
 )

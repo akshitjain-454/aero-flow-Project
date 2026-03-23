@@ -3,6 +3,7 @@ package com.flightbooking.routes
 import com.flightbooking.enums.ComplaintStatus
 import com.flightbooking.enums.UserRole
 import com.flightbooking.repositories.ComplaintRepository
+import com.flightbooking.repositories.AdminRepository
 import com.flightbooking.sessions.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -14,6 +15,7 @@ import io.ktor.server.sessions.*
 fun Route.adminRoutes() {
 
     val complaintRepository = ComplaintRepository()
+    val adminRepository = AdminRepository()
 
     route("/admin") {
 
@@ -117,5 +119,62 @@ fun Route.adminRoutes() {
                 )
             )
         }
+
+        get("/reports/bookings-per-flight") {
+            val session = call.sessions.get<UserSession>()
+
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                mapOf("error" to "Admin only")
+                )
+            }
+
+            val report = adminRepository.getBookingsPerFlightReport()
+
+            call.respond(
+                mapOf(
+                    "reportType" to "bookings_per_flight",
+                    "totalFlightsInReport" to report.size,
+                    "results" to report
+                )
+            )
+        }
+
+        get("/reports/bookings-per-flight/{flightCode}") {
+            val session = call.sessions.get<UserSession>()
+
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                mapOf("error" to "Admin only")
+                )
+            }
+
+            val flightCode = call.parameters["flightCode"]?.trim()
+            
+            if (flightCode.isNullOrBlank()) {
+                return@get call.respond(HttpStatusCode.BadRequest,
+                mapOf("error" to "Missing flightCode")
+                )
+            }
+
+            val report = adminRepository.getBookingsPerFlightByFlightCode(flightCode)
+                ?: return@get call.respond(HttpStatusCode.NotFound,
+                mapOf("error" to "Flight not found")
+                )
+                
+            call.respond(
+                mapOf(
+                    "reportType" to "bookings_per_flight_single",
+                    "result" to report
+                )
+            )
+        }
+
     }
 }
