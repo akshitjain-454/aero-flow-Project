@@ -201,7 +201,7 @@
                         <h3 class="text-xl serif text-[--charcoal] mb-3 leading-snug">Speak to our <span class="italic">Concierge Team</span></h3>
                         <p class="text-xs text-gray-400 font-light leading-relaxed">Available 24/7 for all Aetheria members worldwide.</p>
                     </div>
-                    <a href="#" class="mt-8 inline-flex items-center justify-center bg-[--charcoal] text-white px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all">
+                    <a href="/complaints" class="mt-8 inline-flex items-center justify-center bg-[--charcoal] text-white px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all">
                         Contact Us
                     </a>
                 </div>
