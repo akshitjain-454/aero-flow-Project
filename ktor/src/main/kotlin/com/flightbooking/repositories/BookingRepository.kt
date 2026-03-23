@@ -128,6 +128,12 @@ class BookingRepository {
         booking.copy(status = BookingStatus.CANCELLED)
     }
 
+    fun confirmBooking(booking: Booking): Int = transaction {
+        BookingTable.update({ BookingTable.id eq booking.id }) {
+            it[status] = BookingStatus.CONFIRMED
+        }
+    }
+
     fun calculatePrice(flightPrice: BigDecimal, seatClass: SeatClass?, date: LocalDate?): BigDecimal = transaction {
         val now = LocalDate.now()
         val seatClassMultiplier = when (seatClass) { 

@@ -135,6 +135,10 @@ fun Route.bookingRoutes() {
             val paymentMethodParam = params["payment_method"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing payment method")
             val paymentMethod = PaymentMethod.valueOf(paymentMethodParam)
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
+
+            val confirmed = bookingRepository.confirmBooking(booking)
+            if(confirmed != 1) { return@post  call.respond(HttpStatusCode.InternalServerError, "Couldn't confirm booking")} 
+
             call.respond(payment)
             //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
         }
