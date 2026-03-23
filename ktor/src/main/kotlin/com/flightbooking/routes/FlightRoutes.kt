@@ -21,7 +21,12 @@ fun Route.flightRoutes() {
 
         val fromCodes = call.request.queryParameters.getAll("from")
         val toCodes = call.request.queryParameters.getAll("to")
-        val date = params["date"]?.let { LocalDate.parse(it) }
+        val date = try {
+                        params["date"]?.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) }
+                    }
+                    catch (e: Exception) {
+                        return@get call.respondPebble("index.peb", mapOf("error" to "Invalid date format"))
+                    }
         val numOfPassengers = params["numOfPassengers"]?.toIntOrNull()
 
         val flightsInfo = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
@@ -41,15 +46,38 @@ fun Route.flightRoutes() {
         call.respond(airports)
     }
     get("/airports/search") { //Used when js isn't available so search button needed 
-        val search = call.request.queryParameters["search"] ?: "" 
+        val search = call.request.queryParameters["search"] ?: ""
+        val searchField = call.request.queryParameters["field"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing field parameter")
+        val fromValue = call.request.queryParameters["from"] ?: ""
+        val toValue = call.request.queryParameters["to"] ?: ""
+        val dateValue = call.request.queryParameters["date"] ?: ""
+        val numOfPassengersValue = call.request.queryParameters["numOfPassengers"] ?: ""
        
+        if(searchField != "from" && searchField != "to") {
+            return@get call.respond(HttpStatusCode.BadRequest, "Incorrect field parameter")
+        }
+
         if(search.length < 2) {
-            call.respond(emptyList<String>())
+            call.respondPebble("index.peb", mapOf(
+                "airports" to emptyList<String>(),
+                "field" to searchField,
+                "fromValue" to fromValue,
+                "toValue" to toValue,
+                "dateValue" to dateValue,
+                "numOfPassengersValue" to numOfPassengersValue
+            ))
             return@get
         }
 
         val airports = flightRepository.getAirportBySearch(search)
         
-        call.respondPebble("index.peb", mapOf("airports" to airports)) //returns airports to be used in front end to display in search bar.
+        call.respondPebble("index.peb", mapOf(
+            "airports" to airports,
+            "field" to searchField,
+            "fromValue" to fromValue,
+            "toValue" to toValue,
+            "dateValue" to dateValue,
+            "numOfPassengersValue" to numOfPassengersValue
+        )) //returns airports to be used in front end to display in search bar.
     }
 }
