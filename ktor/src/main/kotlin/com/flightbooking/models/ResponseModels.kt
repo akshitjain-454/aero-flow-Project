@@ -22,11 +22,7 @@ data class TicketInfo(
 )
 
 data class FlightInfo(
-<<<<<<< HEAD
-    val flightCode: String ,
-=======
     val flightCode: String,
->>>>>>> 1988d42 (Added flight code to flightInfo Dan and Akshit)
     val departureAirport: String,
     val departureAirportCode: String,
     val arrivalAirport: String,
