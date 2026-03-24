@@ -2,6 +2,7 @@ package com.flightbooking.models
 
 import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.BookingStatus
+import com.flightbooking.enums.FlightStatus
 import java.time.LocalDateTime
 import java.math.BigDecimal
 
@@ -40,4 +41,51 @@ data class BookingInfo(
     val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
     val amountPaid: BigDecimal?
+)
+
+data class BookingsPerFlightReport(
+    val flightId: Int,
+    val flightCode: String,
+    val departureAirportId: Int,
+    val arrivalAirportId: Int,
+    val departureTime: LocalDateTime,
+    val arrivalTime: LocalDateTime,
+    val flightStatus: FlightStatus,
+    val bookingCount: Long
+)
+
+data class FlightAvailabilitySummary(
+    val flightId: Int,
+    val flightCode: String,
+    val departureAirportId: Int,
+    val arrivalAirportId: Int,
+    val departureTime: LocalDateTime,
+    val arrivalTime: LocalDateTime,
+    val flightStatus: FlightStatus,
+    val totalSeats: Long,
+    val bookedSeats: Long,
+    val availableSeats: Long
+)
+
+data class CancelledBookingSummary(
+    val bookingId: Int,
+    val bookingReference: String,
+    val userId: Int,
+    val flightId: Int,
+    val createdAt: LocalDateTime
+)
+
+data class FlightChangeLogInfo(
+    val id: Int,
+    val flightId: Int,
+    val flightCode: String,
+    val oldDepartureAirportId: Int,
+    val newDepartureAirportId: Int,
+    val oldArrivalAirportId: Int,
+    val newArrivalAirportId: Int,
+    val oldDepartureTime: LocalDateTime,
+    val newDepartureTime: LocalDateTime,
+    val oldArrivalTime: LocalDateTime,
+    val newArrivalTime: LocalDateTime,
+    val changedAt: LocalDateTime
 )
