@@ -27,7 +27,8 @@ object DatabaseFactory {
                 ComplaintTable, 
                 SeatTable, 
                 TicketAssignmentTable, 
-                FlightSeatTable, 
+                FlightSeatTable,
+                FlightChangeLogTable
             )
             //Only for testing
             DefaultDataSeeder.seed()

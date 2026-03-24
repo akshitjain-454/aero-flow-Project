@@ -135,10 +135,6 @@ fun Route.bookingRoutes() {
             val paymentMethodParam = params["payment_method"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing payment method")
             val paymentMethod = PaymentMethod.valueOf(paymentMethodParam)
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
-
-            val confirmed = bookingRepository.confirmBooking(booking)
-            if(confirmed != 1) { return@post  call.respond(HttpStatusCode.InternalServerError, "Couldn't confirm booking")} 
-
             call.respond(payment)
             //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
         }
@@ -158,8 +154,8 @@ fun Route.bookingRoutes() {
                     subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
                     body = """
                         Passenger: ${ticket.passengerName}
-                        From: ${ticket.departureAirportNameCode}
-                        To: ${ticket.arrivalAirportNameCode}
+                        From: ${ticket.departureAirport}
+                        To: ${ticket.arrivalAirport}
                         Departure: ${ticket.dateTime}
                         Seat: ${ticket.seatNumber}
                         Booking Reference: ${ticket.bookingReference}
@@ -196,9 +192,6 @@ fun Route.bookingRoutes() {
         val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
         val bookings = bookingRepository.getBookingsByUserId(session.userId)
 
-        val bookingsInfo = bookings.map { bookingRepository.getBookingInfoByBooking(it) }
-
-        call.respond(bookingsInfo)
-        //call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
+        call.respond(bookings)
     }
 }

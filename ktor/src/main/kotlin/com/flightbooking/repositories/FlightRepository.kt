@@ -56,7 +56,6 @@ class FlightRepository {
                     val depAirport = getAirportById(it[FlightTable.departureAirportId])
                     val arrAirport = getAirportById(it[FlightTable.arrivalAirportId])
                     FlightInfo(
-                        flightCode = it[FlightTable.flightCode],
                         departureAirport = depAirport.name,
                         departureAirportCode = depAirport.code,
                         arrivalAirport = arrAirport.name,
