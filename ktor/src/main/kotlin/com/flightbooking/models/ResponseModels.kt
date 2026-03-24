@@ -2,6 +2,7 @@ package com.flightbooking.models
 
 import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.FlightStatus
+import com.flightbooking.enums.BookingStatus
 import java.time.LocalDateTime
 import java.math.BigDecimal
 
@@ -16,12 +17,13 @@ data class TicketInfo(
     val passengerName: String,
     val bookingReference: String,
     val seatNumber: String,
-    val departureAirport: String,
-    val arrivalAirport: String,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
     val dateTime: LocalDateTime
 )
 
 data class FlightInfo(
+    val flightCode: String,
     val departureAirport: String,
     val departureAirportCode: String,
     val arrivalAirport: String,
