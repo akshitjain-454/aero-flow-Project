@@ -48,6 +48,7 @@ fun Route.userRoutes() {
 
         }
         get("/verify") {
+            val vfySession = call.sessions.get<VerificationSession>() ?: return@get call.respondRedirect("/register")
             call.respondPebble("verify.peb")
         }
         post("/verify") {
@@ -62,6 +63,7 @@ fun Route.userRoutes() {
             call.respondRedirect("/register/details")
         }
         get("/details") {
+            val vfySession = call.sessions.get<VerificationSession>() ?: return@get call.respondRedirect("/register")
             call.respondPebble("register.peb")
         }
 
@@ -74,7 +76,7 @@ fun Route.userRoutes() {
             val email     = vfySession.email
             val password  = params["password"]
 
-            if (firstname == null || lastname == null || email == null || password == null) {
+            if (firstname == null || lastname == null || password == null) {
                 //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
                 return@post call.respondPebble("register.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
             }
