@@ -6,5 +6,6 @@ import com.flightbooking.enums.UserRole
 @Serializable
 data class VerificationSession(
     val email: String,
-    val otp: String
+    val otp: String,
+    val verified: Boolean
 )
