@@ -23,6 +23,9 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import com.flightbooking.models.MostPopularRouteReport
+import com.flightbooking.models.PeakBookingTimeReport
+import org.jetbrains.exposed.sql.TextColumnType
 
 class AdminRepository {
 
@@ -62,6 +65,60 @@ class AdminRepository {
                     departureTime = row[FlightTable.departureTime],
                     arrivalTime = row[FlightTable.arrivalTime],
                     flightStatus = row[FlightTable.status],
+                    bookingCount = row[bookingCountExpr]
+                )
+            }
+    }
+
+    fun getMostPopularRoutesReport(): List<MostPopularRouteReport> = transaction {
+
+        val bookingCountExpr = BookingTable.id.count()
+
+        (BookingTable innerJoin FlightTable)
+            .slice(
+                FlightTable.departureAirportId,
+                FlightTable.arrivalAirportId,
+                bookingCountExpr
+            )
+            .select { BookingTable.status neq BookingStatus.CANCELLED }
+            .groupBy(
+                FlightTable.departureAirportId,
+                FlightTable.arrivalAirportId
+            )
+            .orderBy(bookingCountExpr, SortOrder.DESC)
+            .map { row ->
+                MostPopularRouteReport(
+                    departureAirportId = row[FlightTable.departureAirportId],
+                    arrivalAirportId = row[FlightTable.arrivalAirportId],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
+                    bookingCount = row[bookingCountExpr]
+                )
+            }
+    }
+
+    fun getPeakBookingTimesReport(): List<PeakBookingTimeReport> = transaction {
+
+        val bookingCountExpr = BookingTable.id.count()
+        //This is the SQLite time formatting function strftime  change 2026-03-25 14:37:22 in 14:00
+        val bookingHourExpr = CustomFunction<String>(
+            "strftime",
+            TextColumnType(),
+            stringLiteral("%H:00"),
+            BookingTable.createdAt
+        )
+
+        BookingTable
+            .slice(
+                bookingHourExpr,
+                bookingCountExpr
+            )
+            .select { BookingTable.status neq BookingStatus.CANCELLED }
+            .groupBy(bookingHourExpr)
+            .orderBy(bookingCountExpr, SortOrder.DESC)
+            .map { row ->
+                PeakBookingTimeReport(
+                    bookingHour = row[bookingHourExpr],
                     bookingCount = row[bookingCountExpr]
                 )
             }

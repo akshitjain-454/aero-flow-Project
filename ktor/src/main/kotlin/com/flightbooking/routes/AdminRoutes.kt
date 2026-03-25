@@ -247,6 +247,48 @@ fun Route.adminRoutes() {
             )
         }
 
+        get("/reports/most-popular-routes") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            val report = adminRepository.getMostPopularRoutesReport()
+            call.respond(
+                mapOf(
+                    "reportType" to "most_popular_routes",
+                    "totalRoutesInReport" to report.size,
+                    "results" to report
+                )
+            )
+        }
+
+        get("/reports/peak-booking-times") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            val report = adminRepository.getPeakBookingTimesReport()
+            call.respond(
+                mapOf(
+                    "reportType" to "peak_booking_times",
+                    "totalTimeSlotsInReport" to report.size,
+                    "results" to report
+                )
+            )
+        }
+
         get("/flights/changes") {
             val session = call.sessions.get<UserSession>()
             if (session == null) {
