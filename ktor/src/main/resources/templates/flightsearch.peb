@@ -284,6 +284,25 @@
             .flight-path { display: none; }
             .price-block { grid-column: 1 / -1; text-align: left; border-top: 1px solid #f0f0f0; padding-top: 1rem; }
         }
+        .book-btn {
+                    display: inline-block;
+                    background: var(--charcoal);
+                    color: #fff;
+                    border: none;
+                    border-radius: 9999px;
+                    padding: 0.6rem 1.5rem;
+                    font-size: 0.6rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    cursor: pointer;
+                    transition: background 0.2s, transform 0.2s;
+                    text-align: center;
+                }
+        .book-btn:hover {
+                    background: var(--sky-blue);
+                    transform: translateY(-1px);
+                }
 {% endblock %}
 
 {% block body_classes %}relative{% endblock %}
@@ -352,40 +371,47 @@
                     {% for flight in flightsInfo %}
                     <article class="flight-card" aria-label="Flight from {{ flight.departureAirportCode }} to {{ flight.arrivalAirportCode }}">
 
-                        {# Departure #}
-                        <div class="airport-block">
-                            <div class="airport-code">{{ flight.departureAirportCode }}</div>
-                            <div class="airport-name">{{ flight.departureAirport }}</div>
-                            <div class="airport-time">
-                                {{ flight.departureTime | date("HH:mm") }}
-                            </div>
-                        </div>
+    {# Departure #}
+    <div class="airport-block">
+        <div class="airport-code">{{ flight.departureAirportCode }}</div>
+        <div class="airport-name">{{ flight.departureAirport }}</div>
+        <div class="airport-time">{{ flight.departureTime | date("HH:mm") }}</div>
+    </div>
 
-                        {# Path line #}
-                        <div class="flight-path">
-                            <div class="path-plane">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2A1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1l3.5 1v-1.5L13 19v-5.5z"/>
-                                </svg>
-                            </div>
-                            <div class="path-line"></div>
-                            <div class="path-date">{{ flight.departureTime | date("dd MMM") }}</div>
-                        </div>
+    {# Path line #}
+    <div class="flight-path">
+        <div class="path-plane">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2A1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1l3.5 1v-1.5L13 19v-5.5z"/>
+            </svg>
+        </div>
+        <div class="path-line"></div>
+        <div class="path-date">{{ flight.departureTime | date("dd MMM") }}</div>
+    </div>
 
-                        {# Arrival #}
-                        <div class="airport-block">
-                            <div class="airport-code">{{ flight.arrivalAirportCode }}</div>
-                            <div class="airport-name">{{ flight.arrivalAirport }}</div>
-                        </div>
+    {# Arrival #}
+    <div class="airport-block">
+        <div class="airport-code">{{ flight.arrivalAirportCode }}</div>
+        <div class="airport-name">{{ flight.arrivalAirport }}</div>
+    </div>
 
-                        {# Price #}
-                        <div class="price-block">
-                            <div class="price-label">From</div>
-                            <div class="price-amount"><span>£</span>{{ flight.priceFrom }}</div>
-                            <div class="price-note">per person</div>
-                        </div>
+    {# Price + Book #}
+    <div class="price-block">
+        <div class="price-label">From</div>
+        <div class="price-amount"><span>£</span>{{ flight.priceFrom }}</div>
+        <div class="price-note">per person</div>
 
-                    </article>
+        {% if isLoggedIn %}
+            <form method="post" action="/booking/create_booking" style="margin-top: 1rem;">
+                <input type="hidden" name="flight_code" value="{{ flight.flightCode }}">
+                <button type="submit" class="book-btn">Book →</button>
+            </form>
+        {% else %}
+            <a href="/login" class="book-btn" style="margin-top: 1rem; display: inline-block; text-decoration: none;">Login to Book</a>
+        {% endif %}
+    </div>
+
+</article>
                     {% endfor %}
                 </div>
 
