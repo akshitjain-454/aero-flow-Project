@@ -48,6 +48,8 @@ data class BookingsPerFlightReport(
     val flightCode: String,
     val departureAirportId: Int,
     val arrivalAirportId: Int,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
     val arrivalTime: LocalDateTime,
     val flightStatus: FlightStatus,
