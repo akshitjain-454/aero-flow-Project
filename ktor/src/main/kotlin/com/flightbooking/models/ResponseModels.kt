@@ -71,18 +71,36 @@ data class CancelledBookingSummary(
     val bookingId: Int,
     val bookingReference: String,
     val userId: Int,
+    val firstname: String,
+    val lastname: String,
+    val email: String,
     val flightId: Int,
+    val flightCode: String,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
+    val departureTime: LocalDateTime,
+    val status: BookingStatus,
     val createdAt: LocalDateTime
+)
+
+data class CancelledFlightSummary(
+    val flightId: Int,
+    val flightCode: String,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
+    val departureTime: LocalDateTime,
+    val arrivalTime: LocalDateTime,
+    val status: FlightStatus
 )
 
 data class FlightChangeLogInfo(
     val id: Int,
     val flightId: Int,
     val flightCode: String,
-    val oldDepartureAirportId: Int,
-    val newDepartureAirportId: Int,
-    val oldArrivalAirportId: Int,
-    val newArrivalAirportId: Int,
+    val oldDepartureAirportNameCode: String,
+    val newDepartureAirportNameCode: String,
+    val oldArrivalAirportNameCode: String,
+    val newArrivalAirportNameCode: String,
     val oldDepartureTime: LocalDateTime,
     val newDepartureTime: LocalDateTime,
     val oldArrivalTime: LocalDateTime,

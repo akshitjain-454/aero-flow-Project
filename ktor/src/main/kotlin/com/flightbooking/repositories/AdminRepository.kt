@@ -7,11 +7,14 @@ import com.flightbooking.models.CancelledBookingSummary
 import com.flightbooking.models.FlightAvailabilitySummary
 import com.flightbooking.models.FlightChangeLogInfo
 import com.flightbooking.models.Flight
+import com.flightbooking.models.CancelledFlightSummary
 import com.flightbooking.tables.BookingTable
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.TicketAssignmentTable
 import com.flightbooking.tables.FlightChangeLogTable
+import com.flightbooking.tables.AirportTable
+import com.flightbooking.tables.UserTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -135,26 +138,68 @@ class AdminRepository {
             }
     }
 
+    // fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
+    //     BookingTable
+    //         .select { BookingTable.status eq BookingStatus.CANCELLED }
+    //         .orderBy(BookingTable.createdAt, SortOrder.DESC)
+    //         .map { row ->
+    //             CancelledBookingSummary(
+    //                 bookingId = row[BookingTable.id],
+    //                 bookingReference = row[BookingTable.bookingReference],
+    //                 userId = row[BookingTable.userId],
+    //                 flightId = row[BookingTable.flightId],
+    //                 createdAt = row[BookingTable.createdAt]
+    //             )
+    //         }
+    // }
+    
     fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
-        BookingTable
+        (BookingTable innerJoin FlightTable innerJoin UserTable)
             .select { BookingTable.status eq BookingStatus.CANCELLED }
             .orderBy(BookingTable.createdAt, SortOrder.DESC)
             .map { row ->
+                val departureAirportNameCode = AirportTable
+                    .select { AirportTable.id eq row[FlightTable.departureAirportId] }
+                    .map { it[AirportTable.name] + " " + it[AirportTable.code] }
+                    .singleOrNull() ?: throw IllegalStateException("Departure Airport not found")
+                val arrivalAirportNameCode = AirportTable
+                    .select { AirportTable.id eq row[FlightTable.arrivalAirportId] }
+                    .map { it[AirportTable.name] + " " + it[AirportTable.code] }
+                    .singleOrNull() ?: throw IllegalStateException("Arrival Airport not found")
+
                 CancelledBookingSummary(
                     bookingId = row[BookingTable.id],
                     bookingReference = row[BookingTable.bookingReference],
                     userId = row[BookingTable.userId],
+                    firstname = row[UserTable.firstname],
+                    lastname = row[UserTable.lastname],
+                    email = row[UserTable.email],
                     flightId = row[BookingTable.flightId],
+                    flightCode = row[FlightTable.flightCode],
+                    departureAirportNameCode = departureAirportNameCode,
+                    arrivalAirportNameCode = arrivalAirportNameCode,
+                    departureTime = row[FlightTable.departureTime],
+                    status = row[BookingTable.status],
                     createdAt = row[BookingTable.createdAt]
                 )
             }
     }
-    
-    fun getCancelledFlights(): List<Flight> = transaction {
+
+    fun getCancelledFlights(): List<CancelledFlightSummary> = transaction {
         FlightTable
             .select { FlightTable.status eq FlightStatus.CANCELLED }
             .orderBy(FlightTable.departureTime, SortOrder.ASC)
-            .map { row -> flightRepository.resultRowToFlight(row) }
+            .map { row ->
+                CancelledFlightSummary(
+                    flightId = row[FlightTable.id],
+                    flightCode = row[FlightTable.flightCode],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
+                    departureTime = row[FlightTable.departureTime],
+                    arrivalTime = row[FlightTable.arrivalTime],
+                    status = row[FlightTable.status]
+                )
+            }
     }
 
     fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime): Flight? = transaction {
@@ -200,10 +245,10 @@ class AdminRepository {
                     id = row[FlightChangeLogTable.id],
                     flightId = row[FlightChangeLogTable.flightId],
                     flightCode = row[FlightTable.flightCode],
-                    oldDepartureAirportId = row[FlightChangeLogTable.oldDepartureAirportId],
-                    newDepartureAirportId = row[FlightChangeLogTable.newDepartureAirportId],
-                    oldArrivalAirportId = row[FlightChangeLogTable.oldArrivalAirportId],
-                    newArrivalAirportId = row[FlightChangeLogTable.newArrivalAirportId],
+                    oldDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
+                    newDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
+                    oldArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
+                    newArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
                     oldDepartureTime = row[FlightChangeLogTable.oldDepartureTime],
                     newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
@@ -222,10 +267,10 @@ class AdminRepository {
                     id = row[FlightChangeLogTable.id],
                     flightId = row[FlightChangeLogTable.flightId],
                     flightCode = row[FlightTable.flightCode],
-                    oldDepartureAirportId = row[FlightChangeLogTable.oldDepartureAirportId],
-                    newDepartureAirportId = row[FlightChangeLogTable.newDepartureAirportId],
-                    oldArrivalAirportId = row[FlightChangeLogTable.oldArrivalAirportId],
-                    newArrivalAirportId = row[FlightChangeLogTable.newArrivalAirportId],
+                    oldDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
+                    newDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
+                    oldArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
+                    newArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
                     oldDepartureTime = row[FlightChangeLogTable.oldDepartureTime],
                     newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
@@ -233,6 +278,13 @@ class AdminRepository {
                     changedAt = row[FlightChangeLogTable.changedAt]
                 )
             }
+    }
+
+    private fun getAirportNameCodeById(airportId: Int): String {
+        return AirportTable
+            .select { AirportTable.id eq airportId }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }
+            .singleOrNull() ?: throw IllegalStateException("Airport not found")
     }
 
 }
