@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 fun Route.adminRoutes() {
 
@@ -63,8 +64,13 @@ fun Route.adminRoutes() {
                 mapOf("error" to "Admin only")
                 )
             }
+            
+            val params = call.request.queryParameters
+            val fromCodes = params.getAll("from")
+            val toCodes = params.getAll("to")
+            val date = params["date"]?.let { LocalDate.parse(it) }
 
-            val report = adminRepository.getFlightAvailabilityReport()
+            val report = adminRepository.getFlightAvailabilityReport(fromCodes, toCodes, date)
             call.respond(
                 mapOf(
                     "reportType" to "flight_availability",
@@ -82,8 +88,11 @@ fun Route.adminRoutes() {
                 mapOf("error" to "Admin only")
                 )
             }
-            
-            val cancelledBookings = adminRepository.getCancelledBookings()
+            val params = call.request.queryParameters
+            val fromCodes = params.getAll("from")
+            val toCodes = params.getAll("to")
+            val date = params["date"]?.let { LocalDate.parse(it) }
+            val cancelledBookings = adminRepository.getCancelledBookings(fromCodes, toCodes, date)
             call.respond(
                 mapOf(
                     "reportType" to "cancelled_bookings",
@@ -101,8 +110,12 @@ fun Route.adminRoutes() {
                 mapOf("error" to "Admin only")
                 )
             }
+            val params = call.request.queryParameters
+            val fromCodes = params.getAll("from")
+            val toCodes = params.getAll("to")
+            val date = params["date"]?.let { LocalDate.parse(it) }
 
-            val cancelledFlights = adminRepository.getCancelledFlights()
+            val cancelledFlights = adminRepository.getCancelledFlights(fromCodes, toCodes, date)
             call.respond(
                 mapOf(
                     "reportType" to "cancelled_flights",
@@ -235,18 +248,26 @@ fun Route.adminRoutes() {
         }
 
         get("/flights/changes") {
-            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val session = call.sessions.get<UserSession>()
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
             if (session.role != UserRole.ADMIN) {
-                return@get call.respond(HttpStatusCode.Forbidden,
-                mapOf("error" to "Admin only")
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
                 )
             }
-            val changes = adminRepository.getAllFlightChanges()
+            val params = call.request.queryParameters
+            val fromCodes = params.getAll("from")
+            val toCodes = params.getAll("to")
+            val date = params["date"]?.let { LocalDate.parse(it) }
+            val changes = adminRepository.getAllFlightChanges(fromCodes, toCodes, date)
             call.respond(
                 mapOf(
-                   "reportType" to "flight_changes",
-                   "totalChanges" to changes.size,
-                   "results" to changes
+                    "reportType" to "flight_changes",
+                    "totalChanges" to changes.size,
+                    "results" to changes
                 )
             )
         }

@@ -43,7 +43,7 @@ fun Route.userRoutes() {
             }
             val otp = (100000..999999).random().toString()
             userRepository.sendEmail(email, "Verify Your Email", "Your one time code is: $otp")
-            call.sessions.set(VerificationSession(email, otp))
+            call.sessions.set(VerificationSession(email, otp, false))
             call.respondRedirect("/register/verify")
 
         }
@@ -52,18 +52,20 @@ fun Route.userRoutes() {
             call.respondPebble("verify.peb")
         }
         post("/verify") {
-            val params = call.receiveParameters()
             val vfySession = call.sessions.get<VerificationSession>() ?: return@post call.respondRedirect("/register")
+            val params = call.receiveParameters()
 
             val otpParam = params["otp_param"]?.trim() ?: return@post call.respondPebble("verify.peb", mapOf("error" to "No code entered"))
 
             if(otpParam != vfySession.otp) {
                 return@post call.respondPebble("verify.peb", mapOf("error" to "The code you entered was incorrect"))
             }
+            call.sessions.set(vfySession.copy(verified = true))
             call.respondRedirect("/register/details")
         }
         get("/details") {
             val vfySession = call.sessions.get<VerificationSession>() ?: return@get call.respondRedirect("/register")
+            if(vfySession.verified != true) { return@get call.respondRedirect("/register/verify") }
             call.respondPebble("register.peb")
         }
 

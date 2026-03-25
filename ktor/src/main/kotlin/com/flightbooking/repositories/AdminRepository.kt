@@ -18,6 +18,11 @@ import com.flightbooking.tables.UserTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.time.LocalDate
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 
 class AdminRepository {
 
@@ -86,9 +91,35 @@ class AdminRepository {
         )
     }
 
-    fun getFlightAvailabilityReport(): List<FlightAvailabilitySummary> = transaction {
+    fun getFlightAvailabilityReport(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightAvailabilitySummary> = transaction {
         val totalSeatsExpr = FlightSeatTable.id.count()
         val bookedSeatsExpr = TicketAssignmentTable.id.count()
+        var selectCondition: Op<Boolean> = Op.TRUE
+
+        if (fromCodes != null) {
+            val fromIds = AirportTable
+                .select { AirportTable.code inList fromCodes }
+                .map { it[AirportTable.id] }
+
+            selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
+        }
+
+        if (toCodes != null) {
+            val toIds = AirportTable
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
+
+            selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
+        }
+
+        if (date != null) {
+            val dayStart = date.atStartOfDay()
+            val dayEnd = date.atTime(23, 59, 59)
+
+            selectCondition = selectCondition and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+        }
 
         (FlightTable innerJoin FlightSeatTable)
             .join(
@@ -108,7 +139,7 @@ class AdminRepository {
                 totalSeatsExpr,
                 bookedSeatsExpr
             )
-            .selectAll()
+            .select { selectCondition }
             .groupBy(
                 FlightTable.id,
                 FlightTable.flightCode,
@@ -153,9 +184,30 @@ class AdminRepository {
     //         }
     // }
     
-    fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
+    fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
+        var selectCondition: Op<Boolean> = (BookingTable.status eq BookingStatus.CANCELLED)
+
+        if (fromCodes != null) {
+            val fromIds = AirportTable
+                .select { AirportTable.code inList fromCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
+        }
+        if (toCodes != null) {
+            val toIds = AirportTable
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
+        }
+        if (date != null) {
+            val dayStart = date.atStartOfDay()
+            val dayEnd = date.atTime(23, 59, 59)
+            selectCondition = selectCondition and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+        }
         (BookingTable innerJoin FlightTable innerJoin UserTable)
-            .select { BookingTable.status eq BookingStatus.CANCELLED }
+            .select { selectCondition }
             .orderBy(BookingTable.createdAt, SortOrder.DESC)
             .map { row ->
                 val departureAirportNameCode = AirportTable
@@ -185,9 +237,31 @@ class AdminRepository {
             }
     }
 
-    fun getCancelledFlights(): List<CancelledFlightSummary> = transaction {
+    fun getCancelledFlights(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledFlightSummary> = transaction {
+        var selectCondition: Op<Boolean> = (FlightTable.status eq FlightStatus.CANCELLED)
+
+        if (fromCodes != null) {
+            val fromIds = AirportTable
+                .select { AirportTable.code inList fromCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
+        }
+        if (toCodes != null) {
+            val toIds = AirportTable
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
+        }
+        if (date != null) {
+            val dayStart = date.atStartOfDay()
+            val dayEnd = date.atTime(23, 59, 59)
+            selectCondition = selectCondition and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+        }
+        
         FlightTable
-            .select { FlightTable.status eq FlightStatus.CANCELLED }
+            .select { selectCondition }
             .orderBy(FlightTable.departureTime, SortOrder.ASC)
             .map { row ->
                 CancelledFlightSummary(
@@ -236,9 +310,30 @@ class AdminRepository {
             .singleOrNull()
         }
 
-    fun getAllFlightChanges(): List<FlightChangeLogInfo> = transaction {
+    fun getAllFlightChanges(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightChangeLogInfo> = transaction {
+        var selectCondition: Op<Boolean> = Op.TRUE
+
+        if (fromCodes != null) {
+            val fromIds = AirportTable
+                .select { AirportTable.code inList fromCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
+        }
+        if (toCodes != null) {
+            val toIds = AirportTable
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
+            selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
+        }
+        if (date != null) {
+            val dayStart = date.atStartOfDay()
+            val dayEnd = date.atTime(23, 59, 59)
+            selectCondition = selectCondition and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+        }
         (FlightChangeLogTable innerJoin FlightTable)
-            .selectAll()
+            .select { selectCondition }
             .orderBy(FlightChangeLogTable.changedAt, SortOrder.DESC)
             .map { row ->
                 FlightChangeLogInfo(
