@@ -35,7 +35,28 @@ fun Route.bookingRoutes() {
             
             call.respondRedirect("/booking/${booking.bookingReference}/passengers")
         }
+        
+        get("/{reference}/passengers") {
+                val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+                val reference = call.parameters["reference"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+                val booking = bookingRepository.getBookingByReference(reference)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
 
+                if (booking.userId != session.userId) {
+                    return@get call.respond(HttpStatusCode.Forbidden, "Not your booking")
+                }
+
+                val passengers = bookingRepository.getPassengersByBookingId(booking.id)
+
+                call.respondPebble(
+                    "passengers.peb",
+                    mapOf(
+                        "passengers" to passengers,
+                        "reference" to reference ,
+                    )
+                )
+            }
         post("/{reference}/passengers") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")

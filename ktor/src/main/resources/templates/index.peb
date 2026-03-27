@@ -201,7 +201,7 @@
                         <h3 class="text-xl serif text-[--charcoal] mb-3 leading-snug">Speak to our <span class="italic">Concierge Team</span></h3>
                         <p class="text-xs text-gray-400 font-light leading-relaxed">Available 24/7 for all Aetheria members worldwide.</p>
                     </div>
-                    <a href="#" class="mt-8 inline-flex items-center justify-center bg-[--charcoal] text-white px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all">
+                    <a href="/complaints" class="mt-8 inline-flex items-center justify-center bg-[--charcoal] text-white px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all">
                         Contact Us
                     </a>
                 </div>
@@ -299,12 +299,12 @@
                 <form action="/search" method="GET" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
                     <div class="relative group">
                         <label for="origin" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
-                        <input type="text" id="origin" name="origin" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+                        <input type="text" id="origin" name="from" list="locations" placeholder="From where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
                     </div>
 
                     <div class="relative group">
                         <label for="destination" class="text-[10px] uppercase font-extrabold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
-                        <input type="text" id="destination" name="destination" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
+                        <input type="text" id="destination" name="to" list="locations" placeholder="To where?" autocomplete="off" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-all placeholder:text-gray-300 custom-input" aria-required="true">
                     </div>
 
                     <div>
@@ -636,5 +636,17 @@
         const insideProfile = document.getElementById('profile-menu-wrapper')?.contains(e.target);
         if (!insideHelp && !insideHelpDrop && !insideProfile) closeAllMenus();
     });
+    document.querySelector('form[action="/search"]').addEventListener('submit', function() {
+    const originInput = document.getElementById('origin');
+    const destInput = document.getElementById('destination');
+
+    const extractCode = (val) => {
+        const match = val.match(/\(([A-Z]{3})\)/);
+        return match ? match[1] : val;
+    };
+
+    originInput.value = extractCode(originInput.value);
+    destInput.value = extractCode(destInput.value);
+});
 </script>
 {% endblock %}

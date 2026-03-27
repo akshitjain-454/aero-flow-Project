@@ -32,13 +32,29 @@ fun Route.adminRoutes() {
                     mapOf("error" to "Admins only")
                 )
             }
-            call.respond(
-                mapOf(
-                    "message" to "Welcome to admin page",
-                    "role" to session.role.name,
-                    "userId" to session.userId
-                )
-            )
+            
+            // THE FIX: Change this to respondPebble
+            call.respondPebble("management.peb", mapOf(
+                "isLoggedIn" to true,
+                "userInitials" to session.initials 
+            ))
+        }
+        get {
+            val session = call.sessions.get<UserSession>()
+
+            if (session == null) {
+                return@get call.respondRedirect("/login")
+            }
+            if (session.role != UserRole.ADMIN) {
+                // Redirect normal users back to the homepage instead of showing a JSON error
+                return@get call.respondRedirect("/") 
+            }
+            
+            // Serve the new Management Dashboard!
+            call.respondPebble("management.peb", mapOf(
+                "isLoggedIn" to true,
+                "userInitials" to session.initials // Passes the initials for the top right profile button
+            ))
         }
 
         get("/complaints") {
