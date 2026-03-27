@@ -15,18 +15,20 @@ fun Route.complaintRoutes() {
 
     val complaintRepository = ComplaintRepository()
 
-    // GET /complaints — renders the complaints page (linked from Help dropdown)
-    get("/complaints") {
-        val session = call.sessions.get<UserSession>()
-        val complaints = if (session != null) {
-            complaintRepository.getComplaintsByUserId(session.userId)
-        } else {
-            emptyList()
-        }
-        call.respondPebble("complaints.peb", mapOf("complaints" to complaints))
-    }
+    
 
     route("/complaints") {
+
+        // GET /complaints — renders the complaints page (linked from Help dropdown)
+        get() {
+            val session = call.sessions.get<UserSession>()
+            val complaints = if (session != null) {
+                complaintRepository.getComplaintsByUserId(session.userId)
+            } else {
+                emptyList()
+            }
+            call.respondPebble("complaints.peb", mapOf("complaints" to complaints))
+        }
 
         // POST /complaints/submit — submits a new complaint
         post("/submit") {
@@ -47,7 +49,7 @@ fun Route.complaintRoutes() {
         }
 
         // GET /complaints/my — same page but session-gated
-        get("/my") {
+        get("/my") { //unused in frontend
             val session = call.sessions.get<UserSession>() 
                 ?: return@get call.respondRedirect("/login")
             

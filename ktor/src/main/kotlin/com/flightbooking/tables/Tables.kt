@@ -131,3 +131,20 @@ object FlightSeatTable : Table("FlightSeat") {
 
   override val primaryKey = PrimaryKey(id)
 }
+
+object FlightChangeLogTable : Table("FlightChangeLog") {
+
+  val id = integer("flight_change_log_id").autoIncrement()
+  val flightId = integer("flight_id").references(FlightTable.id)
+  val oldDepartureAirportId = integer("old_departure_airport_id").references(AirportTable.id)
+  val newDepartureAirportId = integer("new_departure_airport_id").references(AirportTable.id)
+  val oldArrivalAirportId = integer("old_arrival_airport_id").references(AirportTable.id)
+  val newArrivalAirportId = integer("new_arrival_airport_id").references(AirportTable.id)
+  val oldDepartureTime = datetime("old_departure_time")
+  val newDepartureTime = datetime("new_departure_time")
+  val oldArrivalTime = datetime("old_arrival_time")
+  val newArrivalTime = datetime("new_arrival_time")
+  val changedAt = datetime("changed_at")
+
+  override val primaryKey = PrimaryKey(id)
+}

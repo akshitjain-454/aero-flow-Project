@@ -3,6 +3,7 @@ package com.flightbooking.database
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.selectAll
 import com.flightbooking.tables.*
 //Only for testing
 import com.flightbooking.database.seed.DefaultDataSeeder
@@ -17,20 +18,26 @@ object DatabaseFactory {
 
         transaction {
             SchemaUtils.create(
-                UserTable, 
-                BookingTable, 
-                FlightTable, 
-                AircraftTable, 
-                AirportTable, 
-                PassengerTable, 
-                PaymentTable, 
-                ComplaintTable, 
-                SeatTable, 
-                TicketAssignmentTable, 
-                FlightSeatTable, 
+                AirportTable,
+                AircraftTable,
+                FlightTable,
+                SeatTable,
+                FlightSeatTable,
+                UserTable,
+                PassengerTable,
+                BookingTable,
+                TicketAssignmentTable,
+                PaymentTable,
+                ComplaintTable,
+                FlightChangeLogTable
             )
             //Only for testing
-            DefaultDataSeeder.seed()
+            if (UserTable.selectAll().none()) {
+                DefaultDataSeeder.seed()
+            }
+            if (SeatTable.selectAll().any() && FlightTable.selectAll().any()) {
+                DefaultDataSeeder.seedFlightSeats()
+            }
         }
     }
 }
