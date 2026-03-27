@@ -1,5 +1,6 @@
 package com.flightbooking.routes
 
+import io.ktor.server.pebble.PebbleContent
 import com.flightbooking.enums.ComplaintStatus
 import com.flightbooking.enums.UserRole
 import com.flightbooking.repositories.ComplaintRepository
@@ -34,27 +35,10 @@ fun Route.adminRoutes() {
             }
             
             // THE FIX: Change this to respondPebble
-            call.respondPebble("management.peb", mapOf(
+            call.respondPebble(PebbleContent("management.peb", mapOf(
                 "isLoggedIn" to true,
                 "userInitials" to session.initials 
-            ))
-        }
-        get {
-            val session = call.sessions.get<UserSession>()
-
-            if (session == null) {
-                return@get call.respondRedirect("/login")
-            }
-            if (session.role != UserRole.ADMIN) {
-                // Redirect normal users back to the homepage instead of showing a JSON error
-                return@get call.respondRedirect("/") 
-            }
-            
-            // Serve the new Management Dashboard!
-            call.respondPebble("management.peb", mapOf(
-                "isLoggedIn" to true,
-                "userInitials" to session.initials // Passes the initials for the top right profile button
-            ))
+            )))
         }
 
         get("/complaints") {
