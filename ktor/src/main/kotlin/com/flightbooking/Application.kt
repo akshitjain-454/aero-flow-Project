@@ -4,6 +4,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.flightbooking.module
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
