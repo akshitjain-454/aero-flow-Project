@@ -35,7 +35,7 @@ fun Route.adminRoutes() {
             }
             
             // THE FIX: Change this to respondPebble
-            call.respondPebble(PebbleContent("management.peb", mapOf(
+            call.respond(PebbleContent("management.peb", mapOf(
                 "isLoggedIn" to true,
                 "userInitials" to session.initials 
             )))
