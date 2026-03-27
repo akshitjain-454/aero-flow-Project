@@ -6,6 +6,7 @@ import com.flightbooking.enums.UserRole
 import com.flightbooking.repositories.ComplaintRepository
 import com.flightbooking.repositories.AdminRepository
 import com.flightbooking.sessions.UserSession
+import com.flightbooking.respondPebble
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -34,11 +35,7 @@ fun Route.adminRoutes() {
                 )
             }
             
-            // THE FIX: Change this to respondPebble
-            call.respond(PebbleContent("management.peb", mapOf(
-                "isLoggedIn" to true,
-                "userInitials" to session.initials 
-            )))
+            call.respondPebble("management.peb")
         }
 
         get("/complaints") {
