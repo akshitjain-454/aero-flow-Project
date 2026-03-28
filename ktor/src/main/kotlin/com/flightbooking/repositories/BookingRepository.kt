@@ -30,14 +30,15 @@ import java.math.BigDecimal
 
 class BookingRepository {
 
-    fun createBooking(userId: Int, flightId: Int): Booking = transaction { 
+    fun createBooking(userId: Int, flightId: Int, returnFlightId: Int?): Booking = transaction { 
         val now = LocalDateTime.now()
         val reference = generateBookingReference()
 
         val bookingId = BookingTable.insert{
             it[bookingReference] = reference
             it[BookingTable.userId] = userId
-            it[BookingTable.flightId]= flightId
+            it[BookingTable.flightId] = flightId
+            it[BookingTable.returnFlightId] = returnFlightId
             it[status] = BookingStatus.CREATED
             it[createdAt] = now
         } get BookingTable.id
@@ -47,6 +48,7 @@ class BookingRepository {
             bookingReference = reference,
             userId = userId,
             flightId = flightId,
+            returnFlightId = returnFlightId,
             status = BookingStatus.CREATED,
             createdAt = now
         )
@@ -270,6 +272,7 @@ class BookingRepository {
             bookingReference = row[BookingTable.bookingReference],
             userId = row[BookingTable.userId],
             flightId = row[BookingTable.flightId],
+            returnFlightId = row[BookingTable.returnFlightId],
             status = row[BookingTable.status],
             createdAt = row[BookingTable.createdAt],
         )

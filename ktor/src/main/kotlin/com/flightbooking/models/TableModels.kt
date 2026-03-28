@@ -22,6 +22,7 @@ data class Booking (
   val bookingReference: String, 
   val userId: Int,
   val flightId: Int,
+  val returnFlightId: Int?,
   val status: BookingStatus,
   val createdAt: LocalDateTime
 )
