@@ -35,11 +35,15 @@ data class FlightInfo(
 data class BookingInfo(
     val bookingReference: String,
     val flightCode: String,
+    val returnFlightCode: String?,
     val bookingStatus: BookingStatus,
     val numOfPassengers: Long,
     val departureAirportNameCode: String,
     val arrivalAirportNameCode: String,
+    val returnDepartureAirportNameCode: String?,
+    val returnArrivalAirportNameCode: String?,
     val departureTime: LocalDateTime,
+    val returnDepatureTime: LocalDateTime?,
     val amountPaid: BigDecimal?
 )
 

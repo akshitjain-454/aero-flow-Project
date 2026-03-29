@@ -252,14 +252,35 @@ class BookingRepository {
             .select { PaymentTable.bookingId eq booking.id }
             .map { it[PaymentTable.amount] }.singleOrNull()
 
+        val returnFlightId = booking.returnFlightId
+        if(returnFlightId != null) {
+            val returnFlight = FlightTable
+            .select { FlightTable.id eq booking.returnFlightId }
+            .singleOrNull()
+
+            val ReturnDepartureAirportNameCode = AirportTable
+            .select { AirportTable.id eq returnFlight[FlightTable.departureAirportId] }
+            .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Return Departure Airport not found")
+            val ReturnArrivalAirportNameCode = AirportTable
+                .select { AirportTable.id eq returnFlight[FlightTable.arrivalAirportId] }
+                .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Return Arrival Airport not found")
+            
+            val returnDateTime = returnFlight[FlightTable.departureTime]
+
+        }
+
         BookingInfo(
             bookingReference = booking.bookingReference,
             flightCode = flight[FlightTable.flightCode],
+            returnFlightCode = returnFlight[FlightTable.flightCode],
             bookingStatus = booking.status,
             numOfPassengers = numOfPassengers,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
+            returnDepartureAirportNameCode = returnDepartureAirportNameCode,
+            returnArrivalAirportNameCode = returnArrivalAirportNameCode,
             departureTime = dateTime,
+            returnDepartureTime = returnDateTime,
             amountPaid = amountPaid
         )
     }
