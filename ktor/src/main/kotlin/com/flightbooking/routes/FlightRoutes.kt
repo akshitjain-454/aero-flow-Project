@@ -27,9 +27,19 @@ fun Route.flightRoutes() {
                     catch (e: Exception) {
                         return@get call.respondPebble("index.peb", mapOf("error" to "Invalid date format"))
                     }
+        val returnDate = try {
+                        params["return_date"]?.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) }
+                    }
+                    catch (e: Exception) {
+                        return@get call.respondPebble("index.peb", mapOf("error" to "Invalid date format"))
+                    }
         val numOfPassengers = params["numOfPassengers"]?.toIntOrNull()
 
         val flightsInfo = flightRepository.searchFlights(fromCodes, toCodes, date, numOfPassengers)
+        if(returnDate != null) {
+            val returnFlightsInfo = flightRepository.searchFlights(toCodes, fromCodes, returnDate, numOfPassengers)
+            return@get call.respondPebble("returnsearch.peb", mapOf("flightsInfo" to flightsInfo, "returnFlightsInfo" to returnFlightsInfo))
+        }
         //call.respond(flightsInfo)
         call.respondPebble("flightsearch.peb", mapOf("flightsInfo" to flightsInfo))
     }
