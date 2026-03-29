@@ -43,7 +43,7 @@ data class BookingInfo(
     val returnDepartureAirportNameCode: String?,
     val returnArrivalAirportNameCode: String?,
     val departureTime: LocalDateTime,
-    val returnDepatureTime: LocalDateTime?,
+    val returnDepartureTime: LocalDateTime?,
     val amountPaid: BigDecimal?
 )
 

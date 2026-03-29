@@ -27,36 +27,43 @@ fun Route.bookingRoutes() {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login") //Need this to be the page btw not the login post. TODO - make page loading routes
             val params = call.receiveParameters()
             val flightCode = params["flight_code"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing flight_code")
+            val returnFlightCode = params["return_flight_code"]
 
             val flight = flightRepository.getFlightByFlightCode(flightCode) ?: return@post call.respond(HttpStatusCode.NotFound, "Flight not found")
             val flightId = flight.id
-
-            val booking = bookingRepository.createBooking(session.userId, flightId)
+            val returnFlightId = if(returnFlightCode != null) {
+                val returnFlight = flightRepository.getFlightByFlightCode(returnFlightCode) ?: return@post call.respond(HttpStatusCode.NotFound, "Return Flight not found")
+                returnFlight.id
+            }
+            else {
+                null
+            }
+            val booking = bookingRepository.createBooking(session.userId, flightId, returnFlightId)
             
             call.respondRedirect("/booking/${booking.bookingReference}/passengers")
         }
         
         get("/{reference}/passengers") {
-                val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
-                val reference = call.parameters["reference"]
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
-                val booking = bookingRepository.getBookingByReference(reference)
-                    ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val reference = call.parameters["reference"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference)
+                ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
 
-                if (booking.userId != session.userId) {
-                    return@get call.respond(HttpStatusCode.Forbidden, "Not your booking")
-                }
-
-                val passengers = bookingRepository.getPassengersByBookingId(booking.id)
-
-                call.respondPebble(
-                    "passengers.peb",
-                    mapOf(
-                        "passengers" to passengers,
-                        "reference" to reference ,
-                    )
-                )
+            if (booking.userId != session.userId) {
+                return@get call.respond(HttpStatusCode.Forbidden, "Not your booking")
             }
+
+            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
+
+            call.respondPebble(
+                "passengers.peb",
+                mapOf(
+                    "passengers" to passengers,
+                    "reference" to reference ,
+                )
+            )
+        }
         post("/{reference}/passengers") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
@@ -90,7 +97,10 @@ fun Route.bookingRoutes() {
             }
 
             val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
-            
+            if(booking.returnFlightId != null) {
+                val returnSeats = bookingRepository.getSeatsByFlightId(booking.returnFlightId)
+                return@get call.respondPebble("returnseats.peb", mapOf("seats" to seats, "returnSeats" to returnSeats))
+            }
             //call.respond(seats)
             call.respondPebble("seats.peb", mapOf("seats" to seats))
         }
@@ -102,6 +112,13 @@ fun Route.bookingRoutes() {
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
             val flight = flightRepository.getFlightByFlightId(booking.flightId) ?: return@post call.respond(HttpStatusCode.NotFound, "Flight not found")
 
+            val returnFlight = if(booking.returnFlightId != null) { 
+                flightRepository.getFlightByFlightId(booking.returnFlightId) ?: return@post call.respond(HttpStatusCode.NotFound, "Return Flight not found")
+            }
+            else {
+                null
+            }
+
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
             }
@@ -109,9 +126,8 @@ fun Route.bookingRoutes() {
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
             for(passenger in passengers) {
                 val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing flight seat id for passenger ${passenger.id}")
-                val seatClassParam = params["passenger_${passenger.id}_seat_class"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat class for passenger ${passenger.id}")
-                val seatClass = SeatClass.valueOf(seatClassParam)
-                val seatNumber = params["passenger_${passenger.id}_seat_number"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing seat number for passenger ${passenger.id}")
+                val seatClass = bookingRepository.getSeatClassByFlightSeatId(flightSeatId) ?:  return@post call.respond(HttpStatusCode.NotFound, "Outbound Seat Class not found")
+                val seatNumber = bookingRepository.getSeatNumberByFlightSeatId(flightSeatId) ?: return@post call.respond(HttpStatusCode.NotFound, "Outbound Seat Number not found")
                 val date = flight.departureTime.toLocalDate()
                 val ticketPrice = bookingRepository.calculatePrice(flight.minPrice, seatClass, date)
 
@@ -121,6 +137,23 @@ fun Route.bookingRoutes() {
                 catch(e: Exception) {
                     return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") // Shouldn't be possible to select
                 }
+                if(returnFlight != null) {
+                    val returnFlightSeatId = params["passenger_${passenger.id}_return_seat_id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing return flight seat id for passenger ${passenger.id}")
+                    val returnSeatClass = bookingRepository.getSeatClassByFlightSeatId(returnFlightSeatId) ?:  return@post call.respond(HttpStatusCode.NotFound, "Return Seat Class not found")
+                    val returnSeatNumber = bookingRepository.getSeatNumberByFlightSeatId(returnFlightSeatId) ?: return@post call.respond(HttpStatusCode.NotFound, "Return Seat Number not found")
+                    val returnDate = returnFlight.departureTime.toLocalDate()
+                    val returnTicketPrice = bookingRepository.calculatePrice(returnFlight.minPrice, returnSeatClass, returnDate)
+                    
+
+                    try {
+                        bookingRepository.ticketAssignment(passenger.id, returnFlightSeatId, returnTicketPrice, returnSeatNumber)
+                    }
+                    catch(e: Exception) {
+                        return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") // Shouldn't be possible to select
+                    }
+                }
+
+
             }
             
             call.respondRedirect("/booking/$reference/payment")
@@ -130,13 +163,9 @@ fun Route.bookingRoutes() {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
-            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
-            var price = BigDecimal.ZERO
-            for(passenger in passengers) {
-                val ticketPrice = bookingRepository.getTicketPriceByPassengerId(passenger.id) ?: return@get call.respond(HttpStatusCode.NotFound, "Ticket price not found")
-                price = price.add(ticketPrice)
-            }
 
+            val price = bookingRepository.getBookingPricePriceByBookingId(booking.id)
+            if( price == BigDecimal.ZERO) { return@get call.respond(HttpStatusCode.InternalServerError, "Booking price zero, mistake made") }
             //call.respond(price)
             call.respondPebble("payment.peb", mapOf("price" to price))
         }
@@ -146,13 +175,9 @@ fun Route.bookingRoutes() {
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
-            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
 
-            var amount = BigDecimal.ZERO
-            for(passenger in passengers) {
-                val ticketPrice = bookingRepository.getTicketPriceByPassengerId(passenger.id) ?: return@post call.respond(HttpStatusCode.NotFound, "Ticket price not found")
-                amount = amount.add(ticketPrice)
-            }
+            val amount = bookingRepository.getBookingPricePriceByBookingId(booking.id)
+            if( amount == BigDecimal.ZERO) { return@post call.respond(HttpStatusCode.InternalServerError, "Booking amount zero, mistake made") }
             val paymentMethodParam = params["payment_method"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing payment method")
             val paymentMethod = PaymentMethod.valueOf(paymentMethodParam)
             val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
@@ -171,9 +196,15 @@ fun Route.bookingRoutes() {
             val user = userRepository.getUserById(session.userId) ?: return@post call.respond(HttpStatusCode.NotFound, "Logged in user not found")
 
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
-            val ticketsInfo = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
 
-            for(ticket in ticketsInfo) {
+            val outboundTickets = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
+            val allTickets = if (booking.returnFlightId != null) {
+                outboundTickets + passengers.map { bookingRepository.getReturnTicketInfoByPassengerAndBooking(it, booking) }
+            } else {
+                outboundTickets
+            }
+
+            for(ticket in allTickets) {
                 userRepository.sendEmail(
                     email = user.email,
                     subject = "Your Aero-Flow Ticket — ${ticket.bookingReference}",
@@ -187,8 +218,8 @@ fun Route.bookingRoutes() {
                     """.trimIndent()
                 )
             }
-            call.respond(ticketsInfo)
-            //call.respondPebble("tickets.peb", mapOf("tickets" to ticketsInfo))
+            call.respond(allTickets)
+            //call.respondPebble("tickets.peb", mapOf("tickets" to allTickets))
         }
 
         post("/{reference}/cancel") {
