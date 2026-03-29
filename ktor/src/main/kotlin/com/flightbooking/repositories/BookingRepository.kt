@@ -298,14 +298,39 @@ class BookingRepository {
             .select { PaymentTable.bookingId eq booking.id }
             .map { it[PaymentTable.amount] }.singleOrNull()
 
+        var returnFlightCode: String? = null
+        var returnDepartureAirportNameCode: String? = null
+        var returnArrivalAirportNameCode: String? = null
+        var returnDateTime: LocalDateTime? = null
+
+        val returnFlightId = booking.returnFlightId
+        if (returnFlightId != null) {
+            val returnFlight = FlightTable
+                .select { FlightTable.id eq returnFlightId }
+                .singleOrNull() ?: throw IllegalStateException("Return Flight not found")
+
+            returnFlightCode = returnFlight[FlightTable.flightCode]
+            returnDepartureAirportNameCode = AirportTable
+                .select { AirportTable.id eq returnFlight[FlightTable.departureAirportId] }
+                .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Return Departure Airport not found")
+            returnArrivalAirportNameCode = AirportTable
+                .select { AirportTable.id eq returnFlight[FlightTable.arrivalAirportId] }
+                .map { it[AirportTable.name] + " " + it[AirportTable.code] }.singleOrNull() ?: throw IllegalStateException("Return Arrival Airport not found")
+            returnDateTime = returnFlight[FlightTable.departureTime]
+        }
+
         BookingInfo(
             bookingReference = booking.bookingReference,
             flightCode = flight[FlightTable.flightCode],
+            returnFlightCode = returnFlightCode,
             bookingStatus = booking.status,
             numOfPassengers = numOfPassengers,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
+            returnDepartureAirportNameCode = returnDepartureAirportNameCode,
+            returnArrivalAirportNameCode = returnArrivalAirportNameCode,
             departureTime = dateTime,
+            returnDepartureTime = returnDateTime,
             amountPaid = amountPaid
         )
     }
