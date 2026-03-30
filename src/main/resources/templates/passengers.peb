@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+
+{% block title %}Passengers | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    .nav-link {
+        position: relative;
+        padding-bottom: 6px;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        background-color: var(--sky-blue);
+        transition: width 0.3s ease-in-out;
+        border-radius: 3px;
+    }
+    .nav-link:hover::after { width: 100%; }
+
+    .avatar-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        background-color: var(--sky-blue);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0, 102, 255, 0.35);
+        transition: background-color 0.2s, transform 0.2s;
+        text-decoration: none;
+    }
+    .avatar-btn:hover {
+        background-color: var(--charcoal);
+        transform: scale(1.08);
+    }
+
+    /* Hero */
+    .pax-hero {
+        background: var(--charcoal);
+        padding: 7rem 2rem 3rem;
+    }
+
+    /* Progress stepper */
+    .stepper {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 2rem;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .step-circle {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 800;
+    }
+    .step-circle.active {
+        background: var(--sky-blue);
+        color: #fff;
+    }
+    .step-circle.done {
+        background: rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.7);
+    }
+    .step-circle.upcoming {
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .step-label {
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+    }
+    .step-label.active  { color: var(--sky-blue); }
+    .step-label.done    { color: rgba(255,255,255,0.4); }
+    .step-label.upcoming{ color: rgba(255,255,255,0.2); }
+    .step-connector {
+        flex: 1;
+        height: 1px;
+        background: rgba(255,255,255,0.1);
+        margin-bottom: 1.2rem;
+        min-width: 2.5rem;
+    }
+
+    /* Passenger cards (already added) */
+    .pax-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: fadeUp 0.3s ease both;
+    }
+    .pax-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        background: var(--sky-blue);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .pax-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.01em;
+    }
+    .pax-passport {
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.35);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-top: 0.15rem;
+    }
+    .pax-number {
+        margin-left: auto;
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: rgba(255,255,255,0.2);
+    }
+
+    /* Add passenger form */
+    .add-form-card {
+        background: #fff;
+        border-radius: 28px;
+        border: 1px solid #f0f0f0;
+        padding: 2.5rem;
+        animation: fadeUp 0.4s ease both;
+    }
+    .form-section-title {
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .form-row.single {
+        grid-template-columns: 1fr;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .form-label {
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: #6b7280;
+    }
+    .form-input {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--charcoal);
+        background: #fafafa;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        font-family: inherit;
+    }
+    .form-input:focus {
+        border-color: var(--sky-blue);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08);
+    }
+    .form-input::placeholder { color: #d1d5db; }
+
+    .add-btn {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 9999px;
+        border: none;
+        background: var(--charcoal);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        cursor: pointer;
+        margin-top: 1.5rem;
+        transition: background 0.2s, transform 0.2s;
+    }
+    .add-btn:hover {
+        background: var(--sky-blue);
+        transform: translateY(-1px);
+    }
+
+    /* Continue button */
+    .continue-btn {
+        display: block;
+        width: 100%;
+        padding: 1.1rem;
+        border-radius: 9999px;
+        border: none;
+        background: var(--sky-blue);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 24px -4px rgba(0, 102, 255, 0.35);
+        animation: fadeUp 0.5s ease both;
+    }
+    .continue-btn:hover {
+        background: var(--charcoal);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px -4px rgba(0,0,0,0.2);
+    }
+    .continue-btn.disabled {
+        background: #e5e7eb;
+        color: #9ca3af;
+        box-shadow: none;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    /* Empty pax hint */
+    .empty-pax-hint {
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.3);
+        text-align: center;
+        padding: 1.5rem 0 0.5rem;
+        font-style: italic;
+        letter-spacing: 0.05em;
+    }
+
+    /* Error */
+    .error-banner {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 0.85rem 1.25rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #dc2626;
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.02em;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+        .form-row { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block body_classes %}relative{% endblock %}
+
+{% block content %}
+
+    {# ── NAV ── #}
+    <header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+        <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" aria-label="Aetheria Home">AETHERIA</a>
+        <nav aria-label="Main" class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+            <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+                <li><a href="/" class="nav-link hover:text-black transition-colors">Book</a></li>
+                <li><a href="#" class="nav-link hover:text-black transition-colors">Manage</a></li>
+                <li><a href="#" class="nav-link hover:text-black transition-colors">Experience</a></li>
+                <li><a href="#" class="nav-link hover:text-black transition-colors">Where We Fly</a></li>
+                <li><a href="#" class="nav-link hover:text-black transition-colors">Loyalty</a></li>
+            </ul>
+        </nav>
+        <div class="flex items-center gap-6 z-10">
+            {% if isLoggedIn %}
+                <a href="/overview" class="avatar-btn" aria-label="Your profile">{{ userInitials }}</a>
+            {% else %}
+                <a href="/login" class="bg-black text-white px-8 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all shadow-md">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    {# ── HERO ── #}
+    <div class="pax-hero">
+        <div class="max-w-2xl mx-auto">
+
+            {# Step progress #}
+            <div class="stepper">
+                <div class="step">
+                    <div class="step-circle done">✓</div>
+                    <span class="step-label done">Flight</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-circle active">2</div>
+                    <span class="step-label active">Passengers</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-circle upcoming">3</div>
+                    <span class="step-label upcoming">Seats</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-circle upcoming">4</div>
+                    <span class="step-label upcoming">Payment</span>
+                </div>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">
+                Who's <span class="italic text-[--sky-blue]">flying?</span>
+            </h1>
+            <p class="text-gray-500 text-xs uppercase tracking-[0.3em] font-bold mt-3">
+                Booking ref: <span style="color: rgba(255,255,255,0.4);">{{ reference }}</span>
+            </p>
+
+            {# ── Already-added passengers list ── #}
+            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                {% if passengers is not empty %}
+                    {% for pax in passengers %}
+                    <div class="pax-card">
+                        <div class="pax-avatar">
+                            {{ pax.firstname | slice(0, 1) | upper }}{{ pax.lastname | slice(0, 1) | upper }}
+                        </div>
+                        <div>
+                            <div class="pax-name">{{ pax.firstname }} {{ pax.lastname }}</div>
+                            {% if pax.passportCode is not empty %}
+                                <div class="pax-passport">Passport: {{ pax.passportCode }}</div>
+                            {% else %}
+                                <div class="pax-passport">No passport number provided</div>
+                            {% endif %}
+                        </div>
+                        <div class="pax-number">PAX {{ loop.index }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-pax-hint">No passengers added yet — fill in the form below</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    {# ── MAIN CONTENT ── #}
+    <main>
+        <section class="max-w-2xl mx-auto px-6 py-10" style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+            {# Error banner #}
+            {% if error is not empty %}
+                <div class="error-banner">⚠ {{ error }}</div>
+            {% endif %}
+
+            {# ── Add passenger form ── #}
+            <div class="add-form-card">
+                <p class="form-section-title">
+                    {% if passengers is not empty %}
+                        Add another passenger
+                    {% else %}
+                        Add passenger details
+                    {% endif %}
+                </p>
+
+                <form method="post" action="/booking/{{ reference }}/passengers">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="firstname">First Name *</label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                id="firstname"
+                                name="firstname"
+                                placeholder="e.g. Jane"
+                                required
+                                autocomplete="given-name"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="lastname">Last Name *</label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                id="lastname"
+                                name="lastname"
+                                placeholder="e.g. Smith"
+                                required
+                                autocomplete="family-name"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-row single">
+                        <div class="form-group">
+                            <label class="form-label" for="passportCode">
+                                Passport Number
+                                <span style="font-weight: 500; color: #d1d5db; margin-left: 0.5rem;">(optional)</span>
+                            </label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                id="passportCode"
+                                name="passportCode"
+                                placeholder="e.g. 123456789"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="add-btn">
+                        + Add Passenger
+                    </button>
+
+                </form>
+            </div>
+
+            {# ── Continue to seats (only enabled if at least 1 passenger added) ── #}
+            {% if passengers is not empty %}
+                <a href="/booking/{{ reference }}/seats" class="continue-btn">
+                    Continue to Seat Selection →
+                </a>
+            {% else %}
+                <span class="continue-btn disabled">
+                    Add at least one passenger to continue
+                </span>
+            {% endif %}
+
+        </section>
+    </main>
+
+{% endblock %}

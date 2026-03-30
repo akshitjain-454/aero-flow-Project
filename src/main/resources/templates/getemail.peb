@@ -1,0 +1,98 @@
+//FILE IS AN AI GENERATED COPY OF REGISTER FOR TESTING WITH ATM
+
+{% extends "base.html" %}
+
+{% block title %}Join AetherianFly | Aetheria{% endblock %}
+
+{% block extra_css %}
+        body { 
+            background: radial-gradient(circle at center, #0B1930 0%, #050B18 100%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+        }
+
+        @keyframes subtlePan {
+            0% { transform: scale(1.1) translateY(0); }
+            100% { transform: scale(1.2) translateY(-20px); }
+        }
+        
+        .animate-bg {
+            animation: subtlePan 30s infinite alternate ease-in-out;
+        }
+{% endblock %}
+
+{% block body_classes %}min-h-screen relative flex items-center justify-center overflow-y-auto py-12 md:py-20{% endblock %}
+
+{% block content %}
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <img src="https://images.pexels.com/photos/46148/aircraft-jet-landing-cloud-46148.jpeg?auto=compress&cs=tinysrgb&w=1920" 
+             alt="Aetheria flight path" 
+             class="w-full h-full object-cover animate-bg opacity-50">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050B18] via-transparent to-black/40"></div>
+    </div>
+
+    <main class="relative z-10 w-full max-w-lg px-6">
+        
+        <div class="glass-card rounded-[40px] overflow-hidden">
+            <div class="p-8 md:p-14">
+                
+                <div class="text-center mb-10">
+                    <div class="inline-block text-2xl font-bold tracking-tighter serif text-[--sky-blue] mb-3">
+                        AETHERIA
+                    </div>
+                    <h1 class="text-3xl font-bold text-[--charcoal] tracking-tight">Create Account</h1>
+                    <p class="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">Join the world's most exclusive flight program</p>
+
+                    {% if error %}
+                    <div class="mt-6 flex items-start gap-3 bg-red-50 border border-red-100 text-red-500 px-5 py-4 rounded-2xl text-left">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/>
+                        </svg>
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">Error</p>
+                            <p class="text-xs font-light">{{ error }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form action="/register" method="POST" class="space-y-6">
+                    <div class="group">
+                        <label for="email" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Email Address</label>
+                        <input type="email" id="email" name="email" required placeholder="concierge@aetheria.com" 
+                               class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                    </div>
+
+                    <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg">
+                        Continue
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-gray-50/50 border-t border-gray-100 p-8 text-center text-sm">
+                <p class="text-gray-500 font-light">
+                    Already an Aetherian? 
+                    <a href="/login" class="text-[--sky-blue] font-bold hover:underline ml-1 font-extrabold uppercase tracking-wider text-[10px]">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="/" class="text-[10px] uppercase tracking-widest font-extrabold text-white/60 hover:text-white transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Return to Homepage
+            </a>
+        </div>
+    </main>
+
+    <div class="absolute bottom-8 left-0 right-0 text-center text-[9px] uppercase tracking-widest text-white/30 font-bold hidden md:block">
+        &copy; 2026 Aetheria Aviation &bull; The Art of Arrival
+    </div>
+{% endblock %}

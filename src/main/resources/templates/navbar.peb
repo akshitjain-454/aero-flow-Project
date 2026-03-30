@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <nav aria-label="Main" class="hidden lg:block relative bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-8">
+        <ul class="flex items-center gap-8 h-20 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+
+            <li class="relative nav-item">
+                <button onclick="toggleMegaMenu('book-dropdown')" class="nav-link hover:text-black transition-colors uppercase cursor-pointer">Book</button>
+                <div id="book-dropdown" class="mega-menu-content hidden fixed left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 top-[73px]">
+                    <div class="max-w-7xl mx-auto px-8 py-12">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Flights <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Search Flights</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Round Trip</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Multi-City</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Travel Services <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Hotel Booking</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Car Rentals</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Special Fares</a></li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-50 rounded-2xl p-8 flex flex-col justify-between">
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-[0.3em] text-[--sky-blue] font-bold mb-3">Limited Time</p>
+                                    <h3 class="text-xl serif text-gray-900 mb-3 leading-snug">Summer in <span class="italic">Santorini</span></h3>
+                                    <p class="text-xs text-gray-400 font-light">Book your escape with 20% more miles.</p>
+                                </div>
+                                <a href="#" class="mt-8 inline-flex items-center justify-center bg-gray-900 text-white px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--sky-blue] transition-all">Explore Offers</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li class="relative nav-item">
+                <button onclick="toggleMegaMenu('manage-dropdown')" class="nav-link hover:text-black transition-colors uppercase cursor-pointer">Manage</button>
+                <div id="manage-dropdown" class="mega-menu-content hidden fixed left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 top-[73px]">
+                    <div class="max-w-7xl mx-auto px-8 py-12">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Your Booking <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Retrieve Booking</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Online Check-In</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Flight Status</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Preferences <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Choose Your Seat</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Pre-Order Meals</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Add Baggage</a></li>
+                                </ul>
+                            </div>
+                            <div class="bg-blue-50 rounded-2xl p-8 flex flex-col justify-between">
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-[0.3em] text-[--sky-blue] font-bold mb-3">Travel Alert</p>
+                                    <h3 class="text-xl serif text-gray-900 mb-3 leading-snug">Update your <span class="italic">Contact Info</span></h3>
+                                    <p class="text-xs text-gray-400 font-light">Ensure you receive real-time SMS updates for your flight.</p>
+                                </div>
+                                <a href="#" class="mt-8 inline-flex items-center justify-center border border-gray-900 text-gray-900 px-6 py-3 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-gray-900 hover:text-white transition-all">My Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li class="relative nav-item">
+                <button onclick="toggleMegaMenu('exp-dropdown')" class="nav-link hover:text-black transition-colors uppercase cursor-pointer">Experience</button>
+                <div id="exp-dropdown" class="mega-menu-content hidden fixed left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 top-[73px]">
+                    <div class="max-w-7xl mx-auto px-8 py-12">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">On Board <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Cabin Classes</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">In-Flight Dining</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Entertainment</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">At The Airport <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Lounges</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Priority Boarding</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Duty Free</a></li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-50 rounded-2xl p-8 text-center border border-gray-100">
+                                <h3 class="text-lg serif italic text-gray-900 mb-2">The Celestial Suite</h3>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-6">Our New First Class</p>
+                                <button class="bg-[#0f172a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest rounded-full">View Suite</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li class="relative nav-item">
+                <button onclick="toggleMegaMenu('fly-dropdown')" class="nav-link hover:text-black transition-colors uppercase cursor-pointer">Where We Fly</button>
+                <div id="fly-dropdown" class="mega-menu-content hidden fixed left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 top-[73px]">
+                    <div class="max-w-7xl mx-auto px-8 py-12">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Destinations <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">All Destinations</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Route Map</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">New Routes</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Regions <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Europe & Americas</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Asia & Pacific</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Middle East & Africa</a></li>
+                                </ul>
+                            </div>
+                            <div class="relative overflow-hidden rounded-2xl h-48 group cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1506929559444-49033359d997?q=80&w=400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Destination">
+                                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                    <span class="text-white text-[10px] font-bold tracking-[0.3em] uppercase border-b border-white/50 pb-1">Discover Tokyo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li class="relative nav-item">
+                <button onclick="toggleMegaMenu('loyalty-dropdown')" class="nav-link hover:text-black transition-colors uppercase cursor-pointer">Loyalty</button>
+                <div id="loyalty-dropdown" class="mega-menu-content hidden fixed left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 top-[73px]">
+                    <div class="max-w-7xl mx-auto px-8 py-12">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Aetheria Miles <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Join the Programme</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Earn Miles</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Redeem Miles</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <a href="#" class="inline-flex items-center gap-2 text-sm font-extrabold text-gray-900 uppercase tracking-widest mb-6 hover:text-[--sky-blue] transition-colors group">Status & Tiers <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                <ul class="space-y-4">
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Tier Benefits</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Member Lounges</a></li>
+                                    <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Partner Rewards</a></li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900 text-white rounded-2xl p-8 flex flex-col justify-center items-center text-center">
+                                <p class="text-[9px] tracking-widest uppercase mb-4 opacity-70">Member Access</p>
+                                <h3 class="text-xl serif mb-6">Manage Your Points</h3>
+                                <button class="w-full bg-white text-black py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[--sky-blue] hover:text-white transition-colors">Sign In</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            
+            <li class="relative nav-item">
+            <button onclick="toggleMegaMenu('help-drop')" class="nav-link hover:text-black transition-colors bg-transparent border-none cursor-pointer">
+                Help
+            </button>
+            <div id="help-drop" class="mega-menu-content hidden fixed left-0 right-0 top-[88px] float-card z-50">
+                <div class="max-w-7xl mx-auto px-8 py-12 grid grid-cols-3 gap-12 text-left">
+                    <div>
+                        <span class="block text-[8px] font-extrabold tracking-widest uppercase text-[--sky-blue] mb-6">Support</span>
+                        <ul class="space-y-4 text-sm font-light text-gray-600">
+                            <li><a href="/contact" class="hover:text-black">Contacts</a></li>
+                            <li><a href="./complaints" class="hover:text-black">Complaints</a></li>
+                            <li><a href="#" class="hover:text-black">FAQs</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-extrabold tracking-widest uppercase text-[--sky-blue] mb-6">Updates</span>
+                        <ul class="space-y-4 text-sm font-light text-gray-600">
+                            <li><a href="#" class="hover:text-black">Flight Status</a></li>
+                            <li><a href="#" class="hover:text-black">Travel Alerts</a></li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-900 text-white p-8 rounded-2xl flex flex-col justify-center items-center text-center">
+                        <p class="text-[8px] tracking-[0.3em] mb-2 opacity-60">CONCIERGE</p>
+                        <h3 class="serif text-lg mb-4">How can we assist?</h3>
+                        <a href="/complaints" class="border border-white/30 px-6 py-2 rounded-full text-[9px] hover:bg-white hover:text-black transition-all">GET HELP</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        </ul>
+    </div>
+</nav>
+
+<script>
+    /**
+     * Toggles the visibility of a Mega Menu.
+     * Ensures only one menu is open at a time.
+     */
+    function toggleMegaMenu(menuId) {
+        const targetMenu = document.getElementById(menuId);
+        const allMenus = document.querySelectorAll('.mega-menu-content');
+        const isOpen = !targetMenu.classList.contains('hidden');
+
+        // Close all other open menus
+        allMenus.forEach(menu => {
+            menu.classList.add('hidden');
+        });
+
+        // Toggle the specific menu
+        if (!isOpen) {
+            targetMenu.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Close the mega menu if the user clicks anywhere else
+     */
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-item')) {
+            document.querySelectorAll('.mega-menu-content').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+    });
+</script>
+</body>
+</html>
+
+
+
+
