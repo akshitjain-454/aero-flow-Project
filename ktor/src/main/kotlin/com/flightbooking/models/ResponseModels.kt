@@ -65,6 +65,8 @@ data class FlightAvailabilitySummary(
     val flightCode: String,
     val departureAirportId: Int,
     val arrivalAirportId: Int,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
     val arrivalTime: LocalDateTime,
     val flightStatus: FlightStatus,
@@ -125,4 +127,21 @@ data class MostPopularRouteReport(
 data class PeakBookingTimeReport(
     val bookingHour: String,
     val bookingCount: Long
+)
+
+data class ReservationSummary(
+    val bookingId: Int,
+    val bookingReference: String,
+    val userId: Int,
+    val firstname: String,
+    val lastname: String,
+    val email: String,
+    val flightId: Int,
+    val flightCode: String,
+    val departureAirportNameCode: String,
+    val arrivalAirportNameCode: String,
+    val departureTime: LocalDateTime,
+    val bookingStatus: BookingStatus,
+    val createdAt: LocalDateTime,
+    val amountPaid: BigDecimal?
 )

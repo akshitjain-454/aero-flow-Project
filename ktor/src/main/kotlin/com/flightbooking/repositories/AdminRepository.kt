@@ -26,6 +26,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import com.flightbooking.models.MostPopularRouteReport
 import com.flightbooking.models.PeakBookingTimeReport
 import org.jetbrains.exposed.sql.TextColumnType
+import com.flightbooking.models.ReservationSummary
+import com.flightbooking.tables.PaymentTable
 
 class AdminRepository {
 
@@ -220,6 +222,8 @@ class AdminRepository {
                     flightCode = row[FlightTable.flightCode],
                     departureAirportId = row[FlightTable.departureAirportId],
                     arrivalAirportId = row[FlightTable.arrivalAirportId],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
                     departureTime = row[FlightTable.departureTime],
                     arrivalTime = row[FlightTable.arrivalTime],
                     flightStatus = row[FlightTable.status],
@@ -229,7 +233,6 @@ class AdminRepository {
                 )
             }
     }
-
     // fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
     //     BookingTable
     //         .select { BookingTable.status eq BookingStatus.CANCELLED }
@@ -244,7 +247,6 @@ class AdminRepository {
     //             )
     //         }
     // }
-    
     fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
         var selectCondition: Op<Boolean> = (BookingTable.status eq BookingStatus.CANCELLED)
 
@@ -443,4 +445,68 @@ class AdminRepository {
             .singleOrNull() ?: throw IllegalStateException("Airport not found")
     }
 
+    fun getAllReservations(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?,status: BookingStatus?
+    ): List<ReservationSummary> = transaction {
+
+        var selectCondition: Op<Boolean> = Op.TRUE
+
+        if (fromCodes != null) {
+            val fromIds = AirportTable
+                .select { AirportTable.code inList fromCodes }
+                .map { it[AirportTable.id] }
+
+            selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
+        }
+
+        if (toCodes != null) {
+            val toIds = AirportTable
+                .select { AirportTable.code inList toCodes }
+                .map { it[AirportTable.id] }
+
+            selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
+        }
+
+        if (date != null) {
+            val dayStart = date.atStartOfDay()
+            val dayEnd = date.atTime(23, 59, 59)
+
+            selectCondition = selectCondition and
+                (FlightTable.departureTime greaterEq dayStart) and
+                (FlightTable.departureTime lessEq dayEnd)
+        }
+
+        if (status != null) {
+            selectCondition = selectCondition and (BookingTable.status eq status)
+        }
+
+        (BookingTable innerJoin FlightTable innerJoin UserTable)
+            .join(
+                PaymentTable,
+                JoinType.LEFT,
+                BookingTable.id,
+                PaymentTable.bookingId
+            )
+            .select { selectCondition }
+            .orderBy(BookingTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                ReservationSummary(
+                    bookingId = row[BookingTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[BookingTable.userId],
+                    firstname = row[UserTable.firstname],
+                    lastname = row[UserTable.lastname],
+                    email = row[UserTable.email],
+                    flightId = row[BookingTable.flightId],
+                    flightCode = row[FlightTable.flightCode],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
+                    departureTime = row[FlightTable.departureTime],
+                    bookingStatus = row[BookingTable.status],
+                    createdAt = row[BookingTable.createdAt],
+                    amountPaid = row.getOrNull(PaymentTable.amount)
+                )
+            }
+    }
+
+    
 }
