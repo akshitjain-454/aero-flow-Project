@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aetheria{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sky-blue: #0066FF;
+            --pearl: #FAFAFA;
+            --charcoal: #1A1A1A;
+            --navy: #081225;
+            --navy-deep: #050B18;
+            --gold: #B8860B;
+            --gold-light: #D4AF37;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* Shared WCAG Focus Rings */
+        *:focus-visible {
+            outline: 3px solid var(--sky-blue);
+            outline-offset: 4px;
+        }
+
+        /* Page-specific styles will be injected here */
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body class="antialiased {% block body_classes %}{% endblock %}">
+    
+    {% block content %}{% endblock %}
+
+</body>
+</html>

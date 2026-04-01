@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ktor
 
 This project was created using the [Ktor Project Generator](https://start.ktor.io).
@@ -42,15 +41,3 @@ If the server starts successfully, you'll see the following output:
 2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
-=======
-# aero-flow-Project
-A complete flight booking web application featuring a customer reservation portal, an airline management dashboard, and a user interaction system.
-
-PROJECT COMP2850
-
-- Daniel
-- Zihan
-- Shreya
-- Alex
-- Akshit
->>>>>>> f73406ab7b6bc53fa2c4ed27281e70fdd65669d8
