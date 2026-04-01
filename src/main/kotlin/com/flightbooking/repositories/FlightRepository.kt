@@ -88,10 +88,10 @@ class FlightRepository {
     
     fun getAirportBySearch(search: String): List<Airport>  = transaction {
         AirportTable
-            .select { (AirportTable.name like "$search%") or
-                    (AirportTable.code like "$search%") or
-                    (AirportTable.city like "$search%") or
-                    (AirportTable.country like "$search%")
+            .select { (AirportTable.name.lowerCase() like "$search%") or
+                    (AirportTable.code.lowerCase() like "$search%") or
+                    (AirportTable.city.lowerCase() like "$search%") or
+                    (AirportTable.country.lowerCase() like "$search%")
             }
             .limit(10)
             .map { resultRowToAirport(it) }
