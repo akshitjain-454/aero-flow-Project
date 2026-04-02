@@ -23,6 +23,7 @@ import com.flightbooking.enums.PaymentStatus
 import com.flightbooking.enums.SeatClass
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import java.time.LocalDateTime
 import java.time.LocalDate
 import java.util.UUID
@@ -114,6 +115,16 @@ class BookingRepository {
         ) 
     }
 
+    fun deleteBookingByReference(bookingReference: String) = transaction {
+        val booking = getBookingByReference(bookingReference) ?: return@transaction
+
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        TicketAssignmentTable.deleteWhere {  SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
+        PassengerTable.deleteWhere {  SqlExpressionBuilder.run {  PassengerTable.bookingId eq booking.id } }
+        BookingTable.deleteWhere {  SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
+    }
+
     fun cancelBooking(bookingReference: String): Booking? = transaction {
         val booking = BookingTable.select { BookingTable.bookingReference eq bookingReference }
             .map { resultRowToBooking(it) }
@@ -125,6 +136,17 @@ class BookingRepository {
 
         BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
             it[status] = BookingStatus.CANCELLED
+        }
+
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
+        PassengerTable.deleteWhere { SqlExpressionBuilder.run { PassengerTable.bookingId eq booking.id } }
+        BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
+        PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
+                it[paymentStatus] = PaymentStatus.REFUNDED;
+                it[refundAmount] = refundAmount;
+                it[refundDate] = LocalDateTime.now()
         }
 
         booking.copy(status = BookingStatus.CANCELLED)
