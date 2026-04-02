@@ -184,7 +184,7 @@ fun Route.bookingRoutes() {
             val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
             
             if(booking.userId != session.userId) { 
-                return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+                return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
             }
 
             //Stops booking if taking too long
@@ -236,12 +236,6 @@ fun Route.bookingRoutes() {
             
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
-            }
-
-            //Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
-                bookingRepository.deleteBookingByReference(reference)
-                return@post call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
             }
 
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)

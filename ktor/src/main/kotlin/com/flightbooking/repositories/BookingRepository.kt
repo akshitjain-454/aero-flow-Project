@@ -120,9 +120,9 @@ class BookingRepository {
 
         val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
 
-        TicketAssignmentTable.deleteWhere { TicketAssignmentTable.passengerId inList passengerIds }
-        PassengerTable.deleteWhere { PassengerTable.bookingId eq booking.id }
-        BookingTable.deleteWhere { BookingTable.bookingReference eq bookingReference }
+        TicketAssignmentTable.deleteWhere {  SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
+        PassengerTable.deleteWhere {  SqlExpressionBuilder.run {  PassengerTable.bookingId eq booking.id } }
+        BookingTable.deleteWhere {  SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
     }
 
     fun cancelBooking(bookingReference: String): Booking? = transaction {
@@ -136,6 +136,17 @@ class BookingRepository {
 
         BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
             it[status] = BookingStatus.CANCELLED
+        }
+
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
+        PassengerTable.deleteWhere { SqlExpressionBuilder.run { PassengerTable.bookingId eq booking.id } }
+        BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
+        PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
+                it[paymentStatus] = PaymentStatus.REFUNDED;
+                it[refundAmount] = refundAmount;
+                it[refundDate] = LocalDateTime.now()
         }
 
         booking.copy(status = BookingStatus.CANCELLED)
