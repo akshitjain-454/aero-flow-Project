@@ -23,6 +23,7 @@ import com.flightbooking.enums.PaymentStatus
 import com.flightbooking.enums.SeatClass
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import java.time.LocalDateTime
 import java.time.LocalDate
 import java.util.UUID
@@ -112,6 +113,16 @@ class BookingRepository {
             ticketPrice = ticketPrice,
             seatNumber = seatNumber
         ) 
+    }
+
+    fun deleteBookingByReference(bookingReference: String) = transaction {
+        val booking = getBookingByReference(bookingReference) ?: return@transaction
+
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        TicketAssignmentTable.deleteWhere { TicketAssignmentTable.passengerId inList passengerIds }
+        PassengerTable.deleteWhere { PassengerTable.bookingId eq booking.id }
+        BookingTable.deleteWhere { BookingTable.bookingReference eq bookingReference }
     }
 
     fun cancelBooking(bookingReference: String): Booking? = transaction {
