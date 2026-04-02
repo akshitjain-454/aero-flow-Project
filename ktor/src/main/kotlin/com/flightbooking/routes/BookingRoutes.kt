@@ -148,10 +148,11 @@ fun Route.bookingRoutes() {
                 transaction {
                     //Check if passengers already in ticketassignment table and delete to allow reselected seats to take over
                     bookingRepository.deleteOldSeatSelectionsByBookingReference(reference)
+
                     for(passenger in passengers) {
-                        val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing flight seat id for passenger ${passenger.id}")
-                        val seatClass = bookingRepository.getSeatClassByFlightSeatId(flightSeatId) ?:  return@post call.respond(HttpStatusCode.NotFound, "Outbound Seat Class not found")
-                        val seatNumber = bookingRepository.getSeatNumberByFlightSeatId(flightSeatId) ?: return@post call.respond(HttpStatusCode.NotFound, "Outbound Seat Number not found")
+                        val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: throw BadRequestException("Missing flight seat id for passenger ${passenger.id}")
+                        val seatClass = bookingRepository.getSeatClassByFlightSeatId(flightSeatId) ?:  throw NotFoundException("Outbound Seat Class not found")
+                        val seatNumber = bookingRepository.getSeatNumberByFlightSeatId(flightSeatId) ?: throw NotFoundException("Outbound Seat Number not found")
                         val date = flight.departureTime.toLocalDate()
                         val ticketPrice = bookingRepository.calculatePrice(flight.minPrice, seatClass, date)
 
@@ -159,12 +160,12 @@ fun Route.bookingRoutes() {
                             bookingRepository.ticketAssignment(passenger.id, flightSeatId, ticketPrice, seatNumber)
                         }
                         catch(e: Exception) {
-                            return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") // Shouldn't be possible to select
+                            throw Exception ("Seat already taken") // Shouldn't be possible to select
                         }
                         if(returnFlight != null) {
-                            val returnFlightSeatId = params["passenger_${passenger.id}_return_seat_id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing return flight seat id for passenger ${passenger.id}")
-                            val returnSeatClass = bookingRepository.getSeatClassByFlightSeatId(returnFlightSeatId) ?:  return@post call.respond(HttpStatusCode.NotFound, "Return Seat Class not found")
-                            val returnSeatNumber = bookingRepository.getSeatNumberByFlightSeatId(returnFlightSeatId) ?: return@post call.respond(HttpStatusCode.NotFound, "Return Seat Number not found")
+                            val returnFlightSeatId = params["passenger_${passenger.id}_return_seat_id"]?.toIntOrNull() ?: throw BadRequestException("Missing return flight seat id for passenger ${passenger.id}")
+                            val returnSeatClass = bookingRepository.getSeatClassByFlightSeatId(returnFlightSeatId) ?:  throw NotFoundException("Return Seat Class not found")
+                            val returnSeatNumber = bookingRepository.getSeatNumberByFlightSeatId(returnFlightSeatId) ?: throw NotFoundException("Return Seat Number not found")
                             val returnDate = returnFlight.departureTime.toLocalDate()
                             val returnTicketPrice = bookingRepository.calculatePrice(returnFlight.minPrice, returnSeatClass, returnDate)
                             
@@ -173,7 +174,7 @@ fun Route.bookingRoutes() {
                                 bookingRepository.ticketAssignment(passenger.id, returnFlightSeatId, returnTicketPrice, returnSeatNumber)
                             }
                             catch(e: Exception) {
-                                return@post call.respond(HttpStatusCode.Conflict, "Seat already taken") // Shouldn't be possible to select
+                                throw Exception ("Seat already taken") // Shouldn't be possible to select
                             }
                         }
                     }
@@ -183,13 +184,10 @@ fun Route.bookingRoutes() {
 
             } 
             catch (e: NotFoundException) {
-                call.respondPebble(, "Information not found")
+                call.respondPebble("seats.peb", "Information not found")
             } 
             catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "")
-            } 
-            catch (e: ForbiddenException) {
-                call.respond(HttpStatusCode.Forbidden, e.message ?: "")
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Provided information missing")
             } 
             catch (e: Exception) {
                 call.respond(HttpStatusCode.Conflict, "Seat already taken")
