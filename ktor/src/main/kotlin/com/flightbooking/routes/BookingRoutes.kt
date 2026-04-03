@@ -13,6 +13,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -150,9 +151,9 @@ fun Route.bookingRoutes() {
                     bookingRepository.deleteOldSeatSelectionsByBookingReference(reference)
 
                     for(passenger in passengers) {
-                        val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: throw BadRequestException("Missing flight seat id for passenger ${passenger.id}")
-                        val seatClass = bookingRepository.getSeatClassByFlightSeatId(flightSeatId) ?:  throw NotFoundException("Outbound Seat Class not found")
-                        val seatNumber = bookingRepository.getSeatNumberByFlightSeatId(flightSeatId) ?: throw NotFoundException("Outbound Seat Number not found")
+                        val flightSeatId = params["passenger_${passenger.id}_seat_id"]?.toIntOrNull() ?: throw Exception("Missing flight seat id for passenger ${passenger.id}")
+                        val seatClass = bookingRepository.getSeatClassByFlightSeatId(flightSeatId) ?:  throw Exception("Outbound Seat Class not found")
+                        val seatNumber = bookingRepository.getSeatNumberByFlightSeatId(flightSeatId) ?: throw Exception("Outbound Seat Number not found")
                         val date = flight.departureTime.toLocalDate()
                         val ticketPrice = bookingRepository.calculatePrice(flight.minPrice, seatClass, date)
 
@@ -163,9 +164,9 @@ fun Route.bookingRoutes() {
                             throw Exception ("Seat already taken") // Shouldn't be possible to select
                         }
                         if(returnFlight != null) {
-                            val returnFlightSeatId = params["passenger_${passenger.id}_return_seat_id"]?.toIntOrNull() ?: throw BadRequestException("Missing return flight seat id for passenger ${passenger.id}")
-                            val returnSeatClass = bookingRepository.getSeatClassByFlightSeatId(returnFlightSeatId) ?:  throw NotFoundException("Return Seat Class not found")
-                            val returnSeatNumber = bookingRepository.getSeatNumberByFlightSeatId(returnFlightSeatId) ?: throw NotFoundException("Return Seat Number not found")
+                            val returnFlightSeatId = params["passenger_${passenger.id}_return_seat_id"]?.toIntOrNull() ?: throw Exception("Missing return flight seat id for passenger ${passenger.id}")
+                            val returnSeatClass = bookingRepository.getSeatClassByFlightSeatId(returnFlightSeatId) ?:  throw Exception("Return Seat Class not found")
+                            val returnSeatNumber = bookingRepository.getSeatNumberByFlightSeatId(returnFlightSeatId) ?: throw Exception("Return Seat Number not found")
                             val returnDate = returnFlight.departureTime.toLocalDate()
                             val returnTicketPrice = bookingRepository.calculatePrice(returnFlight.minPrice, returnSeatClass, returnDate)
                             
@@ -181,16 +182,9 @@ fun Route.bookingRoutes() {
                 }
                 
                 call.respondRedirect("/booking/$reference/payment")
-
-            } 
-            catch (e: NotFoundException) {
-                call.respondPebble("seats.peb", "Information not found")
-            } 
-            catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Provided information missing")
-            } 
+            }
             catch (e: Exception) {
-                call.respond(HttpStatusCode.Conflict, "Seat already taken")
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Something Went Wrong")
             }
         }
 
