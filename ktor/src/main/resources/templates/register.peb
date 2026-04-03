@@ -48,14 +48,14 @@
                     <h1 class="text-3xl font-bold text-[--charcoal] tracking-tight">Create Account</h1>
                     <p class="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">Join the world's most exclusive flight program</p>
 
-                    {% if error  %}
+                    {% if error %}
                     <div class="mt-6 flex items-start gap-3 bg-red-50 border border-red-100 text-red-500 px-5 py-4 rounded-2xl text-left">
                         <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/>
                         </svg>
                         <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">There was a problem!</p>
-                            <p class="text-xs font-light">{{ error }}</p>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">Already a Member</p>
+                            <p class="text-xs font-light">A customer with this email already exists. <a href="/login" class="font-bold underline hover:text-red-700 transition-colors">Sign in instead?</a></p>
                         </div>
                     </div>
                     {% endif %}
@@ -107,11 +107,6 @@
                     <div class="group">
                         <label for="password" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Password</label>
                         <input type="password" id="password" name="password" required placeholder="••••••••" 
-                               class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
-                    </div>
-                    <div class="group">
-                        <label for="confirm-password" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Confirm Password</label>
-                        <input type="password" id="confirm-password" name="confirmed_password" required placeholder="••••••••" 
                                class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
                     </div>
 
