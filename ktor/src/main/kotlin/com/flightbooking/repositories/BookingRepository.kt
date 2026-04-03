@@ -115,6 +115,15 @@ class BookingRepository {
         ) 
     }
 
+    fun deleteOldSeatSelectionsByBookingReference(bookingReference: String) = transaction {
+        val booking = getBookingByReference(bookingReference) ?: return@transaction
+
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+        if (passengerIds.isEmpty()) { return@transaction }
+        
+        TicketAssignmentTable.deleteWhere {  SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
+    }
+
     fun deleteBookingByReference(bookingReference: String) = transaction {
         val booking = getBookingByReference(bookingReference) ?: return@transaction
 
