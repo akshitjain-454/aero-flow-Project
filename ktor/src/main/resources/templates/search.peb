@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-32 px-6 overflow-hidden">
+
+    <!-- Background -->
+    <div class="absolute inset-0 -z-10 bg-slate-200">
+        <img src="https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1920&q=80"
+             class="w-full h-full object-cover opacity-30 grayscale">
+    </div>
+
+    <!-- Heading -->
+    <div class="text-center mb-12">
+        <h1 class="text-6xl md:text-8xl serif font-light leading-tight mb-4">
+            The Art of <span class="italic text-[--sky-blue]">Arrival</span>
+        </h1>
+        <p class="text-gray-400 uppercase tracking-[0.4em] text-[10px] font-bold">
+            Bespoke Private Flight Charters
+        </p>
+    </div>
+
+    <!-- Card -->
+    <div class="float-card w-full max-w-6xl rounded-[40px] p-6 overflow-visible">
+
+        <form method="GET" action="/search" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
+
+            <input type="hidden" name="from" id="from-code">
+            <input type="hidden" name="to"   id="to-code">
+
+            <!-- Origin -->
+            <div class="relative" id="from-wrapper">
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
+                <input type="text" id="from-display" placeholder="From where?" autocomplete="off"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="from-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+            </div>
+
+            <!-- Destination -->
+            <div class="relative" id="to-wrapper">
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
+                <input type="text" id="to-display" placeholder="To where?" autocomplete="off"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="to-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+            </div>
+
+            <!-- Date -->
+            <div>
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Departure</label>
+                <input type="date" name="date"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
+            </div>
+
+            <!-- Submit -->
+            <button type="submit"
+                    class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-[--sky-blue] transition-all duration-300">
+                Find Availability
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+<style>
+    .airport-dropdown::-webkit-scrollbar { width: 4px; }
+    .airport-dropdown::-webkit-scrollbar-track { background: transparent; }
+    .airport-dropdown::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+
+    .airport-item {
+        padding: 12px 18px;
+        font-size: 0.875rem;
+        color: #1e293b;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+        line-height: 1.4;
+    }
+    .airport-item:last-child { border-bottom: none; }
+    .airport-item:hover, .airport-item.active { background: #f8fafc; }
+    .airport-item .iata {
+        display: inline-block;
+        font-weight: 700;
+        color: var(--sky-blue, #38bdf8);
+        margin-right: 8px;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+    }
+    .airport-item .sub {
+        display: block;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+    .dropdown-empty, .dropdown-loading {
+        padding: 14px 18px;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-align: center;
+        font-style: italic;
+    }
+</style>
+
+<script>
+(function () {
+    const fields = ['from', 'to'];
+    const timers = {};
+    const activeIndex = { from: -1, to: -1 };
+
+    fields.forEach(field => {
+        const display   = document.getElementById(`${field}-display`);
+        const codeInput = document.getElementById(`${field}-code`);
+        const dropdown  = document.getElementById(`${field}-results`);
+
+        display.addEventListener('input', () => {
+            clearTimeout(timers[field]);
+            codeInput.value = '';
+            const query = display.value.trim();
+            if (query.length < 1) { closeDropdown(field); return; }
+            showLoading(field);
+            timers[field] = setTimeout(() => fetchAirports(field, query), 280);
+        });
+
+        display.addEventListener('keydown', (e) => {
+            const items = dropdown.querySelectorAll('.airport-item');
+            if (!items.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex[field] = Math.min(activeIndex[field] + 1, items.length - 1);
+                updateActive(field, items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex[field] = Math.max(activeIndex[field] - 1, 0);
+                updateActive(field, items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeIndex[field] >= 0) items[activeIndex[field]].click();
+            } else if (e.key === 'Escape') {
+                closeDropdown(field);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById(`${field}-wrapper`).contains(e.target))
+                closeDropdown(field);
+        });
+    });
+
+    async function fetchAirports(field, query) {
+        try {
+            const res = await fetch(`/airports?search=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error();
+            const data = await res.json(); // List<Airport>: { id, name, code, city, country }
+            renderDropdown(field, data);
+        } catch {
+            renderError(field);
+        }
+    }
+
+    function renderDropdown(field, airports) {
+        const dropdown = document.getElementById(`${field}-results`);
+        activeIndex[field] = -1;
+        dropdown.innerHTML = '';
+
+        if (!airports || airports.length === 0) {
+            dropdown.innerHTML = `<div class="dropdown-empty">No airports found</div>`;
+            dropdown.classList.remove('hidden');
+            return;
+        }
+
+        airports.forEach((airport, i) => {
+            const item = document.createElement('div');
+            item.className = 'airport-item';
+            item.innerHTML = `
+                <span class="iata">${airport.code}</span>${airport.name}
+                <span class="sub">${airport.city}, ${airport.country}</span>
+            `;
+            item.addEventListener('mouseenter', () => {
+                activeIndex[field] = i;
+                updateActive(field, dropdown.querySelectorAll('.airport-item'));
+            });
+            item.addEventListener('click', () => selectAirport(field, airport));
+            dropdown.appendChild(item);
+        });
+
+        dropdown.classList.remove('hidden');
+    }
+
+    function selectAirport(field, airport) {
+        document.getElementById(`${field}-code`).value    = airport.code;
+        document.getElementById(`${field}-display`).value = `${airport.code} – ${airport.name}`;
+        closeDropdown(field);
+    }
+
+    function showLoading(field) {
+        const d = document.getElementById(`${field}-results`);
+        d.innerHTML = `<div class="dropdown-loading">Searching airports…</div>`;
+        d.classList.remove('hidden');
+    }
+
+    function renderError(field) {
+        const d = document.getElementById(`${field}-results`);
+        d.innerHTML = `<div class="dropdown-empty">Could not load airports</div>`;
+        d.classList.remove('hidden');
+    }
+
+    function closeDropdown(field) {
+        const d = document.getElementById(`${field}-results`);
+        d.classList.add('hidden');
+        d.innerHTML = '';
+        activeIndex[field] = -1;
+    }
+
+    function updateActive(field, items) {
+        items.forEach((el, i) => el.classList.toggle('active', i === activeIndex[field]));
+        if (items[activeIndex[field]]) items[activeIndex[field]].scrollIntoView({ block: 'nearest' });
+    }
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        if (!document.getElementById('from-code').value.trim()) {
+            e.preventDefault();
+            document.getElementById('from-display').focus();
+            return;
+        }
+        if (!document.getElementById('to-code').value.trim()) {
+            e.preventDefault();
+            document.getElementById('to-display').focus();
+        }
+    });
+})();
+</script>
+
+{% endblock %}
