@@ -116,7 +116,8 @@ fun Route.bookingRoutes() {
                 return@get call.respondPebble("returnseats.peb", mapOf("seats" to seats, "returnSeats" to returnSeats))
             }
             //call.respond(seats)
-            call.respondPebble("seats.peb", mapOf("seats" to seats))
+            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
+            call.respondPebble("seats.peb", mapOf("seats" to seats , "passengers" to passengers , "reference" to reference))
         }
 
         post("/{reference}/ticket_assignment") {
