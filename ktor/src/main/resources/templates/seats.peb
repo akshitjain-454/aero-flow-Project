@@ -350,14 +350,38 @@
         { flightSeatId: {{ seat.flightSeatId }}, seatNumber: "{{ seat.seatNumber }}", seatClass: "{{ seat.seatClass }}", available: {{ seat.available }} }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
+    
     const PASSENGERS = [
         {% for pax in passengers %}
         { id: {{ pax.id }}, firstname: "{{ pax.firstname }}", lastname: "{{ pax.lastname }}" }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
-    let currentPaxId = PASSENGERS.length > 0 ? PASSENGERS[0].id : null;
+    // ── NEW: Parse pre-selected seats from the backend ──
+    const PRE_SELECTED_SEATS = [
+        {% for sel in selectedSeats %}
+        {
+            flightSeatId: {{ sel.flightSeatId }},
+            seatNumber: "{{ sel.seatNumber }}",
+            paxId: {{ sel.passenger.id }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
     const selections = {};
+
+    // ── NEW: Pre-fill selections object with backend data ──
+    PRE_SELECTED_SEATS.forEach(sel => {
+        selections[sel.paxId] = { flightSeatId: sel.flightSeatId, seatNumber: sel.seatNumber };
+    });
+
+    // ── NEW: Smart active passenger selection ──
+    // Find the first passenger that DOES NOT have a seat yet. If all have seats, default to the first passenger.
+    let currentPaxId = null;
+    if (PASSENGERS.length > 0) {
+        const firstUnassigned = PASSENGERS.find(p => !selections[p.id]);
+        currentPaxId = firstUnassigned ? firstUnassigned.id : PASSENGERS[0].id;
+    }
 
     function parseSeatNumber(sn) {
         const m = sn.match(/^(\d+)([A-Za-z]+)$/);
@@ -544,6 +568,14 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         buildSeatMap();
+
+        // ── NEW: Push pre-selected data to the UI on load ──
+        for (const [paxId, sel] of Object.entries(selections)) {
+            const input = document.getElementById('input-pax-' + paxId);
+            if (input) input.value = sel.flightSeatId;
+            updateChip(paxId, sel.seatNumber);
+        }
+
         updateTabs();
         updateProceedBtn();
         if (currentPaxId) switchPassenger(currentPaxId); 

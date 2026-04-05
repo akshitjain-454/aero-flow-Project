@@ -6,32 +6,26 @@
 
     <div class="w-full max-w-4xl">
 
-        <!-- Card -->
         <div class="bg-white rounded-[30px] p-10 md:p-14 shadow-xl">
 
-            <!-- Top Label -->
             <p class="text-xs font-bold tracking-[0.4em] text-[--sky-blue] uppercase mb-6">
                 Travel Alert
             </p>
 
-            <!-- Heading -->
             <h1 class="text-4xl md:text-5xl font-light leading-tight mb-6">
                 Update your <span class="italic">contact info</span>
             </h1>
 
-            <!-- Subtext -->
             <p class="text-gray-400 tracking-[0.25em] uppercase text-sm mb-12">
                 Ensure you receive real-time SMS updates for your flight.
             </p>
 
-            <!-- Button -->
             <button class="profile-btn">
-                My Profile
+                Update Info
             </button>
 
         </div>
 
-        <!-- Profile Section -->
         <div class="mt-10 bg-white rounded-[30px] p-10 shadow-lg">
 
             <h2 class="text-xl font-semibold mb-6">Account Overview</h2>
@@ -59,6 +53,18 @@
                 </div>
 
             </div>
+            
+            <div class="mt-10 pt-8 border-t border-gray-100 flex justify-end">
+                <form action="/logout" method="POST" class="m-0 p-0">
+                    <button type="submit" class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-red-500 hover:text-red-700 transition-colors px-6 py-3 border border-red-200 rounded-full hover:bg-red-50 inline-flex items-center gap-2 cursor-pointer bg-transparent">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Sign Out
+                    </button>
+                </form>
+            </div>
+
         </div>
 
     </div>
@@ -79,7 +85,6 @@
     transition: all 0.3s ease;
 }
 
-/* Blue outer ring effect */
 .profile-btn::before {
     content: "";
     position: absolute;

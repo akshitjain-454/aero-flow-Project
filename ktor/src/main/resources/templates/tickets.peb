@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Your Boarding Passes | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+    }
+
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35); text-decoration: none;
+    }
+
+    .tickets-hero {
+        background: var(--charcoal);
+        padding: 8rem 2rem 4rem;
+        text-align: center;
+    }
+
+    /* ── Ticket Design ── */
+    .ticket-container {
+        max-width: 56rem;
+        margin: -2rem auto 4rem;
+        padding: 0 1.5rem;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .ticket {
+        display: flex;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        animation: fadeUp 0.4s ease both;
+    }
+
+    .ticket-main {
+        flex: 1;
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .ticket-stub {
+        width: 240px;
+        background: #f8fafc;
+        border-left: 3px dashed #cbd5e1;
+        padding: 2.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+    }
+
+    /* Perforation cutouts */
+    .ticket-stub::before, .ticket-stub::after {
+        content: ''; position: absolute; left: -12px; width: 20px; height: 20px;
+        background: var(--pearl); border-radius: 50%; border: 1px solid #e5e7eb;
+    }
+    .ticket-stub::before { top: -12px; border-top: none; border-left: none; }
+    .ticket-stub::after { bottom: -12px; border-bottom: none; border-left: none; }
+
+    /* Typography */
+    .t-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #9ca3af; margin-bottom: 0.25rem; display: block; }
+    .t-value { font-size: 1.1rem; font-weight: 700; color: var(--charcoal); }
+    .t-value.large { font-size: 1.5rem; letter-spacing: 0.02em; }
+    .t-value.mono { font-family: monospace; letter-spacing: 0.1em; color: var(--sky-blue); }
+
+    .flight-route {
+        display: flex; align-items: center; justify-content: space-between;
+        margin: 2rem 0; padding: 1.5rem 0; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;
+    }
+    .route-point { flex: 1; }
+    .route-point.right { text-align: right; }
+    .route-icon { color: #d1d5db; font-size: 1.5rem; padding: 0 1rem; }
+
+    .ticket-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+    /* Fake Barcode styling */
+    .barcode-wrapper { margin-top: 1.5rem; width: 100%; }
+    .barcode {
+        height: 40px; width: 100%;
+        background-image: repeating-linear-gradient(to right, #1f2937, #1f2937 2px, transparent 2px, transparent 4px, #1f2937 4px, #1f2937 5px, transparent 5px, transparent 8px, #1f2937 8px, #1f2937 12px, transparent 12px, transparent 14px);
+        opacity: 0.8; margin-bottom: 0.5rem;
+    }
+
+    /* Print Styles */
+    @media print {
+        body { background: white; }
+        header, .tickets-hero, .print-btn { display: none !important; }
+        .ticket-container { margin: 0; padding: 0; max-width: 100%; }
+        .ticket { box-shadow: none; border: 2px solid #000; break-inside: avoid; margin-bottom: 2rem; }
+        .ticket-stub { background: white; border-left: 2px dashed #000; }
+        .ticket-stub::before, .ticket-stub::after { display: none; }
+    }
+
+    @media (max-width: 768px) {
+        .ticket { flex-direction: column; }
+        .ticket-stub { width: 100%; border-left: none; border-top: 3px dashed #cbd5e1; }
+        .ticket-stub::before { top: -12px; left: auto; right: -12px; }
+        .ticket-stub::after { bottom: auto; top: -12px; left: -12px; }
+    }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn" style="text-decoration: none;">{{ userInitials }}</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="tickets-hero">
+    <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Your <span class="italic text-[--sky-blue]">Boarding Passes</span></h1>
+    <div class="mt-6">
+        <button onclick="window.print()" class="print-btn inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full text-[10px] uppercase font-extrabold tracking-widest hover:bg-[--sky-blue] hover:text-white transition-colors cursor-pointer border-none shadow-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Print Tickets
+        </button>
+    </div>
+</div>
+
+<main class="ticket-container">
+    {% for ticket in tickets %}
+    <div class="ticket" style="animation-delay: {{ loop.index * 0.1 }}s">
+        <div class="ticket-main">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="t-label">Passenger Name</span>
+                    <span class="t-value large">{{ ticket.passengerName }}</span>
+                </div>
+                <div class="text-right">
+                    <span class="t-label">Aetheria Class</span>
+                    <span class="text-[--sky-blue] font-bold tracking-widest text-xs uppercase">Priority</span>
+                </div>
+            </div>
+
+            <div class="flight-route">
+                <div class="route-point">
+                    <span class="t-label">Departure</span>
+                    <span class="t-value">{{ ticket.departureAirportNameCode }}</span>
+                </div>
+                <div class="route-icon">✈</div>
+                <div class="route-point right">
+                    <span class="t-label">Arrival</span>
+                    <span class="t-value">{{ ticket.arrivalAirportNameCode }}</span>
+                </div>
+            </div>
+
+            <div class="ticket-grid">
+                <div>
+                    <span class="t-label">Date & Time</span>
+                    <span class="t-value">{{ ticket.dateTime | date("dd MMM yyyy, HH:mm") }}</span>
+                </div>
+                <div>
+                    <span class="t-label">Gate</span>
+                    <span class="t-value">TBD</span>
+                </div>
+                <div>
+                    <span class="t-label">Seat</span>
+                    <span class="t-value mono text-xl">{{ ticket.seatNumber }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-stub">
+            <span class="t-label">Booking Ref</span>
+            <span class="t-value mono mb-6">{{ ticket.bookingReference }}</span>
+            
+            <span class="t-label">Seat</span>
+            <span class="t-value mono text-3xl mb-4">{{ ticket.seatNumber }}</span>
+
+            <div class="barcode-wrapper">
+                <div class="barcode"></div>
+                <span class="text-[8px] font-mono text-gray-400 tracking-widest">{{ ticket.bookingReference }}-{{ ticket.seatNumber }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</main>
+{% endblock %}

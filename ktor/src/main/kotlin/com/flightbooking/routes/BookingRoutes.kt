@@ -251,8 +251,8 @@ fun Route.bookingRoutes() {
             val confirmed = bookingRepository.confirmBooking(booking)
             if(confirmed != 1) { return@post  call.respond(HttpStatusCode.InternalServerError, "Couldn't confirm booking")} 
 
-            call.respond(payment)
-            //call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment))
+            //call.respond(payment)
+            call.respondPebble("paymentConfirmation.peb", mapOf("payment" to payment , "reference" to reference))
         }
 
         post("/{reference}/send_tickets") { //button on paymentConfirmation.peb
@@ -289,7 +289,28 @@ fun Route.bookingRoutes() {
                 )
             }
             call.respond(allTickets)
-            //call.respondPebble("tickets.peb", mapOf("tickets" to allTickets))
+        }
+        // --- ADD THIS NEW GET ROUTE FOR VIEWING TICKETS ---
+        get("/{reference}/tickets") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
+            
+            if(booking.userId != session.userId) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+
+            val passengers = bookingRepository.getPassengersByBookingId(booking.id)
+
+            val outboundTickets = passengers.map { bookingRepository.getTicketInfoByPassengerAndBooking(it, booking) }
+            val allTickets = if (booking.returnFlightId != null) {
+                outboundTickets + passengers.map { bookingRepository.getReturnTicketInfoByPassengerAndBooking(it, booking) }
+            } else {
+                outboundTickets
+            }
+
+            // This loads the visual of  boarding passes!
+            call.respondPebble("tickets.peb", mapOf("tickets" to allTickets))
         }
 
         post("/{reference}/cancel") {
@@ -320,7 +341,7 @@ fun Route.bookingRoutes() {
 
         val bookingsInfo = bookings.map { bookingRepository.getBookingInfoByBooking(it) }
 
-        call.respond(bookingsInfo)
-        //call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
+        //call.respond(bookingsInfo)
+        call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
     }
 }

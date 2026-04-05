@@ -42,14 +42,17 @@
         if (!insideHelp && !insideHelpDrop && !insideProfile) closeAllMenus();
     });
 
-    document.querySelector('form[action="/search"]').addEventListener('submit', function() {
-        const originInput = document.getElementById('origin');
-        const destInput   = document.getElementById('destination');
-        const extractCode = (val) => {
-            const match = val.match(/\(([A-Z]{3})\)/);
-            return match ? match[1] : val;
-        };
-        originInput.value = extractCode(originInput.value);
-        destInput.value   = extractCode(destInput.value);
-    });
+    const searchForm = document.querySelector('form[action="/search"]');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function() {
+            const originInput = document.getElementById('origin');
+            const destInput   = document.getElementById('destination');
+            const extractCode = (val) => {
+                const match = val.match(/\(([A-Z]{3})\)/);
+                return match ? match[1] : val;
+            };
+            originInput.value = extractCode(originInput.value);
+            destInput.value   = extractCode(destInput.value);
+        });
+    }
 </script>
