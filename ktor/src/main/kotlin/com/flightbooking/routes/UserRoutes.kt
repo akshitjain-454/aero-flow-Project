@@ -152,4 +152,8 @@ fun Route.userRoutes() {
         call.sessions.clear<UserSession>()
         call.respondRedirect("/")
     }
+    get("/logout") {
+        call.sessions.clear<UserSession>()
+        call.respondRedirect("/")
+    }
 }

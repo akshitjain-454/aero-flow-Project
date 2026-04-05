@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <nav aria-label="Main" class="hidden lg:block relative bg-white border-b border-gray-100">
+<nav aria-label="Main" class="hidden lg:block relative bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-8">
         <ul class="flex items-center gap-8 h-20 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
 
@@ -23,7 +15,7 @@
                                     <li><a href="#" class="text-sm text-gray-500 font-light hover:text-[--sky-blue]">Multi-City</a></li>
                                 </ul>
                             </div>
-                           
+                            
                             <div class="bg-gray-50 rounded-2xl p-8 flex flex-col justify-between">
                                 <div>
                                     <p class="text-[9px] uppercase tracking-[0.3em] text-[--sky-blue] font-bold mb-3">Limited Time</p>
@@ -165,7 +157,6 @@
                 </div>
             </li>
 
-            
             <li class="relative nav-item">
             <button onclick="toggleMegaMenu('help-drop')" class="nav-link hover:text-black transition-colors bg-transparent border-none cursor-pointer">
                 Help
@@ -201,29 +192,20 @@
 </nav>
 
 <script>
-    /**
-     * Toggles the visibility of a Mega Menu.
-     * Ensures only one menu is open at a time.
-     */
     function toggleMegaMenu(menuId) {
         const targetMenu = document.getElementById(menuId);
         const allMenus = document.querySelectorAll('.mega-menu-content');
         const isOpen = !targetMenu.classList.contains('hidden');
 
-        // Close all other open menus
         allMenus.forEach(menu => {
             menu.classList.add('hidden');
         });
 
-        // Toggle the specific menu
         if (!isOpen) {
             targetMenu.classList.remove('hidden');
         }
     }
 
-    /**
-     * Close the mega menu if the user clicks anywhere else
-     */
     window.addEventListener('click', function(e) {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.mega-menu-content').forEach(menu => {
@@ -232,9 +214,3 @@
         }
     });
 </script>
-</body>
-</html>
-
-
-
-
