@@ -13,6 +13,13 @@ data class SeatAvailability(
     val available: Boolean
 )
 
+data class SelectedSeat(
+    val flightSeatId: Int,
+    val seatNumber: String,
+    val seatClass: SeatClass,
+    val passenger: Passenger
+)
+
 data class TicketInfo(
     val passengerName: String,
     val bookingReference: String,

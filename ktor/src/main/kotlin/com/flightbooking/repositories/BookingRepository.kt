@@ -4,6 +4,7 @@ import com.flightbooking.models.Booking
 import com.flightbooking.models.Seat
 import com.flightbooking.models.Payment
 import com.flightbooking.models.SeatAvailability
+import com.flightbooking.models.SelectedSeat
 import com.flightbooking.models.TicketInfo
 import com.flightbooking.models.BookingInfo
 import com.flightbooking.models.TicketAssignment
@@ -204,6 +205,29 @@ class BookingRepository {
                     available = available
                 )
             }
+    }
+
+    fun getSelectedSeatsByFlightIdAndPassengers(flightId: Int, passengers: List<Passenger>): List<SelectedSeat> = transaction { 
+        val passengerIds = passengers.map { it.id }
+
+        FlightSeatTable
+            .join(SeatTable, JoinType.INNER, FlightSeatTable.seatId, SeatTable.id )
+            .join(TicketAssignmentTable, JoinType.INNER, FlightSeatTable.id, TicketAssignmentTable.flightSeatId)
+            .select { 
+                (FlightSeatTable.flightId eq flightId) and
+                (TicketAssignmentTable.passengerId inList passengerIds)
+            }
+            .map {
+                val passengerId = it[TicketAssignmentTable.passengerId]
+                val passenger = passengers.single { p -> p.id == passengerId } //p instaed of inner it
+
+                SelectedSeat(
+                    flightSeatId = it[FlightSeatTable.id],
+                    seatNumber = it[SeatTable.seatNumber],
+                    seatClass = it[SeatTable.seatClass],
+                    passenger = passenger
+                )
+        }
     }
 
     fun getPassengersByBookingId(bookingId: Int): List<Passenger> = transaction {
