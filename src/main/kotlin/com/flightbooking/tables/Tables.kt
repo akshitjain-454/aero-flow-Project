@@ -23,6 +23,7 @@ object BookingTable : Table("Booking") {
   val bookingReference = varchar("booking_reference", 100).uniqueIndex() 
   val userId = integer("user_id").references(UserTable.id)
   val flightId = integer("flight_id").references(FlightTable.id)
+  val returnFlightId = integer("return_flight_id").references(FlightTable.id).nullable()
   val status = enumerationByName("status", 30, BookingStatus::class)
   val createdAt = datetime("created_at")
 

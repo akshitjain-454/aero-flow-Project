@@ -15,11 +15,14 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import java.time.LocalDateTime
 import java.time.LocalDate
+import com.flightbooking.repositories.FlightRepository
+import com.flightbooking.enums.BookingStatus
 
 fun Route.adminRoutes() {
 
     val complaintRepository = ComplaintRepository()
     val adminRepository = AdminRepository()
+    val flightRepository = FlightRepository()
 
     route("/admin") {
 
@@ -332,6 +335,57 @@ fun Route.adminRoutes() {
             )
         }
 
+        get("/reservations") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(
+                    HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val params = call.request.queryParameters
+            val fromCodes = params.getAll("from")
+            val toCodes = params.getAll("to")
+            val date = params["date"]?.let { LocalDate.parse(it) }
+
+            val status = params["status"]?.trim()?.uppercase()?.let {
+                try {
+                    BookingStatus.valueOf(it)
+                } catch (e: IllegalArgumentException) {
+                    return@get call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf(
+                            "error" to "Invalid status",
+                            "allowedStatuses" to BookingStatus.values().map { value -> value.name }
+                        )
+                    )
+                }
+            }
+
+            val reservations = adminRepository.getAllReservations(
+                fromCodes = fromCodes,
+                toCodes = toCodes,
+                date = date,
+                status = status
+            )
+
+            call.respond(
+                mapOf(
+                    "reportType" to "all_reservations",
+                    "totalReservations" to reservations.size,
+                    "filters" to mapOf(
+                        "from" to fromCodes,
+                        "to" to toCodes,
+                        "date" to date?.toString(),
+                        "status" to status?.name
+                    ),
+                    "results" to reservations
+                )
+            )
+        }
+
         post("/flights/{id}/update-schedule") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             
@@ -358,11 +412,18 @@ fun Route.adminRoutes() {
             ) ?: return@post call.respond(HttpStatusCode.NotFound,
                 mapOf("error" to "Flight not found")
             )
+            val departureAirport = flightRepository.getAirportById(updatedFlight.departureAirportId)
+            val arrivalAirport = flightRepository.getAirportById(updatedFlight.arrivalAirportId)
+            
             call.respond(HttpStatusCode.OK,
                 mapOf(
                     "message" to "Flight schedule updated successfully",
                     "flightId" to updatedFlight.id,
-                    "flightCode" to updatedFlight.flightCode
+                    "flightCode" to updatedFlight.flightCode,
+                    "departureAirportNameCode" to "${departureAirport.name} ${departureAirport.code}",
+                    "arrivalAirportNameCode" to "${arrivalAirport.name} ${arrivalAirport.code}",
+                    "departureTime" to updatedFlight.departureTime,
+                    "arrivalTime" to updatedFlight.arrivalTime
                 )
             )
         }

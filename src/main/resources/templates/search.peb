@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<section class="relative min-h-screen flex flex-col items-center justify-center pt-32 px-6 overflow-hidden">
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-32 px-6 ">
 
     <!-- Background -->
     <div class="absolute inset-0 -z-10 bg-slate-200">
@@ -21,49 +21,140 @@
     </div>
 
     <!-- Card -->
-    <div class="float-card w-full max-w-5xl rounded-[40px] overflow-hidden">
+    <div class="float-card w-full max-w-6xl rounded-[40px] p-6 overflow-visible">
 
-        <form method="GET" action="/search" class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-4 gap-8 items-end">
+        <form method="GET" action="/search"
+              class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_1fr_auto] gap-8 items-end">
 
+            <!-- hidden airport codes -->
             <input type="hidden" name="from" id="from-code">
-            <input type="hidden" name="to"   id="to-code">
+            <input type="hidden" name="to" id="to-code">
+            <input type="hidden" name="departure_date" id="departure-date">
+            <input type="hidden" name="return_date" id="return-date">
 
             <!-- Origin -->
             <div class="relative" id="from-wrapper">
-                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">
+                    Origin
+                </label>
                 <input type="text" id="from-display" placeholder="From where?" autocomplete="off"
                        class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
-                <div id="from-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+                <div id="from-results"
+                     class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden">
+                </div>
+            </div>
+
+            <!-- Swap -->
+            <div class="flex items-end justify-center">
+                <button type="button" id="swap-btn"
+                        class="mb-2 w-12 h-12 rounded-full border border-gray-200 hover:bg-gray-100 transition flex items-center justify-center text-lg">
+                    ⇄
+                </button>
             </div>
 
             <!-- Destination -->
             <div class="relative" id="to-wrapper">
-                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">
+                    Destination
+                </label>
                 <input type="text" id="to-display" placeholder="To where?" autocomplete="off"
                        class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
-                <div id="to-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+                <div id="to-results"
+                     class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden">
+                </div>
             </div>
 
-            <!-- Date -->
-            <div>
-                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Departure</label>
-                <input type="date" name="date"
-                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg outline-none focus:border-[--sky-blue] transition-colors">
+            <!-- DATE FIELD -->
+            <div class="relative" id="date-wrapper">
+                <label class="text-xs uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">
+                    Departure
+                </label>
+
+                <!-- Clickable display bar -->
+                <div id="date-display"
+                     class="w-full flex items-end gap-4 border-b border-gray-200 pb-2 cursor-pointer select-none">
+                    <div class="flex-1">
+                        <span class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest block mb-1">Departing</span>
+                        <span id="display-departing" class="text-lg text-gray-300">—</span>
+                    </div>
+                    <span class="text-gray-300 pb-0.5">–</span>
+                    <div class="flex-1" id="display-returning-block">
+                        <span class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest block mb-1">Returning</span>
+                        <span id="display-returning" class="text-lg text-gray-300">—</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Submit -->
             <button type="submit"
-                    class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-[--sky-blue] transition-all duration-300">
+                    class="w-full bg-[--charcoal] text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-[--sky-blue] transition-all duration-300 whitespace-nowrap">
                 Find Availability
             </button>
 
         </form>
-
     </div>
 
 </section>
 
+<!-- ✅ Calendar OUTSIDE the card/form — appended to body via JS, defined here as a template -->
+<div id="calendar-dropdown"
+     class="hidden bg-white rounded-2xl shadow-2xl p-6"
+     style="position: fixed; width: 680px; z-index: 99999;">
+
+    <!-- Trip type toggle -->
+    <div class="flex gap-3 mb-5">
+        <button type="button" id="oneway-btn" class="trip-btn active">One Way</button>
+        <button type="button" id="roundtrip-btn" class="trip-btn">Round Trip</button>
+    </div>
+
+    <!-- Departing / Returning summary inside dropdown -->
+    <div class="flex gap-6 mb-5 pb-4 border-b border-gray-100">
+        <div>
+            <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Departing</div>
+            <div id="cal-label-dep" class="text-sm text-gray-400 italic">Select departure date</div>
+        </div>
+        <div id="cal-ret-block">
+            <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Returning</div>
+            <div id="cal-label-ret" class="text-sm text-gray-400 italic">Select return date</div>
+        </div>
+    </div>
+
+    <!-- Two month calendars side by side -->
+    <div class="grid grid-cols-2 gap-6">
+
+        <!-- LEFT MONTH -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <button type="button" id="prev-month"
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">←</button>
+                <span id="month-label-left" class="font-semibold text-sm text-gray-700"></span>
+                <div class="w-8"></div>
+            </div>
+            <div class="grid grid-cols-7 text-xs text-gray-400 mb-2 text-center gap-1">
+                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+            </div>
+            <div id="calendar-grid-left" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+        </div>
+
+        <!-- RIGHT MONTH -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <div class="w-8"></div>
+                <span id="month-label-right" class="font-semibold text-sm text-gray-700"></span>
+                <button type="button" id="next-month"
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">→</button>
+            </div>
+            <div class="grid grid-cols-7 text-xs text-gray-400 mb-2 text-center gap-1">
+                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+            </div>
+            <div id="calendar-grid-right" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+        </div>
+
+    </div>
+</div>
+
 <style>
+    /* ── Airport dropdown ── */
     .airport-dropdown::-webkit-scrollbar { width: 4px; }
     .airport-dropdown::-webkit-scrollbar-track { background: transparent; }
     .airport-dropdown::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
@@ -100,10 +191,61 @@
         text-align: center;
         font-style: italic;
     }
+
+    /* ── Trip toggle buttons ── */
+    .trip-btn {
+        padding: 6px 16px;
+        border-radius: 999px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .trip-btn.active {
+        background: #38bdf8;
+        color: white;
+        border-color: #38bdf8;
+    }
+
+    /* ── Calendar days ── */
+    .cal-day {
+        padding: 7px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+        font-size: 0.82rem;
+        line-height: 1;
+    }
+    .cal-day:hover:not(.cal-past) { background: #f1f5f9; }
+    .cal-day.cal-past {
+        color: #cbd5e1;
+        cursor: default;
+    }
+    .cal-day.cal-today {
+        font-weight: 700;
+        color: #38bdf8;
+    }
+    .cal-day.cal-selected {
+        background: #38bdf8 !important;
+        color: white !important;
+        font-weight: 700;
+    }
+    .cal-day.cal-range {
+        background: #e0f2fe;
+        border-radius: 0;
+    }
 </style>
 
 <script>
 (function () {
+
+    // Move calendar to body so it escapes ALL parent overflow/z-index issues
+    document.body.appendChild(document.getElementById('calendar-dropdown'));
+
+    // ══════════════════════════════════════════════
+    // ✈️  AIRPORT SEARCH
+    // ══════════════════════════════════════════════
+
     const fields = ['from', 'to'];
     const timers = {};
     const activeIndex = { from: -1, to: -1 };
@@ -117,73 +259,47 @@
             clearTimeout(timers[field]);
             codeInput.value = '';
             const query = display.value.trim();
-            if (query.length < 1) { closeDropdown(field); return; }
+            if (query.length < 1) return closeDropdown(field);
             showLoading(field);
-            timers[field] = setTimeout(() => fetchAirports(field, query), 280);
+            timers[field] = setTimeout(() => fetchAirports(field, query), 300);
         });
 
         display.addEventListener('keydown', (e) => {
             const items = dropdown.querySelectorAll('.airport-item');
             if (!items.length) return;
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                activeIndex[field] = Math.min(activeIndex[field] + 1, items.length - 1);
-                updateActive(field, items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                activeIndex[field] = Math.max(activeIndex[field] - 1, 0);
-                updateActive(field, items);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (activeIndex[field] >= 0) items[activeIndex[field]].click();
-            } else if (e.key === 'Escape') {
-                closeDropdown(field);
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!document.getElementById(`${field}-wrapper`).contains(e.target))
-                closeDropdown(field);
+            if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex[field]++; }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex[field]--; }
+            else if (e.key === 'Enter') { e.preventDefault(); if (activeIndex[field] >= 0) items[activeIndex[field]].click(); }
+            activeIndex[field] = Math.max(0, Math.min(activeIndex[field], items.length - 1));
+            updateActive(field, items);
         });
     });
 
     async function fetchAirports(field, query) {
         try {
-            const res = await fetch(`/airports?search=${encodeURIComponent(query)}`);
-            if (!res.ok) throw new Error();
-            const data = await res.json(); // List<Airport>: { id, name, code, city, country }
+            const res  = await fetch(`/airports?search=${encodeURIComponent(query)}`);
+            const data = await res.json();
             renderDropdown(field, data);
-        } catch {
-            renderError(field);
-        }
+        } catch { renderError(field); }
     }
 
     function renderDropdown(field, airports) {
         const dropdown = document.getElementById(`${field}-results`);
-        activeIndex[field] = -1;
         dropdown.innerHTML = '';
-
-        if (!airports || airports.length === 0) {
+        activeIndex[field] = 0;
+        if (!airports.length) {
             dropdown.innerHTML = `<div class="dropdown-empty">No airports found</div>`;
             dropdown.classList.remove('hidden');
             return;
         }
-
-        airports.forEach((airport, i) => {
+        airports.forEach(airport => {
             const item = document.createElement('div');
             item.className = 'airport-item';
-            item.innerHTML = `
-                <span class="iata">${airport.code}</span>${airport.name}
-                <span class="sub">${airport.city}, ${airport.country}</span>
-            `;
-            item.addEventListener('mouseenter', () => {
-                activeIndex[field] = i;
-                updateActive(field, dropdown.querySelectorAll('.airport-item'));
-            });
-            item.addEventListener('click', () => selectAirport(field, airport));
+            item.innerHTML = `<span class="iata">${airport.code}</span>${airport.name}<span class="sub">${airport.city}, ${airport.country}</span>`;
+            item.onclick = () => selectAirport(field, airport);
             dropdown.appendChild(item);
         });
-
+        updateActive(field, dropdown.querySelectorAll('.airport-item'));
         dropdown.classList.remove('hidden');
     }
 
@@ -193,41 +309,277 @@
         closeDropdown(field);
     }
 
-    function showLoading(field) {
-        const d = document.getElementById(`${field}-results`);
-        d.innerHTML = `<div class="dropdown-loading">Searching airports…</div>`;
-        d.classList.remove('hidden');
-    }
-
-    function renderError(field) {
-        const d = document.getElementById(`${field}-results`);
-        d.innerHTML = `<div class="dropdown-empty">Could not load airports</div>`;
-        d.classList.remove('hidden');
-    }
-
     function closeDropdown(field) {
         const d = document.getElementById(`${field}-results`);
         d.classList.add('hidden');
         d.innerHTML = '';
-        activeIndex[field] = -1;
     }
-
+    function showLoading(field) {
+        const d = document.getElementById(`${field}-results`);
+        d.innerHTML = `<div class="dropdown-loading">Searching…</div>`;
+        d.classList.remove('hidden');
+    }
+    function renderError(field) {
+        const d = document.getElementById(`${field}-results`);
+        d.innerHTML = `<div class="dropdown-empty">Error loading airports</div>`;
+        d.classList.remove('hidden');
+    }
     function updateActive(field, items) {
         items.forEach((el, i) => el.classList.toggle('active', i === activeIndex[field]));
-        if (items[activeIndex[field]]) items[activeIndex[field]].scrollIntoView({ block: 'nearest' });
     }
 
-    document.querySelector('form').addEventListener('submit', function (e) {
-        if (!document.getElementById('from-code').value.trim()) {
-            e.preventDefault();
-            document.getElementById('from-display').focus();
-            return;
+    document.addEventListener('click', (e) => {
+        fields.forEach(field => {
+            if (!document.getElementById(`${field}-wrapper`).contains(e.target)) closeDropdown(field);
+        });
+    });
+
+    // ══════════════════════════════════════════════
+    // 🔁  SWAP
+    // ══════════════════════════════════════════════
+
+    document.getElementById('swap-btn').addEventListener('click', () => {
+        const fC = document.getElementById('from-code'),   tC = document.getElementById('to-code');
+        const fD = document.getElementById('from-display'), tD = document.getElementById('to-display');
+        [fC.value, tC.value] = [tC.value, fC.value];
+        [fD.value, tD.value] = [tD.value, fD.value];
+    });
+
+    // ══════════════════════════════════════════════
+    // 📅  DATE PICKER — dual month
+    // ══════════════════════════════════════════════
+
+    const calDropdown   = document.getElementById('calendar-dropdown');
+    const dateDisplayEl = document.getElementById('date-display');
+    const depInput      = document.getElementById('departure-date');
+    const retInput      = document.getElementById('return-date');
+    const oneWayBtn     = document.getElementById('oneway-btn');
+    const roundTripBtn  = document.getElementById('roundtrip-btn');
+
+    const dispDep      = document.getElementById('display-departing');
+    const dispRet      = document.getElementById('display-returning');
+    const dispRetBlock = document.getElementById('display-returning-block');
+    const calLabelDep  = document.getElementById('cal-label-dep');
+    const calLabelRet  = document.getElementById('cal-label-ret');
+    const calRetBlock  = document.getElementById('cal-ret-block');
+
+    const MONTHS = ["January","February","March","April","May","June",
+                    "July","August","September","October","November","December"];
+
+    let leftYear  = new Date().getFullYear();
+    let leftMonth = new Date().getMonth();
+    let tripType  = 'oneway';
+    let selDep    = null;
+    let selRet    = null;
+
+    function positionCalendar() {
+        const rect = dateDisplayEl.getBoundingClientRect();
+        // Try to align right edge of calendar with right edge of date display
+        let left = rect.right - 680;
+        // Make sure it doesn't go off left edge
+        if (left < 8) left = 8;
+        // Make sure it doesn't go off right edge
+        if (left + 680 > window.innerWidth - 8) left = window.innerWidth - 688;
+
+        let top = rect.bottom + 8;
+        // If calendar would go off bottom, show above instead
+        const calHeight = 480; // approximate
+        if (top + calHeight > window.innerHeight) {
+            top = rect.top - calHeight - 8;
         }
-        if (!document.getElementById('to-code').value.trim()) {
-            e.preventDefault();
-            document.getElementById('to-display').focus();
+
+        calDropdown.style.top  = top + 'px';
+        calDropdown.style.left = left + 'px';
+    }
+
+    // Open / close calendar
+    dateDisplayEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = calDropdown.classList.contains('hidden');
+        calDropdown.classList.toggle('hidden');
+        if (isHidden) {
+            positionCalendar();
+            renderBoth();
         }
     });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!dateDisplayEl.contains(e.target) && !calDropdown.contains(e.target)) {
+            calDropdown.classList.add('hidden');
+        }
+    });
+
+    // Reposition on scroll/resize
+    window.addEventListener('scroll', () => {
+        if (!calDropdown.classList.contains('hidden')) positionCalendar();
+    }, true);
+    window.addEventListener('resize', () => {
+        if (!calDropdown.classList.contains('hidden')) positionCalendar();
+    });
+
+    // Month nav
+    document.getElementById('prev-month').onclick = () => {
+        leftMonth--;
+        if (leftMonth < 0) { leftMonth = 11; leftYear--; }
+        renderBoth();
+    };
+    document.getElementById('next-month').onclick = () => {
+        leftMonth++;
+        if (leftMonth > 11) { leftMonth = 0; leftYear++; }
+        renderBoth();
+    };
+
+    // Trip type
+    oneWayBtn.onclick = () => {
+        tripType = 'oneway';
+        selDep = selRet = null;
+        depInput.value = retInput.value = '';
+        updateTripUI();
+        renderBoth();
+        updateDisplayBar();
+    };
+    roundTripBtn.onclick = () => {
+        tripType = 'roundtrip';
+        selDep = selRet = null;
+        depInput.value = retInput.value = '';
+        updateTripUI();
+        renderBoth();
+        updateDisplayBar();
+    };
+
+    function updateTripUI() {
+        oneWayBtn.classList.toggle('active', tripType === 'oneway');
+        roundTripBtn.classList.toggle('active', tripType === 'roundtrip');
+        dispRetBlock.style.opacity          = tripType === 'oneway' ? '0' : '1';
+        calRetBlock.style.opacity           = tripType === 'oneway' ? '0' : '1';
+        calRetBlock.style.pointerEvents     = tripType === 'oneway' ? 'none' : 'auto';
+    }
+
+    function renderBoth() {
+        let rYear = leftYear, rMonth = leftMonth + 1;
+        if (rMonth > 11) { rMonth = 0; rYear++; }
+        document.getElementById('month-label-left').textContent  = `${MONTHS[leftMonth]} ${leftYear}`;
+        document.getElementById('month-label-right').textContent = `${MONTHS[rMonth]} ${rYear}`;
+        renderGrid('calendar-grid-left',  leftYear, leftMonth);
+        renderGrid('calendar-grid-right', rYear,    rMonth);
+    }
+
+    function renderGrid(gridId, year, month) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = '';
+        const today   = new Date();
+        const todayY  = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const offset   = firstDay === 0 ? 6 : firstDay - 1;
+        const daysInM  = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < offset; i++) {
+            grid.appendChild(Object.assign(document.createElement('div'), { className: 'cal-blank' }));
+        }
+
+        for (let d = 1; d <= daysInM; d++) {
+            const cell = document.createElement('div');
+            cell.className = 'cal-day';
+            cell.textContent = d;
+
+            const isPast   = new Date(year, month, d) < new Date(todayY, todayM, todayD);
+            const isToday  = year === todayY && month === todayM && d === todayD;
+            const isDepSel = selDep && selDep.y === year && selDep.m === month && selDep.d === d;
+            const isRetSel = selRet && selRet.y === year && selRet.m === month && selRet.d === d;
+
+            if (isPast)              cell.classList.add('cal-past');
+            if (isToday)             cell.classList.add('cal-today');
+            if (isDepSel || isRetSel) cell.classList.add('cal-selected');
+
+            if (selDep && selRet) {
+                const cellTs = new Date(year, month, d).getTime();
+                const depTs  = new Date(selDep.y, selDep.m, selDep.d).getTime();
+                const retTs  = new Date(selRet.y, selRet.m, selRet.d).getTime();
+                if (cellTs > depTs && cellTs < retTs) cell.classList.add('cal-range');
+            }
+
+            if (!isPast) cell.onclick = () => pickDate(year, month, d);
+            grid.appendChild(cell);
+        }
+    }
+
+    function pickDate(y, m, d) {
+        const fmt    = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const pretty = `${d} ${MONTHS[m]} ${y}`;
+
+        if (tripType === 'oneway') {
+            selDep = { y, m, d };
+            selRet = null;
+            depInput.value = fmt;
+            retInput.value = '';
+            calLabelDep.textContent = pretty;
+            calLabelDep.classList.remove('italic');
+            updateDisplayBar();
+            renderBoth();
+            setTimeout(() => calDropdown.classList.add('hidden'), 250);
+
+        } else {
+            if (!selDep || selRet) {
+                selDep = { y, m, d };
+                selRet = null;
+                depInput.value = fmt;
+                retInput.value = '';
+                calLabelDep.textContent = pretty;
+                calLabelDep.classList.remove('italic');
+                calLabelRet.textContent = 'Select return date';
+                calLabelRet.classList.add('italic');
+                renderBoth();
+            } else {
+                const depTs = new Date(selDep.y, selDep.m, selDep.d).getTime();
+                const selTs = new Date(y, m, d).getTime();
+                if (selTs <= depTs) {
+                    selDep = { y, m, d };
+                    selRet = null;
+                    depInput.value = fmt;
+                    retInput.value = '';
+                    calLabelDep.textContent = pretty;
+                    calLabelRet.textContent = 'Select return date';
+                    calLabelRet.classList.add('italic');
+                    renderBoth();
+                } else {
+                    selRet = { y, m, d };
+                    retInput.value = fmt;
+                    calLabelRet.textContent = pretty;
+                    calLabelRet.classList.remove('italic');
+                    updateDisplayBar();
+                    renderBoth();
+                    setTimeout(() => calDropdown.classList.add('hidden'), 250);
+                }
+            }
+        }
+        updateDisplayBar();
+    }
+
+    function updateDisplayBar() {
+        if (selDep) {
+            dispDep.textContent = `${selDep.d} ${MONTHS[selDep.m]} ${selDep.y}`;
+            dispDep.classList.remove('text-gray-300');
+            dispDep.classList.add('text-gray-800');
+        } else {
+            dispDep.textContent = '—';
+            dispDep.classList.add('text-gray-300');
+            dispDep.classList.remove('text-gray-800');
+        }
+        if (selRet) {
+            dispRet.textContent = `${selRet.d} ${MONTHS[selRet.m]} ${selRet.y}`;
+            dispRet.classList.remove('text-gray-300');
+            dispRet.classList.add('text-gray-800');
+        } else {
+            dispRet.textContent = '—';
+            dispRet.classList.add('text-gray-300');
+            dispRet.classList.remove('text-gray-800');
+        }
+    }
+
+    // Init
+    updateTripUI();
+
 })();
 </script>
 

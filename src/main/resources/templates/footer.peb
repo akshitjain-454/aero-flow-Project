@@ -44,7 +44,7 @@
                 <div>
                     <h4 class="text-[10px] uppercase tracking-[0.2em] font-bold mb-6 text-gray-500">Manage</h4>
                     <ul class="space-y-4 text-sm font-light text-gray-300">
-                        <li><a href="#" class="hover:text-[--sky-blue] transition-colors">Book Flight</a></li>
+                        <li><a href="/search" class="hover:text-[--sky-blue] transition-colors">Book Flight</a></li>
                         <li><a href="#" class="hover:text-[--sky-blue] transition-colors">Manage Booking</a></li>
                         <li><a href="#" class="hover:text-[--sky-blue] transition-colors">Before You Fly</a></li>
                     </ul>

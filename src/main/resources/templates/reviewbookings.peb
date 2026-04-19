@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings – Aetheria{% endblock %}
+
+{% block body_classes %}bg-white text-gray-900{% endblock %}
+
+{% block extra_css %}
+    .booking-card {
+        border: 1px solid #f0f0f0;
+        transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .booking-card:hover {
+        border-color: #0066FF;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,102,255,0.08);
+    }
+    .status-badge {
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+{% endblock %}
+
+{% block content %}
+
+<!-- Navbar -->
+{% include "navbar.peb" %}
+
+<div class="min-h-screen px-6 py-16 max-w-5xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-12 border-b border-gray-100 pb-8">
+        <p class="text-[--sky-blue] text-xs tracking-widest uppercase font-extrabold mb-2">Your Reservations</p>
+        <h1 class="serif text-4xl md:text-5xl font-bold text-gray-900">My Bookings</h1>
+    </div>
+
+    {% if bookingsInfo is empty %}
+    <!-- Empty State -->
+    <div class="text-center py-32 border border-gray-100 rounded-2xl bg-gray-50">
+        <p class="serif text-2xl text-gray-400 mb-4">No reservations yet</p>
+        <p class="text-gray-400 text-sm mb-8">Your future journeys will appear here.</p>
+        <a href="/" class="inline-block px-8 py-3 bg-gray-900 text-white rounded-full text-sm font-semibold tracking-wide hover:bg-[--sky-blue] transition-colors">
+            Explore Destinations
+        </a>
+    </div>
+
+    {% else %}
+    <!-- Bookings Grid -->
+    <div class="grid gap-4">
+        {% for booking in bookingsInfo %}
+        <div class="booking-card rounded-2xl p-6 md:p-8 bg-white">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+                <!-- Left: Main Info -->
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="status-badge px-3 py-1 rounded-full text-xs font-extrabold
+                            {% if booking.status == 'CONFIRMED' %}bg-emerald-50 text-emerald-600
+                            {% elseif booking.status == 'PENDING' %}bg-yellow-50 text-yellow-600
+                            {% else %}bg-red-50 text-red-500{% endif %}">
+                            {{ booking.status }}
+                        </span>
+                        <span class="text-gray-300 text-xs font-light">#{{ booking.id }}</span>
+                    </div>
+                    <h2 class="serif text-xl font-bold text-gray-900">{{ booking.destination }}</h2>
+                    <p class="text-gray-400 text-sm font-light">{{ booking.details }}</p>
+                </div>
+
+                <!-- Right: Date & Action -->
+                <div class="flex flex-col items-start md:items-end gap-2 shrink-0">
+                    <p class="text-[--sky-blue] text-sm font-extrabold tracking-wide">{{ booking.date }}</p>
+                    <a href="/bookings/{{ booking.id }}"
+                       class="text-xs text-gray-400 hover:text-[--sky-blue] transition-colors underline underline-offset-4">
+                        View details →
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

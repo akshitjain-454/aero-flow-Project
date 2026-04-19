@@ -1,0 +1,35 @@
+<section class="max-w-7xl mx-auto px-6 pt-12 pb-24 border-t border-gray-200/60 relative z-0">
+    <div class="text-center mb-16">
+        <span class="text-[10px] uppercase tracking-[0.3em] text-[--sky-blue] font-bold block mb-4">The Aetheria Ethos</span>
+        <h2 class="text-4xl md:text-5xl serif leading-tight">Beyond the Horizon</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center items-start">
+        <div class="group block p-4">
+            <div class="w-64 h-64 mx-auto rounded-full overflow-hidden shadow-2xl mb-8 zoom-img border-[8px] border-white">
+                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80" alt="People" class="w-full h-full object-cover">
+            </div>
+            <h3 class="text-2xl serif mb-3">Our People</h3>
+            <p class="text-sm text-gray-500 font-light mb-6 px-4">Dedicated professionals delivering uncompromising service.</p>
+            <a href="#" class="text-[10px] uppercase tracking-widest font-extrabold text-[--sky-blue] hover:text-black transition-colors">Discover More</a>
+        </div>
+
+        <div class="group block p-4">
+            <div class="w-64 h-64 mx-auto rounded-full overflow-hidden shadow-2xl mb-8 zoom-img border-[8px] border-white">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" alt="Business" class="w-full h-full object-cover">
+            </div>
+            <h3 class="text-2xl serif mb-3">Our Business</h3>
+            <p class="text-sm text-gray-500 font-light mb-6 px-4">Innovating the future of commercial and private aviation.</p>
+            <a href="#" class="text-[10px] uppercase tracking-widest font-extrabold text-[--sky-blue] hover:text-black transition-colors">Discover More</a>
+        </div>
+
+        <div class="group block p-4">
+            <div class="w-64 h-64 mx-auto rounded-full overflow-hidden shadow-2xl mb-8 zoom-img border-[8px] border-white">
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80" alt="Planet" class="w-full h-full object-cover">
+            </div>
+            <h3 class="text-2xl serif mb-3">Our Planet</h3>
+            <p class="text-sm text-gray-500 font-light mb-6 px-4">Pioneering sustainable fuel and zero-emission travel goals.</p>
+            <a href="#" class="text-[10px] uppercase tracking-widest font-extrabold text-[--sky-blue] hover:text-black transition-colors">Discover More</a>
+        </div>
+    </div>
+</section>

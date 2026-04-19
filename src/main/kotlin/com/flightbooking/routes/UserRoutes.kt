@@ -76,11 +76,15 @@ fun Route.userRoutes() {
             val firstname = params["firstname"]?.trim()
             val lastname  = params["lastname"]?.trim()
             val email     = vfySession.email
-            val password  = params["password"]
+            val password  = params["password"]?.trim()
+            val confirmedPassword = params["confirmed_password"]?.trim()
 
-            if (firstname == null || lastname == null || password == null) {
+            if (firstname == null || lastname == null || password == null || confirmedPassword == null) {
                 //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
                 return@post call.respondPebble("register.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
+            }
+            if (password != confirmedPassword) {    
+                return@post call.respondPebble("register.peb", mapOf("error" to "Passwords do not match")) //shouldnt happen unless frontend is bypassed
             }
 
             val passwordHash = BCrypt.hashpw(password, BCrypt.gensalt())

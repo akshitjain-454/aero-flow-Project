@@ -17,18 +17,21 @@ import java.time.LocalDate
 
 class FlightRepository {
 
-    fun searchFlights(fromCodes: List<String>?, toCodes: List<String>?, date: LocalDate?, numOfPassengers: Int?): List<FlightInfo> = transaction {
+    fun searchFlights(fromCodes: List<String>?, toCodes: List<String>?, date: LocalDate?, numOfPassengers: Int?, departureFlexibility: Long?): List<FlightInfo> = transaction {
 
         val searchFromCodes = fromCodes ?: listOf("LBA")
         val searchDate = date ?: LocalDate.now()
         val searchNumOfPassengers = numOfPassengers ?: 1
+        val searchDepartureFlexibility = departureFlexibility ?: 0
 
         val fromIds = AirportTable
             .select { AirportTable.code inList searchFromCodes }    
             .map { it[AirportTable.id] }
 
-        val dayStart = searchDate.atStartOfDay()
-        val dayEnd = searchDate.atTime(23, 59, 59)
+        var dayStart = searchDate.atStartOfDay()
+        dayStart = dayStart.minusDays(searchDepartureFlexibility)
+        var dayEnd = searchDate.atTime(23, 59, 59)
+        dayEnd = dayEnd.plusDays(searchDepartureFlexibility)
         
         val availableFlightIds = (FlightSeatTable leftJoin TicketAssignmentTable)
             .slice(FlightSeatTable.flightId)
@@ -88,10 +91,10 @@ class FlightRepository {
     
     fun getAirportBySearch(search: String): List<Airport>  = transaction {
         AirportTable
-            .select { (AirportTable.name.lowerCase() like "$search%") or
-                    (AirportTable.code.lowerCase() like "$search%") or
-                    (AirportTable.city.lowerCase() like "$search%") or
-                    (AirportTable.country.lowerCase() like "$search%")
+            .select { (AirportTable.name like "$search%") or
+                    (AirportTable.code like "$search%") or
+                    (AirportTable.city like "$search%") or
+                    (AirportTable.country like "$search%")
             }
             .limit(10)
             .map { resultRowToAirport(it) }
