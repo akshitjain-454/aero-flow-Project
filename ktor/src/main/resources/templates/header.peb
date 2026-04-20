@@ -3,7 +3,7 @@
         AETHERIA
     </div>
 
-    {% include "navbar.peb" %}
+
 
     <div class="flex items-center gap-4">
         {% if isLoggedIn %}
