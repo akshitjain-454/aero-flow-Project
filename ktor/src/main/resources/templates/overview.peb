@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Account Overview | Aetheria{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        <div class="w-10 h-10 rounded-full bg-[--sky-blue] text-white flex items-center justify-center text-sm font-bold shadow-lg">
+            {{ userInitials }}
+        </div>
+    </div>
+</header>
+
+<section class="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-24">
+    <div class="w-full max-w-4xl">
+
+        <div class="bg-white rounded-[30px] p-10 md:p-14 shadow-xl mb-8 relative overflow-hidden">
+            <div class="relative z-10">
+                <p class="text-xs font-bold tracking-[0.4em] text-[--sky-blue] uppercase mb-4">
+                    Welcome Back
+                </p>
+                <h1 class="text-4xl md:text-5xl font-light leading-tight mb-2 serif">
+                    Hello, <span class="italic">{{ user.firstname }}</span>
+                </h1>
+                <p class="text-gray-400 tracking-[0.2em] uppercase text-xs mb-8">
+                    AetherianFly Member since {{ user.createdAt | date("yyyy") }}
+                </p>
+            </div>
+            
+            <div class="absolute -right-20 -top-20 w-96 h-96 bg-[--sky-blue] rounded-full opacity-5 blur-3xl pointer-events-none"></div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
+                <h2 class="text-xl serif italic text-gray-900 mb-8 border-b border-gray-100 pb-4">Account Details</h2>
+                <div class="grid grid-cols-1 gap-6 text-sm flex-grow">
+                    <div>
+                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
+                        <p class="font-medium text-lg">{{ user.firstname }} {{ user.lastname }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Email Address</p>
+                        <p class="font-medium text-lg">{{ user.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Total Flights Booked</p>
+                        <p class="font-medium text-lg">{{ totalBookings }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <form action="/logout" method="POST" class="m-0 p-0 w-full">
+                        <button type="submit" class="w-full text-[10px] font-extrabold uppercase tracking-[0.2em] text-red-500 hover:text-white transition-all px-6 py-4 border border-red-200 rounded-full hover:bg-red-500 hover:border-red-500 flex items-center justify-center gap-2 cursor-pointer bg-transparent">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Sign Out Securely
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
+                    <h2 class="text-xl serif italic text-gray-900">Recent Bookings</h2>
+                    <a href="/review_bookings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-black transition-colors" style="text-decoration: none;">View All &rarr;</a>
+                </div>
+
+                <div class="flex-grow flex flex-col gap-4">
+                    {% if recentBookings is empty %}
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-8">
+                            <span class="text-3xl mb-3 opacity-30">✈️</span>
+                            <p class="text-sm text-gray-500 font-medium">No recent trips found.</p>
+                            <a href="/" class="mt-4 text-xs font-bold text-white bg-black px-6 py-2 rounded-full uppercase tracking-widest hover:bg-[--sky-blue] transition-colors" style="text-decoration: none;">Book a Flight</a>
+                        </div>
+                    {% else %}
+                        {% for booking in recentBookings %}
+                            <a href="/review_bookings" class="block bg-gray-50 rounded-2xl p-5 hover:bg-blue-50 transition-colors border border-gray-100 hover:border-blue-100" style="text-decoration: none;">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-[10px] font-bold tracking-widest uppercase text-gray-400">Ref: {{ booking.bookingReference }}</span>
+                                    <span class="text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-full 
+                                        {% if booking.bookingStatus == 'CONFIRMED' %}bg-green-100 text-green-700
+                                        {% elseif booking.bookingStatus == 'CANCELLED' %}bg-gray-200 text-gray-600
+                                        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                        {{ booking.bookingStatus }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between text-[--charcoal]">
+    <span class="font-bold text-sm truncate max-w-[120px]">{{ booking.departureAirportNameCode }}</span>
+    <span class="text-gray-300 px-2">✈️</span>
+    <span class="font-bold text-sm truncate max-w-[120px] text-right">{{ booking.arrivalAirportNameCode }}</span>
+</div>
+                                <p class="text-xs text-gray-500 mt-2">{{ booking.departureTime | date("dd MMM yyyy") }}</p>
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
