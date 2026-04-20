@@ -24,6 +24,7 @@ data class TicketInfo(
     val passengerName: String,
     val bookingReference: String,
     val seatNumber: String,
+    val seatClass: SeatClass,
     val departureAirportNameCode: String,
     val arrivalAirportNameCode: String,
     val dateTime: LocalDateTime

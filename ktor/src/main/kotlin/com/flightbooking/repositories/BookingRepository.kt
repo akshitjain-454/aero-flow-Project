@@ -272,7 +272,13 @@ class BookingRepository {
                 (TicketAssignmentTable.passengerId eq passenger.id) and 
                 (FlightSeatTable.flightId eq booking.flightId)
             }
-            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Return seat not found")
+            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Outbound seat number found")
+        
+        val flightSeatId = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passenger.id }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Outbound flight seat id found")
+
+        val seatClass = getSeatClassByFlightSeatId(flightSeatId) ?: throw IllegalStateException("Outbound seat class found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
@@ -288,6 +294,7 @@ class BookingRepository {
             passengerName = passengerName,
             bookingReference = bookingReference,
             seatNumber = seatNumber,
+            seatClass = seatClass,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
             dateTime = dateTime,
@@ -310,6 +317,12 @@ class BookingRepository {
                 (FlightSeatTable.flightId eq booking.returnFlightId)
             }
             .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Return seat not found")
+
+        val returnFlightSeatId = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passenger.id }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Return flight seat id found")
+
+        val returnSeatClass = getSeatClassByFlightSeatId(returnFlightSeatId) ?: throw IllegalStateException("Return seat class found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq returnFlight[FlightTable.departureAirportId] }
@@ -325,6 +338,7 @@ class BookingRepository {
             passengerName = passengerName,
             bookingReference = bookingReference,
             seatNumber = returnSeatNumber,
+            seatClass = returnSeatClass,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
             dateTime = dateTime,

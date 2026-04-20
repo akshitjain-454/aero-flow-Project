@@ -284,6 +284,7 @@ fun Route.bookingRoutes() {
                         To: ${ticket.arrivalAirportNameCode}
                         Departure: ${ticket.dateTime}
                         Seat: ${ticket.seatNumber}
+                        Class: ${ticket.seatClass}
                         Booking Reference: ${ticket.bookingReference}
                     """.trimIndent()
                 )
