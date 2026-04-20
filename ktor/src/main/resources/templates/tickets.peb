@@ -155,15 +155,15 @@
     <div class="ticket" style="animation-delay: {{ loop.index * 0.1 }}s">
         <div class="ticket-main">
             <div class="flex justify-between items-start">
-                <div>
-                    <span class="t-label">Passenger Name</span>
-                    <span class="t-value large">{{ ticket.passengerName }}</span>
-                </div>
-                <div class="text-right">
-                    <span class="t-label">Aetheria Class</span>
-                    <span class="text-[--sky-blue] font-bold tracking-widest text-xs uppercase">Priority</span>
-                </div>
-            </div>
+    <div>
+        <span class="t-label">Passenger Name</span>
+        <span class="t-value large">{{ ticket.passengerName }}</span>
+    </div>
+    <div class="text-right">
+        <span class="t-label">Class</span>
+        <span class="text-[--sky-blue] font-bold tracking-widest text-xs uppercase">{{ ticket.seatClass }}</span>
+    </div>
+</div>
 
             <div class="flight-route">
                 <div class="route-point">
