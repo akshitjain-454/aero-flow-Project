@@ -119,6 +119,10 @@
             <span class="receipt-label">Amount Paid</span>
             <span class="receipt-value text-[--sky-blue] text-xl">£{{ payment.amount }}</span>
         </div>
+        <div class="receipt-row">
+            <span class="receipt-label">Loyalty Points Gained</span>
+            <span class="receipt-value text-[--sky-blue] text-xl">{{ addedPoints }}</span>
+        </div>
 
         <button type="button" class="action-btn" id="send-tickets-btn" onclick="sendTickets()">
             Send E-Tickets to Email ✈️

@@ -96,6 +96,7 @@ fun Route.userRoutes() {
                 email     = email,
                 passwordHash = passwordHash,
                 role      = UserRole.USER,
+                loyaltyPoints = 0,
                 createdAt = LocalDateTime.now()
             )
 
