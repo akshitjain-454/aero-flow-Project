@@ -12,6 +12,7 @@ data class User(
     val email: String,
     val passwordHash: String,
     val role: UserRole,
+    val loyaltyPoints: Int,
     val createdAt: LocalDateTime
 )
 

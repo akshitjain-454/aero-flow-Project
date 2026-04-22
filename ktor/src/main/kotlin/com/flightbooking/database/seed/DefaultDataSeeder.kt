@@ -23,6 +23,7 @@ object DefaultDataSeeder {
             email = "user@demo.com",
             rawPassword = "123456",
             role = UserRole.USER,
+            loyaltyPoints = 0,
             createdAt = now
         )
 
@@ -32,6 +33,7 @@ object DefaultDataSeeder {
             email = "admin@demo.com",
             rawPassword = "admin123",
             role = UserRole.ADMIN,
+            loyaltyPoints = 0,
             createdAt = now
         )
         seedFlightSeats()
@@ -43,6 +45,7 @@ object DefaultDataSeeder {
         email: String,
         rawPassword: String,
         role: UserRole,
+        loyaltyPoints: Int,
         createdAt: LocalDateTime
     ) {
         val exists = UserTable
@@ -57,6 +60,7 @@ object DefaultDataSeeder {
             it[UserTable.email] = email
             it[UserTable.passwordHash] = BCrypt.hashpw(rawPassword, BCrypt.gensalt())
             it[UserTable.role] = role
+            it[UserTable.loyaltyPoints] = loyaltyPoints
             it[UserTable.createdAt] = createdAt
         }
     }

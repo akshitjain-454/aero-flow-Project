@@ -11,6 +11,7 @@ object UserTable : Table("User") {
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 255)
     val role = enumerationByName("role", 30, UserRole::class)
+    val loyaltyPoints = integer("loyalty_points")
     val createdAt = datetime("created_at")
 
     override val primaryKey = PrimaryKey(id)
