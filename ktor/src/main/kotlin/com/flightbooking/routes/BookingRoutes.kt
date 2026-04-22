@@ -6,6 +6,7 @@ import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.enums.PaymentMethod
 import com.flightbooking.enums.SeatClass
+import com.flightbooking.enums.BookingStatus
 import com.flightbooking.respondPebble
 import io.ktor.server.sessions.*
 import io.ktor.http.*
@@ -55,6 +56,9 @@ fun Route.bookingRoutes() {
             if (booking.userId != session.userId) {
                 return@get call.respond(HttpStatusCode.Forbidden, "Not your booking")
             }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Already paid") 
+            }
 
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
 
@@ -74,6 +78,9 @@ fun Route.bookingRoutes() {
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@post call.respond(HttpStatusCode.Forbidden, "Already paid") 
             }
 
             //Stops booking if taking too long
@@ -102,6 +109,9 @@ fun Route.bookingRoutes() {
 
             if(booking.userId != session.userId) { 
                 return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Already paid") 
             }
 
             //Stops booking if taking too long
@@ -144,6 +154,9 @@ fun Route.bookingRoutes() {
 
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@post call.respond(HttpStatusCode.Forbidden, "Already paid") 
             }
 
             //Stops booking if taking too long
@@ -213,6 +226,9 @@ fun Route.bookingRoutes() {
             if(booking.userId != session.userId) { 
                 return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
             }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Already paid") 
+            }
 
             //Stops booking if taking too long
             if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
@@ -223,7 +239,8 @@ fun Route.bookingRoutes() {
             val price = bookingRepository.getBookingPricePriceByBookingId(booking.id)
             if( price == BigDecimal.ZERO) { return@get call.respond(HttpStatusCode.InternalServerError, "Booking price zero, mistake made") }
             //call.respond(price)
-            call.respondPebble("payment.peb", mapOf("price" to price, "reference" to reference))
+            val loyaltyPoints = bookingRepository.getLoyaltyPointsByUserId(booking.userId)
+            call.respondPebble("payment.peb", mapOf("price" to price, "loyaltyPoints" to loyaltyPoints, "reference" to reference))
         }
 
         post("/{reference}/payment") {
@@ -231,9 +248,11 @@ fun Route.bookingRoutes() {
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
             val params = call.receiveParameters()
             val booking = bookingRepository.getBookingByReference(reference) ?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
-            
             if(booking.userId != session.userId) { 
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+            if(booking.status == BookingStatus.CONFIRMED) { 
+                return@post call.respond(HttpStatusCode.Forbidden, "Already paid") 
             }
 
             //Stops booking if taking too long
@@ -245,8 +264,18 @@ fun Route.bookingRoutes() {
             val amount = bookingRepository.getBookingPricePriceByBookingId(booking.id)
             if( amount == BigDecimal.ZERO) { return@post call.respond(HttpStatusCode.InternalServerError, "Booking amount zero, mistake made") }
             val paymentMethodParam = params["payment_method"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing payment method")
+            val useLoyaltyPoints = (params["use_loyalty_points"] == "on")
+            println("use_loyalty_points param: ${params["use_loyalty_points"]}")
             val paymentMethod = PaymentMethod.valueOf(paymentMethodParam)
-            val payment = bookingRepository.createPayment(booking.id, amount, paymentMethod)
+
+            val payment = if(useLoyaltyPoints) {
+                val discountedAmount = bookingRepository.useUsersLoyaltyPoints(booking.userId, amount)
+                bookingRepository.createPayment(booking.id, discountedAmount, paymentMethod)
+            }
+            else {
+                bookingRepository.createPayment(booking.id, amount, paymentMethod)
+            }
+
             val addedPoints = bookingRepository.addLoyaltyPointsByUserIdAndBookingAmount(booking.userId, amount)
 
             val confirmed = bookingRepository.confirmBooking(booking)
