@@ -217,6 +217,10 @@
                         <p style="color: #6b7280; font-size: 0.9rem;">You will be securely redirected to PayPal to complete your purchase.</p>
                     </div>
 
+                    <p style="color: #6b7280; font-size: 0.9rem;">Tick if you would like to use your loyalty points: You have {{ loyaltyPoints }}
+                        <input type="checkbox" name="use_loyalty_points" id="use_loyalty_points"></input>
+                    </p>
+
                     <button type="submit" class="pay-btn">Pay £{{ price }}</button>
                     
                     <div class="secure-badge">
@@ -237,6 +241,10 @@
                 <div class="summary-row">
                     <span class="summary-label">Taxes & Fees</span>
                     <span class="summary-value">Included</span>
+                </div>
+                <div class="summary-row" id="discount-row" style="display: none;">
+                    <span class="summary-label">Loyalty Discount</span>
+                    <span class="summary-value" id="discount-value">-£0.00</span>
                 </div>
                 
                 <div class="summary-row total">
@@ -276,4 +284,31 @@
         }
     }
 </script>
+
+<script>
+    const fullPrice = {{ price }};
+    const loyaltyPoints = {{ loyaltyPoints }};
+    const discount = loyaltyPoints / 100;
+
+    document.getElementById('use_loyalty_points').addEventListener('change', function() {
+        //Mirrors backend logic so that the discounted price can be displayed when checkbox is clicked
+        const discount = loyaltyPoints / 100;
+        const discountedPrice = this.checked 
+            ? Math.max(0, fullPrice - discount).toFixed(2)
+            : fullPrice.toFixed(2);
+        
+        document.querySelector('.total-value').textContent = '£' + discountedPrice;
+        document.querySelector('.pay-btn').textContent = 'Pay £' + discountedPrice;
+        
+        // Show/hide discount row if needed
+        const discountRow = document.getElementById('discount-row');
+        if (this.checked) {
+            discountRow.style.display = 'flex';
+            document.getElementById('discount-value').textContent = '-£' + discount.toFixed(2);
+        } else {
+            discountRow.style.display = 'none';
+        }
+    });
+</script>
+
 {% endblock %}

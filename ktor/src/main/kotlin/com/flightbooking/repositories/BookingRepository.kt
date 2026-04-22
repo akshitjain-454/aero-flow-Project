@@ -81,19 +81,37 @@ class BookingRepository {
             refundDate = null
         )
     }
+    fun getLoyaltyPointsByUserId(userId: Int): Int = transaction {
+         val currentPoints = UserTable
+            .select { UserTable.id eq userId }
+            .map { it[UserTable.loyaltyPoints] }
+            .singleOrNull() ?: throw IllegalStateException("User points not found")
+        
+            return@transaction currentPoints
+    }
 
     fun addLoyaltyPointsByUserIdAndBookingAmount(userId: Int, amount: BigDecimal): Int = transaction {
         val points = amount.toInt()
-        val currentPoints = UserTable
-            .select { UserTable.id eq userId }
-            .map { it[UserTable.loyaltyPoints] }
-            .singleOrNull() ?: throw IllegalStateException("User not found")
+        val currentPoints = getLoyaltyPointsByUserId(userId)
 
         UserTable.update({ UserTable.id eq userId }) {
             it[loyaltyPoints] = currentPoints + points
         }
 
         return@transaction points  
+    }
+
+    fun useUsersLoyaltyPoints(userId: Int, price: BigDecimal): BigDecimal = transaction {
+        val loyaltyPoints = getLoyaltyPointsByUserId(userId)
+
+        val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
+        val discountedPrice = (price - discount).max(BigDecimal.ZERO)
+
+        UserTable.update({ UserTable.id eq userId }) {
+            it[UserTable.loyaltyPoints] = 0
+        }
+
+        return@transaction discountedPrice
     }
 
     fun addPassenger(bookingId: Int, firstname: String, lastname: String, passportCode: String?): Passenger = transaction {
