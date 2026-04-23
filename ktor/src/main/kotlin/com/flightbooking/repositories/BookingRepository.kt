@@ -184,7 +184,6 @@ class BookingRepository {
 
         TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
         PassengerTable.deleteWhere { SqlExpressionBuilder.run { PassengerTable.bookingId eq booking.id } }
-        BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
         PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
                 it[paymentStatus] = PaymentStatus.REFUNDED;
                 it[refundAmount] = refundAmount;

@@ -239,14 +239,24 @@
                                 <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
                                     View Tickets
                                 </a>
-                            {% endif %}
-
-                            {% if booking.bookingStatus == "CANCELLED" %}
-                                <button class="cancel-btn" disabled>Cancelled</button>
+                                {% if booking.bookingStatus == "CANCELLED" %}
+                                    <button class="cancel-btn" disabled>Cancelled</button>
+                                {% else %}
+                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                        Cancel
+                                    </button>
+                                {% endif %}
                             {% else %}
-                                <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
-                                    Cancel
-                                </button>
+                                {% if booking.bookingStatus == "CANCELLED" %}
+                                    <button class="cancel-btn" disabled>Cancelled</button>
+                                {% else %}
+                                    <a href="/booking/{{ booking.bookingReference }}/passengers" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
+                                        Modify
+                                    </a>
+                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                        Cancel
+                                    </button>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
