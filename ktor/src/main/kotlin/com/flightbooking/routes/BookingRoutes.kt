@@ -70,6 +70,7 @@ fun Route.bookingRoutes() {
                 )
             )
         }
+
         post("/{reference}/passengers") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
@@ -102,6 +103,7 @@ fun Route.bookingRoutes() {
 
             call.respondRedirect("/booking/$reference/passengers")
         }
+
         get("/{reference}/seats") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
@@ -309,7 +311,8 @@ fun Route.bookingRoutes() {
             }
             call.respond(allTickets)
         }
-        // --- ADD THIS NEW GET ROUTE FOR VIEWING TICKETS ---
+
+        // --- VIEW TICKETS ---
         get("/{reference}/tickets") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
             val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
@@ -328,8 +331,25 @@ fun Route.bookingRoutes() {
                 outboundTickets
             }
 
-            // This loads the visual of  boarding passes!
+            // This loads the visual of boarding passes!
             call.respondPebble("tickets.peb", mapOf("tickets" to allTickets))
+        }
+
+        // --- VIEW THE FLIGHT MAP ---
+        get("/{reference}/map") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val reference = call.parameters["reference"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            
+            val booking = bookingRepository.getBookingByReference(reference) ?: return@get call.respond(HttpStatusCode.NotFound, "Booking not found")
+            
+            if(booking.userId != session.userId) { 
+                return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking") 
+            }
+
+            // Fetch the full booking info to get the departure and arrival airport names
+            val bookingInfo = bookingRepository.getBookingInfoByBooking(booking)
+
+            call.respondPebble("flightmap.peb", mapOf("booking" to bookingInfo))
         }
 
         post("/{reference}/cancel") {
@@ -370,7 +390,7 @@ fun Route.bookingRoutes() {
             call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
         }
 
-    }
+    } // END of route("/booking")
 
     get("/review_bookings") {
         val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
@@ -381,4 +401,5 @@ fun Route.bookingRoutes() {
         //call.respond(bookingsInfo)
         call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
     }
+    
 }
