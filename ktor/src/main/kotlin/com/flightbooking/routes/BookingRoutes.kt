@@ -114,12 +114,6 @@ fun Route.bookingRoutes() {
                 return@get call.respond(HttpStatusCode.Forbidden, "Already paid") 
             }
 
-            //Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
-                bookingRepository.deleteBookingByReference(reference)
-                return@get call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
-            }
-
             val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
             val selectedSeats = bookingRepository.getSelectedSeatsByFlightIdAndPassengers(booking.flightId, passengers)
@@ -228,12 +222,6 @@ fun Route.bookingRoutes() {
             }
             if(booking.status == BookingStatus.CONFIRMED) { 
                 return@get call.respond(HttpStatusCode.Forbidden, "Already paid") 
-            }
-
-            //Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
-                bookingRepository.deleteBookingByReference(reference)
-                return@get call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
             }
 
             val price = bookingRepository.getBookingPricePriceByBookingId(booking.id)
@@ -364,6 +352,24 @@ fun Route.bookingRoutes() {
                 )
             )
         }
+
+        post("/{reference}/clear") {
+            val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
+            val reference = call.parameters["reference"]?: return@post call.respond(HttpStatusCode.BadRequest, "Missing booking reference")
+            val booking = bookingRepository.getBookingByReference(reference)?: return@post call.respond(HttpStatusCode.NotFound, "Booking not found")
+            
+            if (booking.userId != session.userId) {
+                return@post call.respond(HttpStatusCode.Forbidden, "Not the user's booking")
+            }
+            
+            val cancelledBooking = bookingRepository.deleteBookingByReference(reference)
+            
+            val bookings = bookingRepository.getBookingsByUserId(session.userId)
+            val bookingsInfo = bookings.map { bookingRepository.getBookingInfoByBooking(it) }
+
+            call.respondPebble("reviewbookings.peb", mapOf("bookingsInfo" to bookingsInfo))
+        }
+
     }
 
     get("/review_bookings") {
