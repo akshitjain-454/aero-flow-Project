@@ -176,21 +176,33 @@ class BookingRepository {
             return@transaction booking
         }
 
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        //1.Release selected seats
+        //do this by deleting ticket assignments only
+        //do not delete passengers or booking record
+        if (passengerIds.isNotEmpty()) {
+            TicketAssignmentTable.deleteWhere {
+                SqlExpressionBuilder.run {
+                    TicketAssignmentTable.passengerId inList passengerIds
+                }
+            }
+        }
+        //2.Keep the booking record,only update status to cancelled
         BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
             it[status] = BookingStatus.CANCELLED
         }
-
-        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
-
-        TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
-        PassengerTable.deleteWhere { SqlExpressionBuilder.run { PassengerTable.bookingId eq booking.id } }
-        BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
+        //3.Find original payment amount
+        val paidAmount = PaymentTable
+            .select { PaymentTable.bookingId eq booking.id }
+            .map { row -> row[PaymentTable.amount] }
+            .singleOrNull()
+        //4.Mark payment as refunded
         PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
-                it[paymentStatus] = PaymentStatus.REFUNDED;
-                it[refundAmount] = refundAmount;
-                it[refundDate] = LocalDateTime.now()
+            it[paymentStatus] = PaymentStatus.REFUNDED
+            it[refundAmount] = paidAmount
+            it[refundDate] = LocalDateTime.now()
         }
-
         booking.copy(status = BookingStatus.CANCELLED)
     }
 

@@ -36,7 +36,13 @@ class AdminRepository {
     fun getBookingsPerFlightReport(): List<BookingsPerFlightReport> = transaction {
         val bookingCountExpr = BookingTable.id.count()
 
-        (BookingTable innerJoin FlightTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
             .slice(
                 FlightTable.id,
                 FlightTable.flightCode,
@@ -78,7 +84,13 @@ class AdminRepository {
 
         val bookingCountExpr = BookingTable.id.count()
 
-        (BookingTable innerJoin FlightTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
             .slice(
                 FlightTable.departureAirportId,
                 FlightTable.arrivalAirportId,
@@ -233,20 +245,7 @@ class AdminRepository {
                 )
             }
     }
-    // fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
-    //     BookingTable
-    //         .select { BookingTable.status eq BookingStatus.CANCELLED }
-    //         .orderBy(BookingTable.createdAt, SortOrder.DESC)
-    //         .map { row ->
-    //             CancelledBookingSummary(
-    //                 bookingId = row[BookingTable.id],
-    //                 bookingReference = row[BookingTable.bookingReference],
-    //                 userId = row[BookingTable.userId],
-    //                 flightId = row[BookingTable.flightId],
-    //                 createdAt = row[BookingTable.createdAt]
-    //             )
-    //         }
-    // }
+
     fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
         var selectCondition: Op<Boolean> = (BookingTable.status eq BookingStatus.CANCELLED)
 
@@ -269,7 +268,19 @@ class AdminRepository {
                 (FlightTable.departureTime greaterEq dayStart) and
                 (FlightTable.departureTime lessEq dayEnd)
         }
-        (BookingTable innerJoin FlightTable innerJoin UserTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                BookingTable.userId,
+                UserTable.id
+            )
             .select { selectCondition }
             .orderBy(BookingTable.createdAt, SortOrder.DESC)
             .map { row ->
@@ -479,7 +490,19 @@ class AdminRepository {
             selectCondition = selectCondition and (BookingTable.status eq status)
         }
 
-        (BookingTable innerJoin FlightTable innerJoin UserTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                BookingTable.userId,
+                UserTable.id
+            )
             .join(
                 PaymentTable,
                 JoinType.LEFT,
