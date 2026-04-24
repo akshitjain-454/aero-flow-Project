@@ -129,6 +129,14 @@
     .cancel-btn:hover { background: #fef2f2; }
     .cancel-btn:disabled { border-color: #d1d5db; color: #9ca3af; background: transparent; cursor: not-allowed; }
 
+    .delete-btn {
+        background: solid #ef4444; border: 1px solid #ef4444; color: #000000;
+        padding: 0.6rem 1.25rem; border-radius: 9999px; font-size: 0.65rem;
+        font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .delete-btn:hover { background: #ff6f6f; }
+
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
@@ -239,24 +247,23 @@
                                 <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
                                     View Tickets
                                 </a>
-                                {% if booking.bookingStatus == "CANCELLED" %}
-                                    <button class="cancel-btn" disabled>Cancelled</button>
-                                {% else %}
-                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
-                                        Cancel
-                                    </button>
-                                {% endif %}
-                            {% else %}
-                                {% if booking.bookingStatus == "CANCELLED" %}
-                                    <button class="cancel-btn" disabled>Cancelled</button>
-                                {% else %}
-                                    <a href="/booking/{{ booking.bookingReference }}/passengers" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
-                                        Modify
-                                    </a>
-                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
-                                        Cancel
-                                    </button>
-                                {% endif %}
+                                <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                    Cancel
+                                </button>
+                            {% endif %}
+                            {% if booking.bookingStatus == "CANCELLED" %}
+                                <button class="delete-btn" onclick="deleteBooking('{{ booking.bookingReference }}')">
+                                    Delete
+                                </button>
+                                <button class="cancel-btn" disabled>Cancelled</button>
+                            {% endif %}
+                            {% if booking.bookingStatus == "CREATED" %}
+                                <a href="/booking/{{ booking.bookingReference }}/passengers" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
+                                    Modify
+                                </a>
+                                <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                    Cancel
+                                </button>
                             {% endif %}
                         </div>
                     </div>
@@ -300,6 +307,18 @@
             btn.textContent = "Cancel";
             btn.disabled = false;
         });
+    }
+</script>
+
+<script>
+    function deleteBooking(reference) {
+        if(!confirm("Are you absolutely sure you want to delete the cancelled booking " + reference + "? This action cannot be undone.")) {
+            return;
+        }
+        fetch('/booking/' + reference + '/clear', {
+            method: 'POST'
+        })
+        .then(() => window.location.reload()); //refresh list
     }
 </script>
 {% endblock %}
