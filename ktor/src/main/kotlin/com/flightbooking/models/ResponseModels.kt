@@ -53,6 +53,8 @@ data class BookingInfo(
     val returnArrivalAirportNameCode: String?,
     val departureTime: LocalDateTime,
     val returnDepartureTime: LocalDateTime?,
+    //management ui combine
+    val flightStatus: FlightStatus,
     val amountPaid: BigDecimal?
 )
 
@@ -98,6 +100,7 @@ data class CancelledBookingSummary(
     val departureAirportNameCode: String,
     val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
+    val arrivalTime: LocalDateTime,
     val status: BookingStatus,
     val createdAt: LocalDateTime,
     val aircraftType: String
@@ -127,7 +130,10 @@ data class FlightChangeLogInfo(
     val oldArrivalTime: LocalDateTime,
     val newArrivalTime: LocalDateTime,
     val changedAt: LocalDateTime,
-    val aircraftType: String
+    val flightStatus: FlightStatus,
+    val aircraftType: String,
+    val changedByUserId: Int?,
+    val changedByName: String?
 )
 
 data class MostPopularRouteReport(

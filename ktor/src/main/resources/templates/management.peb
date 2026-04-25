@@ -352,6 +352,95 @@
     </main>
 </div>
 
+<div id="flightEditModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-bold text-[--charcoal] serif">Edit Flight Information</h3>
+                <p id="editFlightSubtitle" class="text-sm text-gray-500 mt-1">Update route, time, or status.</p>
+            </div>
+
+            <button onclick="closeFlightEditModal()"
+                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">
+                &times;
+            </button>
+        </div>
+
+        <div class="p-6">
+            <input id="editFlightId" type="hidden">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Departure Airport Code
+                    </label>
+                    <input id="editDepartureAirportCode" type="text" placeholder="e.g. LBA"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Arrival Airport Code
+                    </label>
+                    <input id="editArrivalAirportCode" type="text" placeholder="e.g. DXB"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Departure Time
+                    </label>
+                    <input id="editDepartureTime" type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Arrival Time
+                    </label>
+                    <input id="editArrivalTime" type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Flight Status
+                    </label>
+                    <select id="editFlightStatus"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        <option value="SCHEDULED">SCHEDULED</option>
+                        <option value="DELAYED">DELAYED</option>
+                        <option value="ARRIVED">ARRIVED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Aircraft
+                    </label>
+                    <input id="editAircraftType" type="text" disabled
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500">
+                    <p class="text-xs text-gray-400 mt-1">Aircraft type is display-only.</p>
+                </div>
+            </div>
+
+            <div id="flightEditError" class="hidden mt-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm"></div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+            <button onclick="closeFlightEditModal()"
+                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                Cancel
+            </button>
+            <button onclick="saveFlightEdit()"
+                    class="px-4 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentSection = "reservations";
 
@@ -454,6 +543,15 @@
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
+    }
+
+    function escapeJsString(value) {
+        if (value === null || value === undefined) return "";
+        return value.toString()
+            .replaceAll("\\", "\\\\")
+            .replaceAll("'", "\\'")
+            .replaceAll("\n", " ")
+            .replaceAll("\r", " ");
     }
 
     function formatDateTime(value) {
@@ -733,7 +831,7 @@
         setSection(
             "availability",
             "Flight Availability",
-            "Showing booked seats and available seats for each flight."
+            "Showing booked seats, available seats, and editable flight information."
         );
 
         scrollToPanel();
@@ -752,16 +850,32 @@
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.totalSeats)}</td>
                     <td class="px-6 py-4 font-bold text-red-600">${escapeHtml(item.bookedSeats)}</td>
                     <td class="px-6 py-4 font-bold text-green-600">${escapeHtml(item.availableSeats)}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="openFlightEditModalByValues(
+                                    ${Number(item.flightId)},
+                                    '${escapeJsString(item.flightCode)}',
+                                    '${escapeJsString(item.departureAirportNameCode)}',
+                                    '${escapeJsString(item.arrivalAirportNameCode)}',
+                                    '${escapeJsString(item.departureTime)}',
+                                    '${escapeJsString(item.arrivalTime)}',
+                                    '${escapeJsString(item.flightStatus)}',
+                                    '${escapeJsString(item.aircraftType)}'
+                                )"
+                                class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap">
+                            Edit
+                        </button>
+                    </td>
                 </tr>
             `);
 
             setSummary(`Flights shown: ${results.length} | Booked seats: ${totalBooked} | Available seats: ${totalAvailable}`);
             renderTable(
-                ["Flight", "Aircraft", "From", "To", "Departure", "Status", "Total Seats", "Booked", "Available"],
+                ["Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Total Seats", "Booked", "Available", "Action"],
                 rows
             );
         } catch (error) {
@@ -794,6 +908,7 @@
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.status)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
                 </tr>
@@ -801,7 +916,7 @@
 
             setSummary(`Cancelled bookings shown: ${results.length}`);
             renderTable(
-                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created At"],
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Created At"],
                 rows
             );
         } catch (error) {
@@ -865,19 +980,23 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.newDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.newArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldDepartureTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newDepartureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldArrivalTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newArrivalTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.changedAt)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.changedByName || "Unknown")}</td>
                 </tr>
             `);
 
             setSummary(`Flight changes shown: ${results.length}`);
             renderTable(
-                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At"],
+                ["Flight", "Aircraft", "Status", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Old Arrival", "New Arrival", "Changed At", "Changed By"],
                 rows
             );
         } catch (error) {
@@ -907,6 +1026,7 @@
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
@@ -914,7 +1034,7 @@
 
             setSummary(`Flights in report: ${results.length}`);
             renderTable(
-                ["Flight Code", "Aircraft", "From", "To", "Departure", "Flight Status", "Bookings"],
+                ["Flight Code", "Aircraft", "From", "To", "Departure", "Arrival", "Flight Status", "Bookings"],
                 rows
             );
         } catch (error) {
@@ -1071,6 +1191,128 @@
             await refreshAllDashboardData();
         } catch (error) {
             showError(error);
+        }
+    }
+
+    function extractAirportCode(nameCode) {
+        if (!nameCode) return "";
+
+        const parts = nameCode.toString().trim().split(/\s+/);
+        return parts.length > 0 ? parts[parts.length - 1].toUpperCase() : "";
+    }
+
+    function toDatetimeLocalValue(value) {
+        if (!value) return "";
+
+        if (typeof value === "string") {
+            return value.substring(0, 16);
+        }
+
+        return value.toString().substring(0, 16);
+    }
+
+    function openFlightEditModalByValues(
+        flightId,
+        flightCode,
+        departureAirportNameCode,
+        arrivalAirportNameCode,
+        departureTime,
+        arrivalTime,
+        flightStatus,
+        aircraftType
+    ) {
+        document.getElementById("editFlightId").value = flightId;
+        document.getElementById("editFlightSubtitle").textContent =
+            "Editing " + flightCode + " | " + departureAirportNameCode + " → " + arrivalAirportNameCode;
+
+        document.getElementById("editDepartureAirportCode").value =
+            extractAirportCode(departureAirportNameCode);
+
+        document.getElementById("editArrivalAirportCode").value =
+            extractAirportCode(arrivalAirportNameCode);
+
+        document.getElementById("editDepartureTime").value =
+            toDatetimeLocalValue(departureTime);
+
+        document.getElementById("editArrivalTime").value =
+            toDatetimeLocalValue(arrivalTime);
+
+        document.getElementById("editFlightStatus").value = flightStatus || "SCHEDULED";
+        document.getElementById("editAircraftType").value = aircraftType || "-";
+
+        document.getElementById("flightEditError").classList.add("hidden");
+        document.getElementById("flightEditModal").classList.remove("hidden");
+        document.getElementById("flightEditModal").classList.add("flex");
+    }
+
+    function closeFlightEditModal() {
+        document.getElementById("flightEditModal").classList.add("hidden");
+        document.getElementById("flightEditModal").classList.remove("flex");
+    }
+
+    function showFlightEditError(message) {
+        const errorBox = document.getElementById("flightEditError");
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+    }
+
+    async function saveFlightEdit() {
+        const flightId = document.getElementById("editFlightId").value;
+        const departureAirportCode = document.getElementById("editDepartureAirportCode").value.trim().toUpperCase();
+        const arrivalAirportCode = document.getElementById("editArrivalAirportCode").value.trim().toUpperCase();
+        const departureTime = document.getElementById("editDepartureTime").value;
+        const arrivalTime = document.getElementById("editArrivalTime").value;
+        const status = document.getElementById("editFlightStatus").value;
+
+        if (!flightId || !departureAirportCode || !arrivalAirportCode || !departureTime || !arrivalTime || !status) {
+            showFlightEditError("Please fill in all required fields.");
+            return;
+        }
+
+        try {
+            const scheduleForm = new URLSearchParams();
+            scheduleForm.append("departureAirportCode", departureAirportCode);
+            scheduleForm.append("arrivalAirportCode", arrivalAirportCode);
+            scheduleForm.append("departureTime", departureTime);
+            scheduleForm.append("arrivalTime", arrivalTime);
+
+            const scheduleResponse = await fetch("/admin/flights/" + flightId + "/update-schedule", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: scheduleForm.toString()
+            });
+
+            if (!scheduleResponse.ok) {
+                const text = await scheduleResponse.text();
+                throw new Error("Failed to update flight schedule: " + scheduleResponse.status + " " + text);
+            }
+
+            const statusForm = new URLSearchParams();
+            statusForm.append("status", status);
+
+            const statusResponse = await fetch("/admin/flights/" + flightId + "/status", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: statusForm.toString()
+            });
+
+            if (!statusResponse.ok) {
+                const text = await statusResponse.text();
+                throw new Error("Failed to update flight status: " + statusResponse.status + " " + text);
+            }
+
+            closeFlightEditModal();
+            await loadFlightAvailability();
+            await refreshAllDashboardData();
+        } catch (error) {
+            console.error(error);
+            showFlightEditError(error.message || "Failed to update flight.");
         }
     }
 

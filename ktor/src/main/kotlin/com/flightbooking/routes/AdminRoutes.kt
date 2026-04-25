@@ -17,6 +17,7 @@ import java.time.LocalDateTime
 import java.time.LocalDate
 import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.enums.BookingStatus
+import com.flightbooking.enums.FlightStatus
 
 fun Route.adminRoutes() {
 
@@ -433,7 +434,8 @@ fun Route.adminRoutes() {
                     newDepartureAirportId = departureAirportId,
                     newArrivalAirportId = arrivalAirportId,
                     newDepartureTime = departureTime,
-                    newArrivalTime = arrivalTime
+                    newArrivalTime = arrivalTime,
+                    changedByUserId = session.userId
                 )
 
                 if (updatedFlight == null) {
@@ -453,6 +455,33 @@ fun Route.adminRoutes() {
                     mapOf("error" to "Invalid date time format. Use yyyy-MM-ddTHH:mm")
                 )
             }
+        }
+
+        post("/flights/{id}/status") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@post call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val flightId = call.parameters["id"]?.toIntOrNull()?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid flight id"))
+            val params = call.receiveParameters()
+            val newStatus = try {
+                FlightStatus.valueOf(params["status"] ?: "")
+            } catch (e: IllegalArgumentException) {
+                return@post call.respond(HttpStatusCode.BadRequest,mapOf("error" to "Invalid flight status"))
+            }
+
+            val updatedFlight = adminRepository.updateFlightStatus(flightId, newStatus)
+
+            if (updatedFlight == null) {
+                return@post call.respond(HttpStatusCode.NotFound,mapOf("error" to "Flight not found"))
+            }
+            call.respond(mapOf("message" to "Flight status updated successfully","flight" to updatedFlight)
+
+            )
         }
     }
 }

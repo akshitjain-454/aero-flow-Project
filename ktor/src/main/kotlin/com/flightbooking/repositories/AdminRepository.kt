@@ -331,6 +331,7 @@ class AdminRepository {
                     departureAirportNameCode = departureAirportNameCode,
                     arrivalAirportNameCode = arrivalAirportNameCode,
                     departureTime = row[FlightTable.departureTime],
+                    arrivalTime = row[FlightTable.arrivalTime],
                     status = row[BookingTable.status],
                     createdAt = row[BookingTable.createdAt],
                     aircraftType = row[AircraftTable.type]
@@ -384,7 +385,7 @@ class AdminRepository {
             }
     }
 
-    fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime): Flight? = transaction {
+    fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime, changedByUserId: Int?): Flight? = transaction {
         val existingFlight = FlightTable
             .select { FlightTable.id eq flightId }
             .singleOrNull()?: return@transaction null
@@ -411,12 +412,37 @@ class AdminRepository {
             it[FlightChangeLogTable.oldArrivalTime] = oldArrivalTime
             it[FlightChangeLogTable.newArrivalTime] = newArrivalTime
             it[changedAt] = LocalDateTime.now()
+            it[FlightChangeLogTable.changedByUserId] = changedByUserId
         }
         FlightTable
             .select { FlightTable.id eq flightId }
             .map { row -> flightRepository.resultRowToFlight(row) }
             .singleOrNull()
+    }
+
+    private fun getUserNameById(userId: Int?): String? {
+        if (userId == null) return null
+
+        return UserTable
+            .select { UserTable.id eq userId }
+            .map { it[UserTable.firstname] + " " + it[UserTable.lastname] }
+            .singleOrNull()
+    }
+
+    fun updateFlightStatus(flightId: Int, newStatus: FlightStatus): Flight? = transaction {
+        val existingFlight = FlightTable
+            .select { FlightTable.id eq flightId }
+            .singleOrNull() ?: return@transaction null
+
+        FlightTable.update({ FlightTable.id eq flightId }) {
+            it[status] = newStatus
         }
+
+        FlightTable
+            .select { FlightTable.id eq flightId }
+            .map { row -> flightRepository.resultRowToFlight(row) }
+            .singleOrNull()
+    }
 
     fun getAllFlightChanges(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightChangeLogInfo> = transaction {
         var selectCondition: Op<Boolean> = Op.TRUE
@@ -463,7 +489,10 @@ class AdminRepository {
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
                     newArrivalTime = row[FlightChangeLogTable.newArrivalTime],
                     changedAt = row[FlightChangeLogTable.changedAt],
-                    aircraftType = row[AircraftTable.type]
+                    flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
+                    changedByUserId = row[FlightChangeLogTable.changedByUserId],
+                    changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                 )
             }
     }
@@ -492,7 +521,10 @@ class AdminRepository {
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
                     newArrivalTime = row[FlightChangeLogTable.newArrivalTime],
                     changedAt = row[FlightChangeLogTable.changedAt],
-                    aircraftType = row[AircraftTable.type]
+                    flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
+                    changedByUserId = row[FlightChangeLogTable.changedByUserId],
+                    changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                 )
             }
     }

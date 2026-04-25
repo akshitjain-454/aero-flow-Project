@@ -444,6 +444,8 @@ class BookingRepository {
             returnArrivalAirportNameCode = returnArrivalAirportNameCode,
             departureTime = dateTime,
             returnDepartureTime = returnDateTime,
+            //management ui combine modify
+            flightStatus = flight[FlightTable.status],
             amountPaid = amountPaid
         )
     }
