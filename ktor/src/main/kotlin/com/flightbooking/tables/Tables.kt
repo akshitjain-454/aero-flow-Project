@@ -147,6 +147,7 @@ object FlightChangeLogTable : Table("FlightChangeLog") {
   val oldArrivalTime = datetime("old_arrival_time")
   val newArrivalTime = datetime("new_arrival_time")
   val changedAt = datetime("changed_at")
+  val changedByUserId = integer("changed_by_user_id").references(UserTable.id).nullable()
 
   override val primaryKey = PrimaryKey(id)
 }
