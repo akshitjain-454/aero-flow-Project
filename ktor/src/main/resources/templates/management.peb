@@ -8,26 +8,13 @@
         background-color: #f8fafc;
         color: #1e293b;
         margin: 0;
+        overflow: hidden;
     }
 
-    .admin-card {
-        transition: all 0.2s ease;
-    }
-
-    .admin-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .active-tab {
-        background-color: #2563eb;
-        color: white;
-        border-color: #2563eb;
-    }
-
-    .inactive-tab {
-        background-color: white;
-        color: #334155;
-        border-color: #e2e8f0;
+    .admin-link.active {
+        background-color: #eff6ff;
+        color: var(--sky-blue);
+        font-weight: 700;
     }
 
     .status-badge {
@@ -38,6 +25,7 @@
         font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
+        white-space: nowrap;
     }
 
     .status-confirmed,
@@ -68,200 +56,341 @@
         background-color: #dbeafe;
         color: #1d4ed8;
     }
+
+    .chart-axis {
+        border-left: 2px solid #cbd5e1;
+        border-bottom: 2px solid #cbd5e1;
+    }
+
+    .chart-bg {
+        background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+        background-size: 18px 18px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-50 pt-24 pb-10 px-6">
-    <div class="max-w-7xl mx-auto">
+<div class="flex h-screen w-full bg-slate-50 pt-20">
 
-        <header class="mb-8">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                    <p class="text-sm uppercase tracking-widest text-blue-600 font-bold">Aetheria Admin</p>
-                    <h1 class="text-3xl md:text-4xl font-black text-slate-900 mt-2">
-                        Management Dashboard
-                    </h1>
-                    <p class="text-slate-500 mt-2">
-                        Track reservations, flight availability, cancellations, changes, reports, and complaints.
-                    </p>
-                </div>
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-10">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Welcome back,</h2>
+            <p class="text-sm font-bold text-[--sky-blue]">Staff {{ userInitials | default('Admin') }}</p>
+        </div>
 
-                <div class="flex gap-3">
-                    <a href="/"
-                       class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-bold hover:bg-slate-100">
-                        Back to Home
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 px-3">
+                <li>
+                    <a id="nav-dashboard" href="javascript:void(0)" onclick="showDashboardOverview()"
+                       class="admin-link active flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                            </path>
+                        </svg>
+                        Dashboard
                     </a>
-                    <button onclick="loadCurrentSection()"
-                            class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
-                        Refresh
+                </li>
+
+                <li>
+                    <a id="nav-changes" href="javascript:void(0)" onclick="loadFlightChanges()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
+                            </path>
+                        </svg>
+                        Changes and Cancellations
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-flights" href="javascript:void(0)" onclick="loadFlightAvailability()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        Flights and Available
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-report" href="javascript:void(0)" onclick="loadBookingsPerFlight()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Report
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-reservation" href="javascript:void(0)" onclick="loadReservations()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                            </path>
+                        </svg>
+                        Reservation
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-complaints" href="javascript:void(0)" onclick="loadComplaints()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z">
+                            </path>
+                        </svg>
+                        Complaints
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <form action="/logout" method="POST">
+                <button type="submit"
+                        class="w-full flex items-center justify-center px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors">
+                    Log out
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8 h-full">
+        <div class="max-w-6xl mx-auto pb-20">
+
+            <section id="dashboardOverview">
+                <header class="mb-8 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-3xl font-bold text-[--charcoal] serif">Dashboard Overview</h1>
+                        <p class="text-sm text-gray-500 mt-1">Live flight operations and management metrics</p>
+                    </div>
+
+                    <button onclick="refreshAllDashboardData()"
+                            class="px-4 py-2 rounded-lg bg-[--sky-blue] text-white text-sm font-bold hover:opacity-90">
+                        Refresh Overview
                     </button>
-                </div>
-            </div>
-        </header>
+                </header>
 
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <button id="tab-reservations" onclick="loadReservations()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Track</p>
-                <h2 class="font-black text-lg mt-1">Reservations</h2>
-                <p class="text-sm opacity-70 mt-1">All customer bookings</p>
-            </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Total Reservations</p>
+                        <p id="overviewReservations" class="text-3xl font-bold text-[--charcoal]">-</p>
+                    </div>
 
-            <button id="tab-availability" onclick="loadFlightAvailability()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Track</p>
-                <h2 class="font-black text-lg mt-1">Availability</h2>
-                <p class="text-sm opacity-70 mt-1">Booked and available seats</p>
-            </button>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Cancelled Bookings</p>
+                        <p id="overviewCancelledBookings" class="text-3xl font-bold text-red-500">-</p>
+                    </div>
 
-            <button id="tab-cancelledBookings" onclick="loadCancelledBookings()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Track</p>
-                <h2 class="font-black text-lg mt-1">Cancelled Bookings</h2>
-                <p class="text-sm opacity-70 mt-1">Cancelled reservations</p>
-            </button>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Flight Changes</p>
+                        <p id="overviewChanges" class="text-3xl font-bold text-orange-400">-</p>
+                    </div>
 
-            <button id="tab-cancelledFlights" onclick="loadCancelledFlights()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Track</p>
-                <h2 class="font-black text-lg mt-1">Cancelled Flights</h2>
-                <p class="text-sm opacity-70 mt-1">Cancelled flight records</p>
-            </button>
-
-            <button id="tab-changes" onclick="loadFlightChanges()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Track</p>
-                <h2 class="font-black text-lg mt-1">Flight Changes</h2>
-                <p class="text-sm opacity-70 mt-1">Route and time changes</p>
-            </button>
-
-            <button id="tab-bookingsReport" onclick="loadBookingsPerFlight()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Report</p>
-                <h2 class="font-black text-lg mt-1">Bookings Per Flight</h2>
-                <p class="text-sm opacity-70 mt-1">Bookings by flight</p>
-            </button>
-
-            <button id="tab-routesReport" onclick="loadPopularRoutes()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Report</p>
-                <h2 class="font-black text-lg mt-1">Popular Routes</h2>
-                <p class="text-sm opacity-70 mt-1">Most booked routes</p>
-            </button>
-
-            <button id="tab-timesReport" onclick="loadPeakBookingTimes()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Report</p>
-                <h2 class="font-black text-lg mt-1">Peak Times</h2>
-                <p class="text-sm opacity-70 mt-1">Peak booking hours</p>
-            </button>
-
-            <button id="tab-complaints" onclick="loadComplaints()"
-                    class="admin-card inactive-tab border rounded-2xl p-5 text-left shadow-sm sm:col-span-2 lg:col-span-4">
-                <p class="text-xs uppercase tracking-widest font-bold opacity-70">Support</p>
-                <h2 class="font-black text-lg mt-1">Complaints</h2>
-                <p class="text-sm opacity-70 mt-1">Review and update customer complaint status</p>
-            </button>
-        </section>
-
-        <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="px-6 py-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 id="sectionTitle" class="text-2xl font-black text-slate-900">Reservations</h2>
-                    <p id="sectionDescription" class="text-sm text-slate-500 mt-1">
-                        Showing all reservations made through the system.
-                    </p>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Available Seats</p>
+                        <p id="overviewAvailableSeats" class="text-3xl font-bold text-[--sky-blue]">-</p>
+                    </div>
                 </div>
 
-                <div id="filterBox" class="flex flex-wrap gap-2">
-                    <input id="filterFrom" type="text" placeholder="From code, e.g. LHR"
-                           class="px-3 py-2 border border-slate-200 rounded-lg text-sm w-40">
-                    <input id="filterTo" type="text" placeholder="To code, e.g. DXB"
-                           class="px-3 py-2 border border-slate-200 rounded-lg text-sm w-40">
-                    <input id="filterDate" type="date"
-                           class="px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                    <select id="filterStatus"
-                            class="px-3 py-2 border border-slate-200 rounded-lg text-sm hidden">
-                        <option value="">All Status</option>
-                        <option value="CREATED">CREATED</option>
-                        <option value="CONFIRMED">CONFIRMED</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                    </select>
-                    <button onclick="loadCurrentSection()"
-                            class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-bold hover:bg-slate-700">
-                        Apply
-                    </button>
-                    <button onclick="clearFilters()"
-                            class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50">
-                        Clear
-                    </button>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
+                            Peak Booking Times
+                        </h3>
+                        <div id="peakTimesChart" class="w-full min-h-64 chart-bg chart-axis px-6 py-6">
+                            <p class="text-sm text-gray-400">Loading peak booking times...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
+                            Top 5 Popular Routes
+                        </h3>
+                        <div id="popularRoutesChart" class="w-full h-64 chart-axis flex items-end gap-5 px-6 pb-0 overflow-hidden">
+                            <p class="text-sm text-gray-400">Loading popular routes...</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="summaryBox" class="px-6 py-4 bg-slate-50 border-b border-slate-200 text-sm text-slate-600">
-                Loading summary...
-            </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-red-500 mb-4">Management Checks</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3 pb-4 border-b border-gray-50">
+                                <div class="w-2 h-2 mt-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">Cancellations tracking</p>
+                                    <p class="text-xs text-gray-500">
+                                        Cancelled bookings and cancelled flights are available in the Changes and Cancellations section.
+                                    </p>
+                                </div>
+                            </li>
 
-            <div id="loadingMessage" class="p-8 text-center text-slate-500 hidden">
-                Loading data...
-            </div>
+                            <li class="flex items-start gap-3">
+                                <div class="w-2 h-2 mt-1.5 rounded-full bg-orange-400 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">Flight availability tracking</p>
+                                    <p class="text-xs text-gray-500">
+                                        Seat availability updates after bookings are created or cancelled.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
 
-            <div id="errorMessage" class="p-8 text-center text-red-600 hidden">
-                Failed to load data.
-            </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">Recent Operation Log</h3>
+                        <ul id="recentOperationLog" class="space-y-4">
+                            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
+                                <span class="font-bold">System</span> loading dashboard data.
+                                <span class="text-xs text-gray-400 block mt-1">Now</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead id="tableHead" class="bg-slate-100 text-slate-700 uppercase text-xs">
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-200">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </div>
+            <section id="managementPanel" class="mt-10 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <h2 id="sectionTitle" class="text-2xl font-bold text-[--charcoal] serif">Reservations</h2>
+                        <p id="sectionDescription" class="text-sm text-gray-500 mt-1">
+                            Showing all reservations made through the system.
+                        </p>
+                    </div>
+
+                    <div id="filterBox" class="flex flex-wrap gap-2">
+                        <input id="filterFrom" type="text" placeholder="From code, e.g. LBA"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
+                        <input id="filterTo" type="text" placeholder="To code, e.g. DXB"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
+                        <input id="filterDate" type="date"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        <select id="filterStatus"
+                                class="px-3 py-2 border border-gray-200 rounded-lg text-sm hidden">
+                            <option value="">All Status</option>
+                            <option value="CREATED">CREATED</option>
+                            <option value="CONFIRMED">CONFIRMED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                        <button onclick="loadCurrentSection()"
+                                class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                            Apply
+                        </button>
+                        <button onclick="clearFilters()"
+                                class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div id="reportSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadBookingsPerFlight()"
+                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                            Bookings Per Flight
+                        </button>
+                        <button onclick="loadPopularRoutes()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Popular Routes
+                        </button>
+                        <button onclick="loadPeakBookingTimes()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Peak Times
+                        </button>
+                    </div>
+                </div>
+
+                <div id="changesSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadFlightChanges()"
+                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                            Flight Changes
+                        </button>
+                        <button onclick="loadCancelledBookings()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Cancelled Bookings
+                        </button>
+                        <button onclick="loadCancelledFlights()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Cancelled Flights
+                        </button>
+                    </div>
+                </div>
+
+                <div id="summaryBox" class="px-6 py-4 bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
+                    Loading summary...
+                </div>
+
+                <div id="loadingMessage" class="p-8 text-center text-gray-500 hidden">
+                    Loading data...
+                </div>
+
+                <div id="errorMessage" class="p-8 text-center text-red-600 hidden">
+                    Failed to load data.
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead id="tableHead" class="bg-gray-50 text-gray-600 uppercase text-xs"></thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
 </div>
 
 <script>
     let currentSection = "reservations";
 
-    const tabs = [
-        "reservations",
-        "availability",
-        "cancelledBookings",
-        "cancelledFlights",
-        "changes",
-        "bookingsReport",
-        "routesReport",
-        "timesReport",
-        "complaints"
-    ];
-
-    function setActiveTab(tabName) {
-        tabs.forEach(tab => {
-            const element = document.getElementById("tab-" + tab);
-            if (!element) return;
-
-            element.classList.remove("active-tab");
-            element.classList.remove("inactive-tab");
-
-            if (tab === tabName) {
-                element.classList.add("active-tab");
-            } else {
-                element.classList.add("inactive-tab");
-            }
+    function setActiveNav(navId) {
+        document.querySelectorAll(".admin-link").forEach(link => {
+            link.classList.remove("active");
+            link.classList.add("text-gray-600");
         });
+
+        const active = document.getElementById(navId);
+        if (active) {
+            active.classList.add("active");
+            active.classList.remove("text-gray-600");
+        }
     }
 
-    function setSection(tabName, title, description) {
-        currentSection = tabName;
-        setActiveTab(tabName);
+    function scrollToPanel() {
+        const panel = document.getElementById("managementPanel");
+        if (panel) {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function showDashboardOverview() {
+        setActiveNav("nav-dashboard");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        refreshAllDashboardData();
+    }
+
+    function setSection(section, title, description, options = {}) {
+        currentSection = section;
+
         document.getElementById("sectionTitle").textContent = title;
         document.getElementById("sectionDescription").textContent = description;
 
         const filterBox = document.getElementById("filterBox");
         const statusFilter = document.getElementById("filterStatus");
+        const reportSwitcher = document.getElementById("reportSwitcher");
+        const changesSwitcher = document.getElementById("changesSwitcher");
 
         const sectionsWithFilters = [
             "reservations",
@@ -271,16 +400,28 @@
             "changes"
         ];
 
-        if (sectionsWithFilters.includes(tabName)) {
+        if (sectionsWithFilters.includes(section)) {
             filterBox.classList.remove("hidden");
         } else {
             filterBox.classList.add("hidden");
         }
 
-        if (tabName === "reservations") {
+        if (section === "reservations") {
             statusFilter.classList.remove("hidden");
         } else {
             statusFilter.classList.add("hidden");
+        }
+
+        if (options.showReports) {
+            reportSwitcher.classList.remove("hidden");
+        } else {
+            reportSwitcher.classList.add("hidden");
+        }
+
+        if (options.showChanges) {
+            changesSwitcher.classList.remove("hidden");
+        } else {
+            changesSwitcher.classList.add("hidden");
         }
     }
 
@@ -300,7 +441,8 @@
         console.error(error);
         hideLoading();
         document.getElementById("errorMessage").classList.remove("hidden");
-        document.getElementById("summaryBox").textContent = "Could not load this section. Check browser Console or Network tab.";
+        document.getElementById("summaryBox").textContent =
+            "Could not load this section. Check browser Console or Network tab.";
     }
 
     function escapeHtml(value) {
@@ -333,7 +475,10 @@
         if (!status) return "-";
 
         const className = "status-" + status.toString().toLowerCase();
-        return `<span class="status-badge ${className}">${escapeHtml(status)}</span>`;
+
+        return `<span class="status-badge ${className}">
+            ${escapeHtml(status)}
+        </span>`;
     }
 
     function getFilterQuery(includeStatus) {
@@ -380,7 +525,27 @@
         return data;
     }
 
+    async function fetchSilent(url) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
     function getResults(data) {
+        if (!data) return [];
         if (Array.isArray(data)) return data;
         return data.results || [];
     }
@@ -400,7 +565,7 @@
         if (!rows || rows.length === 0) {
             body.innerHTML = `
                 <tr>
-                    <td colspan="${headers.length}" class="px-6 py-10 text-center text-slate-500">
+                    <td colspan="${headers.length}" class="px-6 py-10 text-center text-gray-500">
                         No data available.
                     </td>
                 </tr>
@@ -415,23 +580,136 @@
         document.getElementById("summaryBox").textContent = text;
     }
 
-    async function loadReservations() {
+    function renderPopularRoutesChart(routes) {
+        const chart = document.getElementById("popularRoutesChart");
+
+        if (!routes || routes.length === 0) {
+            chart.innerHTML = `<p class="text-sm text-gray-400">No route data available.</p>`;
+            return;
+        }
+
+        const topRoutes = routes.slice(0, 5);
+        const maxBookings = Math.max(...topRoutes.map(route => Number(route.bookingCount || 0)), 1);
+
+        chart.innerHTML = topRoutes.map(route => {
+            const count = Number(route.bookingCount || 0);
+            const height = Math.max((count / maxBookings) * 100, 8);
+
+            return `
+                <div class="flex flex-col items-center justify-end h-full flex-1 min-w-0">
+                    <div class="text-xs font-bold text-gray-700 mb-2">${count}</div>
+                    <div class="w-full max-w-14 bg-[--sky-blue] rounded-t-md"
+                         style="height: ${height}%; min-height: 18px;">
+                    </div>
+                    <div class="text-[10px] text-gray-500 mt-2 text-center leading-tight w-full truncate"
+                         title="${escapeHtml(route.departureAirportNameCode)} → ${escapeHtml(route.arrivalAirportNameCode)}">
+                        ${escapeHtml(route.departureAirportNameCode)}
+                        <br>
+                        →
+                        <br>
+                        ${escapeHtml(route.arrivalAirportNameCode)}
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderPeakTimesChart(times) {
+        const chart = document.getElementById("peakTimesChart");
+
+        if (!times || times.length === 0) {
+            chart.innerHTML = `<p class="text-sm text-gray-400">No peak booking data available.</p>`;
+            return;
+        }
+
+        const topTimes = times.slice(0, 5);
+        const maxBookings = Math.max(...topTimes.map(item => Number(item.bookingCount || 0)), 1);
+
+        chart.innerHTML = topTimes.map((item, index) => {
+            const count = Number(item.bookingCount || 0);
+            const width = Math.max((count / maxBookings) * 100, 8);
+
+            return `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-bold text-gray-700">#${index + 1} ${escapeHtml(item.bookingHour)}</span>
+                        <span class="font-bold text-[--sky-blue]">${count}</span>
+                    </div>
+                    <div class="w-full bg-blue-50 rounded-full h-3 overflow-hidden">
+                        <div class="bg-[--sky-blue] h-3 rounded-full" style="width: ${width}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function refreshAllDashboardData() {
+        const reservationsData = await fetchSilent("/admin/reservations");
+        const cancelledData = await fetchSilent("/admin/bookings/cancelled");
+        const changesData = await fetchSilent("/admin/flights/changes");
+        const availabilityData = await fetchSilent("/admin/flights/availability");
+        const popularRoutesData = await fetchSilent("/admin/reports/most-popular-routes");
+        const peakTimesData = await fetchSilent("/admin/reports/peak-booking-times");
+
+        const reservations = getResults(reservationsData);
+        const cancelled = getResults(cancelledData);
+        const changes = getResults(changesData);
+        const availability = getResults(availabilityData);
+        const popularRoutes = getResults(popularRoutesData);
+        const peakTimes = getResults(peakTimesData);
+
+        document.getElementById("overviewReservations").textContent = reservations.length;
+        document.getElementById("overviewCancelledBookings").textContent = cancelled.length;
+        document.getElementById("overviewChanges").textContent = changes.length;
+
+        const availableSeats = availability.reduce((sum, item) => {
+            return sum + Number(item.availableSeats || 0);
+        }, 0);
+
+        document.getElementById("overviewAvailableSeats").textContent = availableSeats.toLocaleString();
+
+        renderPopularRoutesChart(popularRoutes);
+        renderPeakTimesChart(peakTimes);
+
+        const log = document.getElementById("recentOperationLog");
+
+        log.innerHTML = `
+            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
+                <span class="font-bold">System</span> loaded ${reservations.length} reservations.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
+                <span class="font-bold">System</span> found ${cancelled.length} cancelled bookings.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
+                <span class="font-bold">System</span> found ${changes.length} flight changes.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+        `;
+    }
+
+    async function loadReservations(shouldScroll = true) {
+        setActiveNav("nav-reservation");
         setSection(
             "reservations",
             "Reservations",
             "Showing all reservations made through the system."
         );
 
+        if (shouldScroll) scrollToPanel();
+
         try {
             const data = await fetchData("/admin/reservations" + getFilterQuery(true));
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.bookingReference)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.email)}</td>
                     <td class="px-6 py-4 font-semibold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
@@ -442,7 +720,7 @@
 
             setSummary(`Total reservations shown: ${results.length}`);
             renderTable(
-                ["Reference", "Customer", "Email", "Flight", "From", "To", "Departure", "Status", "Paid"],
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Paid"],
                 rows
             );
         } catch (error) {
@@ -451,11 +729,14 @@
     }
 
     async function loadFlightAvailability() {
+        setActiveNav("nav-flights");
         setSection(
             "availability",
             "Flight Availability",
             "Showing booked seats and available seats for each flight."
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/availability" + getFilterQuery(false));
@@ -465,8 +746,9 @@
             const totalBooked = results.reduce((sum, item) => sum + Number(item.bookedSeats || 0), 0);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.flightCode)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
@@ -479,7 +761,7 @@
 
             setSummary(`Flights shown: ${results.length} | Booked seats: ${totalBooked} | Available seats: ${totalAvailable}`);
             renderTable(
-                ["Flight", "From", "To", "Departure", "Status", "Total Seats", "Booked", "Available"],
+                ["Flight", "Aircraft", "From", "To", "Departure", "Status", "Total Seats", "Booked", "Available"],
                 rows
             );
         } catch (error) {
@@ -488,22 +770,27 @@
     }
 
     async function loadCancelledBookings() {
+        setActiveNav("nav-changes");
         setSection(
             "cancelledBookings",
             "Cancelled Bookings",
-            "Showing customer bookings that have been cancelled."
+            "Showing customer bookings that have been cancelled.",
+            { showChanges: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/bookings/cancelled" + getFilterQuery(false));
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.bookingReference)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.email)}</td>
                     <td class="px-6 py-4 font-semibold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
@@ -514,7 +801,7 @@
 
             setSummary(`Cancelled bookings shown: ${results.length}`);
             renderTable(
-                ["Reference", "Customer", "Email", "Flight", "From", "To", "Departure", "Status", "Created At"],
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created At"],
                 rows
             );
         } catch (error) {
@@ -523,19 +810,24 @@
     }
 
     async function loadCancelledFlights() {
+        setActiveNav("nav-changes");
         setSection(
             "cancelledFlights",
             "Cancelled Flights",
-            "Showing flights with CANCELLED status."
+            "Showing flights with CANCELLED status.",
+            { showChanges: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/cancelled" + getFilterQuery(false));
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.flightCode)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
@@ -546,7 +838,7 @@
 
             setSummary(`Cancelled flights shown: ${results.length}`);
             renderTable(
-                ["Flight", "From", "To", "Departure", "Arrival", "Status"],
+                ["Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status"],
                 rows
             );
         } catch (error) {
@@ -555,19 +847,24 @@
     }
 
     async function loadFlightChanges() {
+        setActiveNav("nav-changes");
         setSection(
             "changes",
             "Flight Changes",
-            "Showing flight route and schedule changes."
+            "Showing flight route and schedule changes.",
+            { showChanges: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/changes" + getFilterQuery(false));
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.flightCode)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.newDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldArrivalAirportNameCode)}</td>
@@ -580,7 +877,7 @@
 
             setSummary(`Flight changes shown: ${results.length}`);
             renderTable(
-                ["Flight", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At"],
+                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At"],
                 rows
             );
         } catch (error) {
@@ -589,30 +886,35 @@
     }
 
     async function loadBookingsPerFlight() {
+        setActiveNav("nav-report");
         setSection(
             "bookingsReport",
             "Bookings Per Flight",
-            "Showing the number of active bookings for each flight."
+            "Showing the number of active bookings for each flight.",
+            { showReports: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/bookings-per-flight");
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.flightCode)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
-                    <td class="px-6 py-4 font-black text-blue-600">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
             setSummary(`Flights in report: ${results.length}`);
             renderTable(
-                ["Flight Code", "From", "To", "Departure", "Flight Status", "Bookings"],
+                ["Flight Code", "Aircraft", "From", "To", "Departure", "Flight Status", "Bookings"],
                 rows
             );
         } catch (error) {
@@ -621,22 +923,26 @@
     }
 
     async function loadPopularRoutes() {
+        setActiveNav("nav-report");
         setSection(
             "routesReport",
             "Most Popular Routes",
-            "Showing routes ranked by booking count."
+            "Showing routes ranked by booking count.",
+            { showReports: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/most-popular-routes");
             const results = getResults(data);
 
             const rows = results.map((item, index) => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">#${index + 1}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
-                    <td class="px-6 py-4 font-black text-blue-600">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
@@ -651,21 +957,25 @@
     }
 
     async function loadPeakBookingTimes() {
+        setActiveNav("nav-report");
         setSection(
             "timesReport",
             "Peak Booking Times",
-            "Showing the hours when customers make the most bookings."
+            "Showing the hours when customers make the most bookings.",
+            { showReports: true }
         );
+
+        scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/peak-booking-times");
             const results = getResults(data);
 
             const rows = results.map((item, index) => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">#${index + 1}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
                     <td class="px-6 py-4">${escapeHtml(item.bookingHour)}</td>
-                    <td class="px-6 py-4 font-black text-blue-600">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
@@ -680,34 +990,45 @@
     }
 
     async function loadComplaints() {
+        setActiveNav("nav-complaints");
         setSection(
             "complaints",
             "Complaints",
             "Showing customer complaints and allowing staff to update complaint status."
         );
 
+        scrollToPanel();
+
         try {
             const data = await fetchData("/admin/complaints");
             const results = getResults(data);
 
             const rows = results.map(item => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-bold text-slate-900">${escapeHtml(item.id)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.userId)}</td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            User #${escapeHtml(item.userId)}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
                     <td class="px-6 py-4 min-w-80">${escapeHtml(item.message)}</td>
                     <td class="px-6 py-4">${statusBadge(item.status)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
                     <td class="px-6 py-4">
                         <div class="flex gap-2">
                             <select id="complaint-status-${escapeHtml(item.id)}"
-                                    class="px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                                    class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
                                 <option value="OPEN" ${item.status === "OPEN" ? "selected" : ""}>OPEN</option>
                                 <option value="IN_REVIEW" ${item.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
                                 <option value="RESOLVED" ${item.status === "RESOLVED" ? "selected" : ""}>RESOLVED</option>
                                 <option value="CLOSED" ${item.status === "CLOSED" ? "selected" : ""}>CLOSED</option>
                             </select>
                             <button onclick="updateComplaintStatus(${Number(item.id)})"
-                                    class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">
+                                    class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
                                 Update
                             </button>
                         </div>
@@ -717,7 +1038,7 @@
 
             setSummary(`Complaints shown: ${results.length}`);
             renderTable(
-                ["ID", "User ID", "Message", "Status", "Created At", "Action"],
+                ["ID", "Customer", "Email", "Message", "Status", "Created At", "Action"],
                 rows
             );
         } catch (error) {
@@ -747,6 +1068,7 @@
             }
 
             await loadComplaints();
+            await refreshAllDashboardData();
         } catch (error) {
             showError(error);
         }
@@ -774,6 +1096,10 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", loadReservations);
+    document.addEventListener("DOMContentLoaded", async function () {
+        await refreshAllDashboardData();
+        await loadReservations(false);
+        setActiveNav("nav-dashboard");
+    });
 </script>
 {% endblock %}

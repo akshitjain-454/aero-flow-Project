@@ -3,6 +3,7 @@ package com.flightbooking.models
 import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.FlightStatus
+import com.flightbooking.enums.ComplaintStatus
 import java.time.LocalDateTime
 import java.math.BigDecimal
 
@@ -65,7 +66,8 @@ data class BookingsPerFlightReport(
     val departureTime: LocalDateTime,
     val arrivalTime: LocalDateTime,
     val flightStatus: FlightStatus,
-    val bookingCount: Long
+    val bookingCount: Long,
+    val aircraftType: String
 )
 
 data class FlightAvailabilitySummary(
@@ -80,7 +82,8 @@ data class FlightAvailabilitySummary(
     val flightStatus: FlightStatus,
     val totalSeats: Long,
     val bookedSeats: Long,
-    val availableSeats: Long
+    val availableSeats: Long,
+    val aircraftType: String
 )
 
 data class CancelledBookingSummary(
@@ -96,7 +99,8 @@ data class CancelledBookingSummary(
     val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
     val status: BookingStatus,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val aircraftType: String
 )
 
 data class CancelledFlightSummary(
@@ -106,7 +110,8 @@ data class CancelledFlightSummary(
     val arrivalAirportNameCode: String,
     val departureTime: LocalDateTime,
     val arrivalTime: LocalDateTime,
-    val status: FlightStatus
+    val status: FlightStatus,
+    val aircraftType: String
 )
 
 data class FlightChangeLogInfo(
@@ -121,7 +126,8 @@ data class FlightChangeLogInfo(
     val newDepartureTime: LocalDateTime,
     val oldArrivalTime: LocalDateTime,
     val newArrivalTime: LocalDateTime,
-    val changedAt: LocalDateTime
+    val changedAt: LocalDateTime,
+    val aircraftType: String
 )
 
 data class MostPopularRouteReport(
@@ -151,5 +157,17 @@ data class ReservationSummary(
     val departureTime: LocalDateTime,
     val bookingStatus: BookingStatus,
     val createdAt: LocalDateTime,
-    val amountPaid: BigDecimal?
+    val amountPaid: BigDecimal?,
+    val aircraftType: String
+)
+
+data class ComplaintSummary(
+    val id: Int,
+    val userId: Int,
+    val firstname: String,
+    val lastname: String,
+    val email: String,
+    val message: String,
+    val status: ComplaintStatus,
+    val createdAt: LocalDateTime
 )

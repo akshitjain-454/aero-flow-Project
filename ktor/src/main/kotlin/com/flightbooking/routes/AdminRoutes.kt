@@ -385,47 +385,74 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        
         post("/flights/{id}/update-schedule") {
-            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
-            
-            if (session.role != UserRole.ADMIN) {
-                return@post call.respond(HttpStatusCode.Forbidden,
-                mapOf("error" to "Admin only")
-                )
+            val session = call.sessions.get<UserSession>()
+
+            if (session == null || session.role != UserRole.ADMIN) {
+                call.respond(HttpStatusCode.Forbidden,mapOf("error" to "Admin only"))
+                return@post
             }
 
-            val flightId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest,mapOf("error" to "Invalid flight id"))
+            val flightId = call.parameters["id"]?.toIntOrNull()
+
+            if (flightId == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid flight id"))
+                return@post
+            }
+
             val params = call.receiveParameters()
-            val newDepartureAirportId = params["departureAirportId"]?.toIntOrNull()?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing departureAirportId"))
-            val newArrivalAirportId = params["arrivalAirportId"]?.toIntOrNull()?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing arrivalAirportId"))
-            val newDepartureTime = params["departureTime"]?.let {
-                runCatching { LocalDateTime.parse(it) }.getOrNull()} ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid departureTime"))
-            val newArrivalTime = params["arrivalTime"]?.let {
-                runCatching { LocalDateTime.parse(it) }.getOrNull()} ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid arrivalTime"))
-            val updatedFlight = adminRepository.updateFlightSchedule(
-                flightId = flightId,
-                newDepartureAirportId = newDepartureAirportId,
-                newArrivalAirportId = newArrivalAirportId,
-                newDepartureTime = newDepartureTime,
-                newArrivalTime = newArrivalTime
-            ) ?: return@post call.respond(HttpStatusCode.NotFound,
-                mapOf("error" to "Flight not found")
-            )
-            val departureAirport = flightRepository.getAirportById(updatedFlight.departureAirportId)
-            val arrivalAirport = flightRepository.getAirportById(updatedFlight.arrivalAirportId)
-            
-            call.respond(HttpStatusCode.OK,
-                mapOf(
-                    "message" to "Flight schedule updated successfully",
-                    "flightId" to updatedFlight.id,
-                    "flightCode" to updatedFlight.flightCode,
-                    "departureAirportNameCode" to "${departureAirport.name} ${departureAirport.code}",
-                    "arrivalAirportNameCode" to "${arrivalAirport.name} ${arrivalAirport.code}",
-                    "departureTime" to updatedFlight.departureTime,
-                    "arrivalTime" to updatedFlight.arrivalTime
+            val departureAirportCode = params["departureAirportCode"]?.trim()?.uppercase()
+            val arrivalAirportCode = params["arrivalAirportCode"]?.trim()?.uppercase()
+            val departureTimeText = params["departureTime"]
+            val arrivalTimeText = params["arrivalTime"]
+
+            if (departureAirportCode.isNullOrBlank() || arrivalAirportCode.isNullOrBlank() || departureTimeText.isNullOrBlank() || arrivalTimeText.isNullOrBlank()) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing departure airport code, arrival airport code, departure time, or arrival time"))
+                return@post
+            }
+
+            val departureAirportId = adminRepository.getAirportIdByCode(departureAirportCode)
+            val arrivalAirportId = adminRepository.getAirportIdByCode(arrivalAirportCode)
+
+            if (departureAirportId == null) {
+                call.respond(HttpStatusCode.BadRequest,mapOf("error" to "Departure airport code not found: $departureAirportCode"))
+                return@post
+            }
+
+            if (arrivalAirportId == null) {
+                call.respond(HttpStatusCode.BadRequest,mapOf("error" to "Arrival airport code not found: $arrivalAirportCode"))
+                return@post
+            }
+
+            try {
+                val departureTime = LocalDateTime.parse(departureTimeText)
+                val arrivalTime = LocalDateTime.parse(arrivalTimeText)
+                val updatedFlight = adminRepository.updateFlightSchedule(
+                    flightId = flightId,
+                    newDepartureAirportId = departureAirportId,
+                    newArrivalAirportId = arrivalAirportId,
+                    newDepartureTime = departureTime,
+                    newArrivalTime = arrivalTime
                 )
-            )
+
+                if (updatedFlight == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Flight not found"))
+                } else {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        mapOf(
+                            "message" to "Flight schedule updated successfully",
+                            "flight" to updatedFlight
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Invalid date time format. Use yyyy-MM-ddTHH:mm")
+                )
+            }
         }
     }
 }
