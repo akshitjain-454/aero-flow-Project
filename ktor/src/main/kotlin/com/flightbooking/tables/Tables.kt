@@ -11,6 +11,7 @@ object UserTable : Table("User") {
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 255)
     val role = enumerationByName("role", 30, UserRole::class)
+    val loyaltyPoints = integer("loyalty_points")
     val createdAt = datetime("created_at")
 
     override val primaryKey = PrimaryKey(id)
@@ -146,6 +147,7 @@ object FlightChangeLogTable : Table("FlightChangeLog") {
   val oldArrivalTime = datetime("old_arrival_time")
   val newArrivalTime = datetime("new_arrival_time")
   val changedAt = datetime("changed_at")
+  val changedByUserId = integer("changed_by_user_id").references(UserTable.id).nullable()
 
   override val primaryKey = PrimaryKey(id)
 }

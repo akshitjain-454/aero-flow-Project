@@ -4,6 +4,7 @@ import com.flightbooking.models.Booking
 import com.flightbooking.models.Seat
 import com.flightbooking.models.Payment
 import com.flightbooking.models.SeatAvailability
+import com.flightbooking.models.SelectedSeat
 import com.flightbooking.models.TicketInfo
 import com.flightbooking.models.BookingInfo
 import com.flightbooking.models.TicketAssignment
@@ -80,6 +81,38 @@ class BookingRepository {
             refundDate = null
         )
     }
+    fun getLoyaltyPointsByUserId(userId: Int): Int = transaction {
+         val currentPoints = UserTable
+            .select { UserTable.id eq userId }
+            .map { it[UserTable.loyaltyPoints] }
+            .singleOrNull() ?: throw IllegalStateException("User points not found")
+        
+            return@transaction currentPoints
+    }
+
+    fun addLoyaltyPointsByUserIdAndBookingAmount(userId: Int, amount: BigDecimal): Int = transaction {
+        val points = amount.toInt()
+        val currentPoints = getLoyaltyPointsByUserId(userId)
+
+        UserTable.update({ UserTable.id eq userId }) {
+            it[loyaltyPoints] = currentPoints + points
+        }
+
+        return@transaction points  
+    }
+
+    fun useUsersLoyaltyPoints(userId: Int, price: BigDecimal): BigDecimal = transaction {
+        val loyaltyPoints = getLoyaltyPointsByUserId(userId)
+
+        val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
+        val discountedPrice = (price - discount).max(BigDecimal.ZERO)
+
+        UserTable.update({ UserTable.id eq userId }) {
+            it[UserTable.loyaltyPoints] = 0
+        }
+
+        return@transaction discountedPrice
+    }
 
     fun addPassenger(bookingId: Int, firstname: String, lastname: String, passportCode: String?): Passenger = transaction {
         val passengerId = PassengerTable.insert {
@@ -143,21 +176,33 @@ class BookingRepository {
             return@transaction booking
         }
 
+        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
+
+        //1.Release selected seats
+        //do this by deleting ticket assignments only
+        //do not delete passengers or booking record
+        if (passengerIds.isNotEmpty()) {
+            TicketAssignmentTable.deleteWhere {
+                SqlExpressionBuilder.run {
+                    TicketAssignmentTable.passengerId inList passengerIds
+                }
+            }
+        }
+        //2.Keep the booking record,only update status to cancelled
         BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
             it[status] = BookingStatus.CANCELLED
         }
-
-        val passengerIds = getPassengersByBookingId(booking.id).map { it.id }
-
-        TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
-        PassengerTable.deleteWhere { SqlExpressionBuilder.run { PassengerTable.bookingId eq booking.id } }
-        BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
+        //3.Find original payment amount
+        val paidAmount = PaymentTable
+            .select { PaymentTable.bookingId eq booking.id }
+            .map { row -> row[PaymentTable.amount] }
+            .singleOrNull()
+        //4.Mark payment as refunded
         PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
-                it[paymentStatus] = PaymentStatus.REFUNDED;
-                it[refundAmount] = refundAmount;
-                it[refundDate] = LocalDateTime.now()
+            it[paymentStatus] = PaymentStatus.REFUNDED
+            it[refundAmount] = paidAmount
+            it[refundDate] = LocalDateTime.now()
         }
-
         booking.copy(status = BookingStatus.CANCELLED)
     }
 
@@ -206,6 +251,29 @@ class BookingRepository {
             }
     }
 
+    fun getSelectedSeatsByFlightIdAndPassengers(flightId: Int, passengers: List<Passenger>): List<SelectedSeat> = transaction { 
+        val passengerIds = passengers.map { it.id }
+
+        FlightSeatTable
+            .join(SeatTable, JoinType.INNER, FlightSeatTable.seatId, SeatTable.id )
+            .join(TicketAssignmentTable, JoinType.INNER, FlightSeatTable.id, TicketAssignmentTable.flightSeatId)
+            .select { 
+                (FlightSeatTable.flightId eq flightId) and
+                (TicketAssignmentTable.passengerId inList passengerIds)
+            }
+            .map {
+                val passengerId = it[TicketAssignmentTable.passengerId]
+                val passenger = passengers.single { p -> p.id == passengerId } //p instaed of inner it
+
+                SelectedSeat(
+                    flightSeatId = it[FlightSeatTable.id],
+                    seatNumber = it[SeatTable.seatNumber],
+                    seatClass = it[SeatTable.seatClass],
+                    passenger = passenger
+                )
+        }
+    }
+
     fun getPassengersByBookingId(bookingId: Int): List<Passenger> = transaction {
         PassengerTable
             .select { PassengerTable.bookingId eq bookingId }
@@ -248,7 +316,13 @@ class BookingRepository {
                 (TicketAssignmentTable.passengerId eq passenger.id) and 
                 (FlightSeatTable.flightId eq booking.flightId)
             }
-            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Return seat not found")
+            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Outbound seat number found")
+        
+        val flightSeatId = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passenger.id }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Outbound flight seat id found")
+
+        val seatClass = getSeatClassByFlightSeatId(flightSeatId) ?: throw IllegalStateException("Outbound seat class found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
@@ -264,6 +338,7 @@ class BookingRepository {
             passengerName = passengerName,
             bookingReference = bookingReference,
             seatNumber = seatNumber,
+            seatClass = seatClass,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
             dateTime = dateTime,
@@ -286,6 +361,12 @@ class BookingRepository {
                 (FlightSeatTable.flightId eq booking.returnFlightId)
             }
             .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Return seat not found")
+
+        val returnFlightSeatId = TicketAssignmentTable
+            .select { TicketAssignmentTable.passengerId eq passenger.id }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Return flight seat id found")
+
+        val returnSeatClass = getSeatClassByFlightSeatId(returnFlightSeatId) ?: throw IllegalStateException("Return seat class found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq returnFlight[FlightTable.departureAirportId] }
@@ -301,6 +382,7 @@ class BookingRepository {
             passengerName = passengerName,
             bookingReference = bookingReference,
             seatNumber = returnSeatNumber,
+            seatClass = returnSeatClass,
             departureAirportNameCode = departureAirportNameCode,
             arrivalAirportNameCode = arrivalAirportNameCode,
             dateTime = dateTime,
@@ -362,6 +444,8 @@ class BookingRepository {
             returnArrivalAirportNameCode = returnArrivalAirportNameCode,
             departureTime = dateTime,
             returnDepartureTime = returnDateTime,
+            //management ui combine modify
+            flightStatus = flight[FlightTable.status],
             amountPaid = amountPaid
         )
     }

@@ -3,68 +3,161 @@
 {% block title %}Management Dashboard | Aetheria Admin{% endblock %}
 
 {% block extra_css %}
-    <style>
-        body {
-            background-color: #f8fafc;
-            color: #1e293b;
-            margin: 0;
-            overflow: hidden;
-        }
-        
-        .chart-placeholder {
-            background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-    </style>
+<style>
+    body {
+        background-color: #f8fafc;
+        color: #1e293b;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .admin-link.active {
+        background-color: #eff6ff;
+        color: var(--sky-blue);
+        font-weight: 700;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .status-confirmed,
+    .status-completed,
+    .status-resolved,
+    .status-closed,
+    .status-scheduled {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .status-created,
+    .status-pending,
+    .status-open,
+    .status-in_review,
+    .status-delayed {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+
+    .status-cancelled,
+    .status-failed {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-refunded {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .chart-axis {
+        border-left: 2px solid #cbd5e1;
+        border-bottom: 2px solid #cbd5e1;
+    }
+
+    .chart-bg {
+        background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+        background-size: 18px 18px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="flex h-screen w-full bg-slate-50 pt-20">
-    
+
     <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-10">
         <div class="p-6 border-b border-gray-100">
             <h2 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Welcome back,</h2>
             <p class="text-sm font-bold text-[--sky-blue]">Staff {{ userInitials | default('Admin') }}</p>
         </div>
-        
+
         <nav class="flex-1 overflow-y-auto py-4">
             <ul class="space-y-1 px-3">
                 <li>
-                    <a href="/admin" class="flex items-center px-4 py-3 bg-blue-50 text-[--sky-blue] rounded-lg text-sm font-bold transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    <a id="nav-dashboard" href="javascript:void(0)" onclick="showDashboardOverview()"
+                       class="admin-link active flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                            </path>
+                        </svg>
                         Dashboard
                     </a>
                 </li>
+
                 <li>
-                    <a href="/admin/changes" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <a id="nav-changes" href="javascript:void(0)" onclick="loadFlightChanges()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
+                            </path>
+                        </svg>
                         Changes and Cancellations
                     </a>
                 </li>
+
                 <li>
-                    <a href="/admin/flights" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <a id="nav-flights" href="javascript:void(0)" onclick="loadFlightAvailability()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
                         Flights and Available
                     </a>
                 </li>
+
                 <li>
-                    <a href="/admin/report" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <a id="nav-report" href="javascript:void(0)" onclick="loadBookingsPerFlight()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
                         Report
                     </a>
                 </li>
+
                 <li>
-                    <a href="/admin/reservation" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <a id="nav-reservation" href="javascript:void(0)" onclick="loadReservations()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                            </path>
+                        </svg>
                         Reservation
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-complaints" href="javascript:void(0)" onclick="loadComplaints()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z">
+                            </path>
+                        </svg>
+                        Complaints
                     </a>
                 </li>
             </ul>
         </nav>
-        
+
         <div class="p-4 border-t border-gray-100">
             <form action="/logout" method="POST">
-                <button type="submit" class="w-full flex items-center justify-center px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors">
+                <button type="submit"
+                        class="w-full flex items-center justify-center px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors">
                     Log out
                 </button>
             </form>
@@ -73,96 +166,1182 @@
 
     <main class="flex-1 overflow-y-auto p-8 h-full">
         <div class="max-w-6xl mx-auto pb-20">
-            
-            <header class="mb-8 flex justify-between items-end">
-                <div>
-                    <h1 class="text-3xl font-bold text-[--charcoal] serif">Dashboard Overview</h1>
-                    <p class="text-sm text-gray-500 mt-1">Today's flight operations and metrics</p>
-                </div>
-            </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">New Bookings Today</p>
-                    <p class="text-3xl font-bold text-[--charcoal]">142</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Cancellations Today</p>
-                    <p class="text-3xl font-bold text-red-500">12</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Changes Today</p>
-                    <p class="text-3xl font-bold text-orange-400">28</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Today's Total Passengers</p>
-                    <p class="text-3xl font-bold text-[--sky-blue]">1,845</p>
-                </div>
-            </div>
+            <section id="dashboardOverview">
+                <header class="mb-8 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-3xl font-bold text-[--charcoal] serif">Dashboard Overview</h1>
+                        <p class="text-sm text-gray-500 mt-1">Live flight operations and management metrics</p>
+                    </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">Booking Trends</h3>
-                    <div class="w-full h-64 chart-placeholder border-l-2 border-b-2 border-gray-300 relative">
-                        <svg class="absolute inset-0 h-full w-full" preserveAspectRatio="none">
-                            <polyline points="0,200 50,150 150,150 250,50 350,80 450,20" fill="none" stroke="var(--sky-blue)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button onclick="refreshAllDashboardData()"
+                            class="px-4 py-2 rounded-lg bg-[--sky-blue] text-white text-sm font-bold hover:opacity-90">
+                        Refresh Overview
+                    </button>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Total Reservations</p>
+                        <p id="overviewReservations" class="text-3xl font-bold text-[--charcoal]">-</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Cancelled Bookings</p>
+                        <p id="overviewCancelledBookings" class="text-3xl font-bold text-red-500">-</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Flight Changes</p>
+                        <p id="overviewChanges" class="text-3xl font-bold text-orange-400">-</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Available Seats</p>
+                        <p id="overviewAvailableSeats" class="text-3xl font-bold text-[--sky-blue]">-</p>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">Top 5 Popular Routes</h3>
-                    <div class="w-full h-64 border-l-2 border-b-2 border-gray-300 relative flex items-end justify-around pb-0 px-4">
-                        <div class="w-12 bg-blue-200 rounded-t-sm h-[40%]"></div>
-                        <div class="w-12 bg-[--sky-blue] rounded-t-sm h-[80%]"></div>
-                        <div class="w-12 bg-blue-300 rounded-t-sm h-[60%]"></div>
-                        <div class="w-12 bg-blue-100 rounded-t-sm h-[30%]"></div>
-                        <div class="w-12 bg-blue-400 rounded-t-sm h-[95%]"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
+                            Peak Booking Times
+                        </h3>
+                        <div id="peakTimesChart" class="w-full min-h-64 chart-bg chart-axis px-6 py-6">
+                            <p class="text-sm text-gray-400">Loading peak booking times...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
+                            Top 5 Popular Routes
+                        </h3>
+                        <div id="popularRoutesChart" class="w-full h-64 chart-axis flex items-end gap-5 px-6 pb-0 overflow-hidden">
+                            <p class="text-sm text-gray-400">Loading popular routes...</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
-                    <h3 class="text-sm uppercase tracking-widest font-bold text-red-500 mb-4">Abnormal Alerts</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start gap-3 pb-4 border-b border-gray-50">
-                            <div class="w-2 h-2 mt-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
-                            <div>
-                                <p class="text-sm font-bold text-gray-800">High cancellation rate</p>
-                                <p class="text-xs text-gray-500">Flight AE-402 (LHR to JFK) experienced 15% cancellations in the last 2 hours.</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <div class="w-2 h-2 mt-1.5 rounded-full bg-orange-400 flex-shrink-0"></div>
-                            <div>
-                                <p class="text-sm font-bold text-gray-800">Sudden drop in remaining seats</p>
-                                <p class="text-xs text-gray-500">Flight AE-881 (DXB to SIN) capacity dropped from 40 to 2 in 10 minutes.</p>
-                            </div>
-                        </li>
-                    </ul>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-red-500 mb-4">Management Checks</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3 pb-4 border-b border-gray-50">
+                                <div class="w-2 h-2 mt-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">Cancellations tracking</p>
+                                    <p class="text-xs text-gray-500">
+                                        Cancelled bookings and cancelled flights are available in the Changes and Cancellations section.
+                                    </p>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start gap-3">
+                                <div class="w-2 h-2 mt-1.5 rounded-full bg-orange-400 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">Flight availability tracking</p>
+                                    <p class="text-xs text-gray-500">
+                                        Seat availability updates after bookings are created or cancelled.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">Recent Operation Log</h3>
+                        <ul id="recentOperationLog" class="space-y-4">
+                            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
+                                <span class="font-bold">System</span> loading dashboard data.
+                                <span class="text-xs text-gray-400 block mt-1">Now</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="managementPanel" class="mt-10 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <h2 id="sectionTitle" class="text-2xl font-bold text-[--charcoal] serif">Reservations</h2>
+                        <p id="sectionDescription" class="text-sm text-gray-500 mt-1">
+                            Showing all reservations made through the system.
+                        </p>
+                    </div>
+
+                    <div id="filterBox" class="flex flex-wrap gap-2">
+                        <input id="filterFrom" type="text" placeholder="From code, e.g. LBA"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
+                        <input id="filterTo" type="text" placeholder="To code, e.g. DXB"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
+                        <input id="filterDate" type="date"
+                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        <select id="filterStatus"
+                                class="px-3 py-2 border border-gray-200 rounded-lg text-sm hidden">
+                            <option value="">All Status</option>
+                            <option value="CREATED">CREATED</option>
+                            <option value="CONFIRMED">CONFIRMED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                        <button onclick="loadCurrentSection()"
+                                class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                            Apply
+                        </button>
+                        <button onclick="clearFilters()"
+                                class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                            Clear
+                        </button>
+                    </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">Recent Operation Log</h3>
-                    <ul class="space-y-4">
-                        <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
-                            <span class="font-bold">Staff_John</span> approved change request for Booking #B-9921
-                            <span class="text-xs text-gray-400 block mt-1">10 mins ago</span>
-                        </li>
-                        <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
-                            <span class="font-bold">System</span> automatically cancelled unconfirmed Booking #B-9844
-                            <span class="text-xs text-gray-400 block mt-1">45 mins ago</span>
-                        </li>
-                        <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
-                            <span class="font-bold">Staff_Sarah</span> updated capacity for Flight AE-110
-                            <span class="text-xs text-gray-400 block mt-1">1 hour ago</span>
-                        </li>
-                    </ul>
+                <div id="reportSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadBookingsPerFlight()"
+                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                            Bookings Per Flight
+                        </button>
+                        <button onclick="loadPopularRoutes()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Popular Routes
+                        </button>
+                        <button onclick="loadPeakBookingTimes()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Peak Times
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
+
+                <div id="changesSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadFlightChanges()"
+                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                            Flight Changes
+                        </button>
+                        <button onclick="loadCancelledBookings()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Cancelled Bookings
+                        </button>
+                        <button onclick="loadCancelledFlights()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
+                            Cancelled Flights
+                        </button>
+                    </div>
+                </div>
+
+                <div id="summaryBox" class="px-6 py-4 bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
+                    Loading summary...
+                </div>
+
+                <div id="loadingMessage" class="p-8 text-center text-gray-500 hidden">
+                    Loading data...
+                </div>
+
+                <div id="errorMessage" class="p-8 text-center text-red-600 hidden">
+                    Failed to load data.
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead id="tableHead" class="bg-gray-50 text-gray-600 uppercase text-xs"></thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+
         </div>
     </main>
 </div>
+
+<div id="flightEditModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-bold text-[--charcoal] serif">Edit Flight Information</h3>
+                <p id="editFlightSubtitle" class="text-sm text-gray-500 mt-1">Update route, time, or status.</p>
+            </div>
+
+            <button onclick="closeFlightEditModal()"
+                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">
+                &times;
+            </button>
+        </div>
+
+        <div class="p-6">
+            <input id="editFlightId" type="hidden">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Departure Airport Code
+                    </label>
+                    <input id="editDepartureAirportCode" type="text" placeholder="e.g. LBA"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Arrival Airport Code
+                    </label>
+                    <input id="editArrivalAirportCode" type="text" placeholder="e.g. DXB"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Departure Time
+                    </label>
+                    <input id="editDepartureTime" type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Arrival Time
+                    </label>
+                    <input id="editArrivalTime" type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Flight Status
+                    </label>
+                    <select id="editFlightStatus"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        <option value="SCHEDULED">SCHEDULED</option>
+                        <option value="DELAYED">DELAYED</option>
+                        <option value="ARRIVED">ARRIVED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                        Aircraft
+                    </label>
+                    <input id="editAircraftType" type="text" disabled
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500">
+                    <p class="text-xs text-gray-400 mt-1">Aircraft type is display-only.</p>
+                </div>
+            </div>
+
+            <div id="flightEditError" class="hidden mt-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm"></div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+            <button onclick="closeFlightEditModal()"
+                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                Cancel
+            </button>
+            <button onclick="saveFlightEdit()"
+                    class="px-4 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSection = "reservations";
+
+    function setActiveNav(navId) {
+        document.querySelectorAll(".admin-link").forEach(link => {
+            link.classList.remove("active");
+            link.classList.add("text-gray-600");
+        });
+
+        const active = document.getElementById(navId);
+        if (active) {
+            active.classList.add("active");
+            active.classList.remove("text-gray-600");
+        }
+    }
+
+    function scrollToPanel() {
+        const panel = document.getElementById("managementPanel");
+        if (panel) {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function showDashboardOverview() {
+        setActiveNav("nav-dashboard");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        refreshAllDashboardData();
+    }
+
+    function setSection(section, title, description, options = {}) {
+        currentSection = section;
+
+        document.getElementById("sectionTitle").textContent = title;
+        document.getElementById("sectionDescription").textContent = description;
+
+        const filterBox = document.getElementById("filterBox");
+        const statusFilter = document.getElementById("filterStatus");
+        const reportSwitcher = document.getElementById("reportSwitcher");
+        const changesSwitcher = document.getElementById("changesSwitcher");
+
+        const sectionsWithFilters = [
+            "reservations",
+            "availability",
+            "cancelledBookings",
+            "cancelledFlights",
+            "changes"
+        ];
+
+        if (sectionsWithFilters.includes(section)) {
+            filterBox.classList.remove("hidden");
+        } else {
+            filterBox.classList.add("hidden");
+        }
+
+        if (section === "reservations") {
+            statusFilter.classList.remove("hidden");
+        } else {
+            statusFilter.classList.add("hidden");
+        }
+
+        if (options.showReports) {
+            reportSwitcher.classList.remove("hidden");
+        } else {
+            reportSwitcher.classList.add("hidden");
+        }
+
+        if (options.showChanges) {
+            changesSwitcher.classList.remove("hidden");
+        } else {
+            changesSwitcher.classList.add("hidden");
+        }
+    }
+
+    function showLoading() {
+        document.getElementById("loadingMessage").classList.remove("hidden");
+        document.getElementById("errorMessage").classList.add("hidden");
+        document.getElementById("tableHead").innerHTML = "";
+        document.getElementById("tableBody").innerHTML = "";
+        document.getElementById("summaryBox").textContent = "Loading summary...";
+    }
+
+    function hideLoading() {
+        document.getElementById("loadingMessage").classList.add("hidden");
+    }
+
+    function showError(error) {
+        console.error(error);
+        hideLoading();
+        document.getElementById("errorMessage").classList.remove("hidden");
+        document.getElementById("summaryBox").textContent =
+            "Could not load this section. Check browser Console or Network tab.";
+    }
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return "-";
+
+        return value.toString()
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function escapeJsString(value) {
+        if (value === null || value === undefined) return "";
+        return value.toString()
+            .replaceAll("\\", "\\\\")
+            .replaceAll("'", "\\'")
+            .replaceAll("\n", " ")
+            .replaceAll("\r", " ");
+    }
+
+    function formatDateTime(value) {
+        if (!value) return "-";
+
+        if (typeof value === "string") {
+            return value.replace("T", " ").substring(0, 16);
+        }
+
+        return value.toString();
+    }
+
+    function formatMoney(value) {
+        if (value === null || value === undefined || value === "") return "-";
+        return "£" + value;
+    }
+
+    function statusBadge(status) {
+        if (!status) return "-";
+
+        const className = "status-" + status.toString().toLowerCase();
+
+        return `<span class="status-badge ${className}">
+            ${escapeHtml(status)}
+        </span>`;
+    }
+
+    function getFilterQuery(includeStatus) {
+        const params = new URLSearchParams();
+
+        const from = document.getElementById("filterFrom").value.trim().toUpperCase();
+        const to = document.getElementById("filterTo").value.trim().toUpperCase();
+        const date = document.getElementById("filterDate").value;
+        const status = document.getElementById("filterStatus").value;
+
+        if (from) params.append("from", from);
+        if (to) params.append("to", to);
+        if (date) params.append("date", date);
+        if (includeStatus && status) params.append("status", status);
+
+        const query = params.toString();
+        return query ? "?" + query : "";
+    }
+
+    function clearFilters() {
+        document.getElementById("filterFrom").value = "";
+        document.getElementById("filterTo").value = "";
+        document.getElementById("filterDate").value = "";
+        document.getElementById("filterStatus").value = "";
+        loadCurrentSection();
+    }
+
+    async function fetchData(url) {
+        showLoading();
+
+        const response = await fetch(url, {
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.status + " " + url);
+        }
+
+        const data = await response.json();
+        hideLoading();
+
+        return data;
+    }
+
+    async function fetchSilent(url) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    function getResults(data) {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        return data.results || [];
+    }
+
+    function renderTable(headers, rows) {
+        const head = document.getElementById("tableHead");
+        const body = document.getElementById("tableBody");
+
+        head.innerHTML = `
+            <tr>
+                ${headers.map(header => `
+                    <th class="px-6 py-3 font-black whitespace-nowrap">${escapeHtml(header)}</th>
+                `).join("")}
+            </tr>
+        `;
+
+        if (!rows || rows.length === 0) {
+            body.innerHTML = `
+                <tr>
+                    <td colspan="${headers.length}" class="px-6 py-10 text-center text-gray-500">
+                        No data available.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        body.innerHTML = rows.join("");
+    }
+
+    function setSummary(text) {
+        document.getElementById("summaryBox").textContent = text;
+    }
+
+    function renderPopularRoutesChart(routes) {
+        const chart = document.getElementById("popularRoutesChart");
+
+        if (!routes || routes.length === 0) {
+            chart.innerHTML = `<p class="text-sm text-gray-400">No route data available.</p>`;
+            return;
+        }
+
+        const topRoutes = routes.slice(0, 5);
+        const maxBookings = Math.max(...topRoutes.map(route => Number(route.bookingCount || 0)), 1);
+
+        chart.innerHTML = topRoutes.map(route => {
+            const count = Number(route.bookingCount || 0);
+            const height = Math.max((count / maxBookings) * 100, 8);
+
+            return `
+                <div class="flex flex-col items-center justify-end h-full flex-1 min-w-0">
+                    <div class="text-xs font-bold text-gray-700 mb-2">${count}</div>
+                    <div class="w-full max-w-14 bg-[--sky-blue] rounded-t-md"
+                         style="height: ${height}%; min-height: 18px;">
+                    </div>
+                    <div class="text-[10px] text-gray-500 mt-2 text-center leading-tight w-full truncate"
+                         title="${escapeHtml(route.departureAirportNameCode)} → ${escapeHtml(route.arrivalAirportNameCode)}">
+                        ${escapeHtml(route.departureAirportNameCode)}
+                        <br>
+                        →
+                        <br>
+                        ${escapeHtml(route.arrivalAirportNameCode)}
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderPeakTimesChart(times) {
+        const chart = document.getElementById("peakTimesChart");
+
+        if (!times || times.length === 0) {
+            chart.innerHTML = `<p class="text-sm text-gray-400">No peak booking data available.</p>`;
+            return;
+        }
+
+        const topTimes = times.slice(0, 5);
+        const maxBookings = Math.max(...topTimes.map(item => Number(item.bookingCount || 0)), 1);
+
+        chart.innerHTML = topTimes.map((item, index) => {
+            const count = Number(item.bookingCount || 0);
+            const width = Math.max((count / maxBookings) * 100, 8);
+
+            return `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-bold text-gray-700">#${index + 1} ${escapeHtml(item.bookingHour)}</span>
+                        <span class="font-bold text-[--sky-blue]">${count}</span>
+                    </div>
+                    <div class="w-full bg-blue-50 rounded-full h-3 overflow-hidden">
+                        <div class="bg-[--sky-blue] h-3 rounded-full" style="width: ${width}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function refreshAllDashboardData() {
+        const reservationsData = await fetchSilent("/admin/reservations");
+        const cancelledData = await fetchSilent("/admin/bookings/cancelled");
+        const changesData = await fetchSilent("/admin/flights/changes");
+        const availabilityData = await fetchSilent("/admin/flights/availability");
+        const popularRoutesData = await fetchSilent("/admin/reports/most-popular-routes");
+        const peakTimesData = await fetchSilent("/admin/reports/peak-booking-times");
+
+        const reservations = getResults(reservationsData);
+        const cancelled = getResults(cancelledData);
+        const changes = getResults(changesData);
+        const availability = getResults(availabilityData);
+        const popularRoutes = getResults(popularRoutesData);
+        const peakTimes = getResults(peakTimesData);
+
+        document.getElementById("overviewReservations").textContent = reservations.length;
+        document.getElementById("overviewCancelledBookings").textContent = cancelled.length;
+        document.getElementById("overviewChanges").textContent = changes.length;
+
+        const availableSeats = availability.reduce((sum, item) => {
+            return sum + Number(item.availableSeats || 0);
+        }, 0);
+
+        document.getElementById("overviewAvailableSeats").textContent = availableSeats.toLocaleString();
+
+        renderPopularRoutesChart(popularRoutes);
+        renderPeakTimesChart(peakTimes);
+
+        const log = document.getElementById("recentOperationLog");
+
+        log.innerHTML = `
+            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
+                <span class="font-bold">System</span> loaded ${reservations.length} reservations.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
+                <span class="font-bold">System</span> found ${cancelled.length} cancelled bookings.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
+                <span class="font-bold">System</span> found ${changes.length} flight changes.
+                <span class="text-xs text-gray-400 block mt-1">Now</span>
+            </li>
+        `;
+    }
+
+    async function loadReservations(shouldScroll = true) {
+        setActiveNav("nav-reservation");
+        setSection(
+            "reservations",
+            "Reservations",
+            "Showing all reservations made through the system."
+        );
+
+        if (shouldScroll) scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/reservations" + getFilterQuery(true));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                    <td class="px-6 py-4 font-semibold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
+                    <td class="px-6 py-4 font-bold">${formatMoney(item.amountPaid)}</td>
+                </tr>
+            `);
+
+            setSummary(`Total reservations shown: ${results.length}`);
+            renderTable(
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Paid"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadFlightAvailability() {
+        setActiveNav("nav-flights");
+        setSection(
+            "availability",
+            "Flight Availability",
+            "Showing booked seats, available seats, and editable flight information."
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/flights/availability" + getFilterQuery(false));
+            const results = getResults(data);
+
+            const totalAvailable = results.reduce((sum, item) => sum + Number(item.availableSeats || 0), 0);
+            const totalBooked = results.reduce((sum, item) => sum + Number(item.bookedSeats || 0), 0);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.totalSeats)}</td>
+                    <td class="px-6 py-4 font-bold text-red-600">${escapeHtml(item.bookedSeats)}</td>
+                    <td class="px-6 py-4 font-bold text-green-600">${escapeHtml(item.availableSeats)}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="openFlightEditModalByValues(
+                                    ${Number(item.flightId)},
+                                    '${escapeJsString(item.flightCode)}',
+                                    '${escapeJsString(item.departureAirportNameCode)}',
+                                    '${escapeJsString(item.arrivalAirportNameCode)}',
+                                    '${escapeJsString(item.departureTime)}',
+                                    '${escapeJsString(item.arrivalTime)}',
+                                    '${escapeJsString(item.flightStatus)}',
+                                    '${escapeJsString(item.aircraftType)}'
+                                )"
+                                class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            `);
+
+            setSummary(`Flights shown: ${results.length} | Booked seats: ${totalBooked} | Available seats: ${totalAvailable}`);
+            renderTable(
+                ["Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Total Seats", "Booked", "Available", "Action"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadCancelledBookings() {
+        setActiveNav("nav-changes");
+        setSection(
+            "cancelledBookings",
+            "Cancelled Bookings",
+            "Showing customer bookings that have been cancelled.",
+            { showChanges: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/bookings/cancelled" + getFilterQuery(false));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                    <td class="px-6 py-4 font-semibold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.status)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                </tr>
+            `);
+
+            setSummary(`Cancelled bookings shown: ${results.length}`);
+            renderTable(
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Created At"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadCancelledFlights() {
+        setActiveNav("nav-changes");
+        setSection(
+            "cancelledFlights",
+            "Cancelled Flights",
+            "Showing flights with CANCELLED status.",
+            { showChanges: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/flights/cancelled" + getFilterQuery(false));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.status)}</td>
+                </tr>
+            `);
+
+            setSummary(`Cancelled flights shown: ${results.length}`);
+            renderTable(
+                ["Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadFlightChanges() {
+        setActiveNav("nav-changes");
+        setSection(
+            "changes",
+            "Flight Changes",
+            "Showing flight route and schedule changes.",
+            { showChanges: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/flights/changes" + getFilterQuery(false));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.oldDepartureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.newDepartureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.oldArrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.newArrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldDepartureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newDepartureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldArrivalTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newArrivalTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.changedAt)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.changedByName || "Unknown")}</td>
+                </tr>
+            `);
+
+            setSummary(`Flight changes shown: ${results.length}`);
+            renderTable(
+                ["Flight", "Aircraft", "Status", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Old Arrival", "New Arrival", "Changed At", "Changed By"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadBookingsPerFlight() {
+        setActiveNav("nav-report");
+        setSection(
+            "bookingsReport",
+            "Bookings Per Flight",
+            "Showing the number of active bookings for each flight.",
+            { showReports: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/reports/bookings-per-flight");
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                </tr>
+            `);
+
+            setSummary(`Flights in report: ${results.length}`);
+            renderTable(
+                ["Flight Code", "Aircraft", "From", "To", "Departure", "Arrival", "Flight Status", "Bookings"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadPopularRoutes() {
+        setActiveNav("nav-report");
+        setSection(
+            "routesReport",
+            "Most Popular Routes",
+            "Showing routes ranked by booking count.",
+            { showReports: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/reports/most-popular-routes");
+            const results = getResults(data);
+
+            const rows = results.map((item, index) => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                </tr>
+            `);
+
+            setSummary(`Routes in report: ${results.length}`);
+            renderTable(
+                ["Rank", "From", "To", "Bookings"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadPeakBookingTimes() {
+        setActiveNav("nav-report");
+        setSection(
+            "timesReport",
+            "Peak Booking Times",
+            "Showing the hours when customers make the most bookings.",
+            { showReports: true }
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/reports/peak-booking-times");
+            const results = getResults(data);
+
+            const rows = results.map((item, index) => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.bookingHour)}</td>
+                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                </tr>
+            `);
+
+            setSummary(`Time slots in report: ${results.length}`);
+            renderTable(
+                ["Rank", "Booking Hour", "Bookings"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function loadComplaints() {
+        setActiveNav("nav-complaints");
+        setSection(
+            "complaints",
+            "Complaints",
+            "Showing customer complaints and allowing staff to update complaint status."
+        );
+
+        scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/complaints");
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            User #${escapeHtml(item.userId)}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                    <td class="px-6 py-4 min-w-80">${escapeHtml(item.message)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.status)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <select id="complaint-status-${escapeHtml(item.id)}"
+                                    class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                                <option value="OPEN" ${item.status === "OPEN" ? "selected" : ""}>OPEN</option>
+                                <option value="IN_REVIEW" ${item.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
+                                <option value="RESOLVED" ${item.status === "RESOLVED" ? "selected" : ""}>RESOLVED</option>
+                                <option value="CLOSED" ${item.status === "CLOSED" ? "selected" : ""}>CLOSED</option>
+                            </select>
+                            <button onclick="updateComplaintStatus(${Number(item.id)})"
+                                    class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                                Update
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
+
+            setSummary(`Complaints shown: ${results.length}`);
+            renderTable(
+                ["ID", "Customer", "Email", "Message", "Status", "Created At", "Action"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function updateComplaintStatus(complaintId) {
+        const select = document.getElementById("complaint-status-" + complaintId);
+        if (!select) return;
+
+        const formData = new URLSearchParams();
+        formData.append("status", select.value);
+
+        try {
+            const response = await fetch("/admin/complaints/" + complaintId + "/status", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: formData.toString()
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update complaint status: " + response.status);
+            }
+
+            await loadComplaints();
+            await refreshAllDashboardData();
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    function extractAirportCode(nameCode) {
+        if (!nameCode) return "";
+
+        const parts = nameCode.toString().trim().split(/\s+/);
+        return parts.length > 0 ? parts[parts.length - 1].toUpperCase() : "";
+    }
+
+    function toDatetimeLocalValue(value) {
+        if (!value) return "";
+
+        if (typeof value === "string") {
+            return value.substring(0, 16);
+        }
+
+        return value.toString().substring(0, 16);
+    }
+
+    function openFlightEditModalByValues(
+        flightId,
+        flightCode,
+        departureAirportNameCode,
+        arrivalAirportNameCode,
+        departureTime,
+        arrivalTime,
+        flightStatus,
+        aircraftType
+    ) {
+        document.getElementById("editFlightId").value = flightId;
+        document.getElementById("editFlightSubtitle").textContent =
+            "Editing " + flightCode + " | " + departureAirportNameCode + " → " + arrivalAirportNameCode;
+
+        document.getElementById("editDepartureAirportCode").value =
+            extractAirportCode(departureAirportNameCode);
+
+        document.getElementById("editArrivalAirportCode").value =
+            extractAirportCode(arrivalAirportNameCode);
+
+        document.getElementById("editDepartureTime").value =
+            toDatetimeLocalValue(departureTime);
+
+        document.getElementById("editArrivalTime").value =
+            toDatetimeLocalValue(arrivalTime);
+
+        document.getElementById("editFlightStatus").value = flightStatus || "SCHEDULED";
+        document.getElementById("editAircraftType").value = aircraftType || "-";
+
+        document.getElementById("flightEditError").classList.add("hidden");
+        document.getElementById("flightEditModal").classList.remove("hidden");
+        document.getElementById("flightEditModal").classList.add("flex");
+    }
+
+    function closeFlightEditModal() {
+        document.getElementById("flightEditModal").classList.add("hidden");
+        document.getElementById("flightEditModal").classList.remove("flex");
+    }
+
+    function showFlightEditError(message) {
+        const errorBox = document.getElementById("flightEditError");
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+    }
+
+    async function saveFlightEdit() {
+        const flightId = document.getElementById("editFlightId").value;
+        const departureAirportCode = document.getElementById("editDepartureAirportCode").value.trim().toUpperCase();
+        const arrivalAirportCode = document.getElementById("editArrivalAirportCode").value.trim().toUpperCase();
+        const departureTime = document.getElementById("editDepartureTime").value;
+        const arrivalTime = document.getElementById("editArrivalTime").value;
+        const status = document.getElementById("editFlightStatus").value;
+
+        if (!flightId || !departureAirportCode || !arrivalAirportCode || !departureTime || !arrivalTime || !status) {
+            showFlightEditError("Please fill in all required fields.");
+            return;
+        }
+
+        try {
+            const scheduleForm = new URLSearchParams();
+            scheduleForm.append("departureAirportCode", departureAirportCode);
+            scheduleForm.append("arrivalAirportCode", arrivalAirportCode);
+            scheduleForm.append("departureTime", departureTime);
+            scheduleForm.append("arrivalTime", arrivalTime);
+
+            const scheduleResponse = await fetch("/admin/flights/" + flightId + "/update-schedule", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: scheduleForm.toString()
+            });
+
+            if (!scheduleResponse.ok) {
+                const text = await scheduleResponse.text();
+                throw new Error("Failed to update flight schedule: " + scheduleResponse.status + " " + text);
+            }
+
+            const statusForm = new URLSearchParams();
+            statusForm.append("status", status);
+
+            const statusResponse = await fetch("/admin/flights/" + flightId + "/status", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: statusForm.toString()
+            });
+
+            if (!statusResponse.ok) {
+                const text = await statusResponse.text();
+                throw new Error("Failed to update flight status: " + statusResponse.status + " " + text);
+            }
+
+            closeFlightEditModal();
+            await loadFlightAvailability();
+            await refreshAllDashboardData();
+        } catch (error) {
+            console.error(error);
+            showFlightEditError(error.message || "Failed to update flight.");
+        }
+    }
+
+    function loadCurrentSection() {
+        if (currentSection === "reservations") {
+            loadReservations();
+        } else if (currentSection === "availability") {
+            loadFlightAvailability();
+        } else if (currentSection === "cancelledBookings") {
+            loadCancelledBookings();
+        } else if (currentSection === "cancelledFlights") {
+            loadCancelledFlights();
+        } else if (currentSection === "changes") {
+            loadFlightChanges();
+        } else if (currentSection === "bookingsReport") {
+            loadBookingsPerFlight();
+        } else if (currentSection === "routesReport") {
+            loadPopularRoutes();
+        } else if (currentSection === "timesReport") {
+            loadPeakBookingTimes();
+        } else if (currentSection === "complaints") {
+            loadComplaints();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        await refreshAllDashboardData();
+        await loadReservations(false);
+        setActiveNav("nav-dashboard");
+    });
+</script>
 {% endblock %}

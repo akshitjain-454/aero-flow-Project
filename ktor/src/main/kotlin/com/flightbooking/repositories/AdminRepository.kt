@@ -15,6 +15,7 @@ import com.flightbooking.tables.TicketAssignmentTable
 import com.flightbooking.tables.FlightChangeLogTable
 import com.flightbooking.tables.AirportTable
 import com.flightbooking.tables.UserTable
+import com.flightbooking.tables.AircraftTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -36,7 +37,19 @@ class AdminRepository {
     fun getBookingsPerFlightReport(): List<BookingsPerFlightReport> = transaction {
         val bookingCountExpr = BookingTable.id.count()
 
-        (BookingTable innerJoin FlightTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+                .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .slice(
                 FlightTable.id,
                 FlightTable.flightCode,
@@ -45,6 +58,7 @@ class AdminRepository {
                 FlightTable.departureTime,
                 FlightTable.arrivalTime,
                 FlightTable.status,
+                AircraftTable.type,
                 bookingCountExpr
             )
             .select { BookingTable.status neq BookingStatus.CANCELLED }
@@ -55,7 +69,8 @@ class AdminRepository {
                 FlightTable.arrivalAirportId,
                 FlightTable.departureTime,
                 FlightTable.arrivalTime,
-                FlightTable.status
+                FlightTable.status,
+                AircraftTable.type
             )
             .orderBy(bookingCountExpr, SortOrder.DESC)
             .map { row ->
@@ -69,6 +84,7 @@ class AdminRepository {
                     departureTime = row[FlightTable.departureTime],
                     arrivalTime = row[FlightTable.arrivalTime],
                     flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
                     bookingCount = row[bookingCountExpr]
                 )
             }
@@ -78,7 +94,13 @@ class AdminRepository {
 
         val bookingCountExpr = BookingTable.id.count()
 
-        (BookingTable innerJoin FlightTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
             .slice(
                 FlightTable.departureAirportId,
                 FlightTable.arrivalAirportId,
@@ -150,7 +172,8 @@ class AdminRepository {
             departureTime = flight.departureTime,
             arrivalTime = flight.arrivalTime,
             flightStatus = flight.status,
-            bookingCount = bookingCount
+            bookingCount = bookingCount,
+            aircraftType = getAircraftTypeById(flight.aircraftId)
         )
     }
 
@@ -191,6 +214,12 @@ class AdminRepository {
                 FlightSeatTable.id,
                 TicketAssignmentTable.flightSeatId
                 )
+                .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .slice(
                 FlightTable.id,
                 FlightTable.flightCode,
@@ -199,6 +228,7 @@ class AdminRepository {
                 FlightTable.departureTime,
                 FlightTable.arrivalTime,
                 FlightTable.status,
+                AircraftTable.type,
                 totalSeatsExpr,
                 bookedSeatsExpr
             )
@@ -210,7 +240,8 @@ class AdminRepository {
                 FlightTable.arrivalAirportId,
                 FlightTable.departureTime,
                 FlightTable.arrivalTime,
-                FlightTable.status
+                FlightTable.status,
+                AircraftTable.type
             )
             .orderBy(FlightTable.departureTime, SortOrder.ASC)
             .map { row ->
@@ -227,26 +258,14 @@ class AdminRepository {
                     departureTime = row[FlightTable.departureTime],
                     arrivalTime = row[FlightTable.arrivalTime],
                     flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
                     totalSeats = totalSeats,
                     bookedSeats = bookedSeats,
                     availableSeats = totalSeats - bookedSeats
                 )
             }
     }
-    // fun getCancelledBookings(): List<CancelledBookingSummary> = transaction {
-    //     BookingTable
-    //         .select { BookingTable.status eq BookingStatus.CANCELLED }
-    //         .orderBy(BookingTable.createdAt, SortOrder.DESC)
-    //         .map { row ->
-    //             CancelledBookingSummary(
-    //                 bookingId = row[BookingTable.id],
-    //                 bookingReference = row[BookingTable.bookingReference],
-    //                 userId = row[BookingTable.userId],
-    //                 flightId = row[BookingTable.flightId],
-    //                 createdAt = row[BookingTable.createdAt]
-    //             )
-    //         }
-    // }
+
     fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
         var selectCondition: Op<Boolean> = (BookingTable.status eq BookingStatus.CANCELLED)
 
@@ -269,7 +288,25 @@ class AdminRepository {
                 (FlightTable.departureTime greaterEq dayStart) and
                 (FlightTable.departureTime lessEq dayEnd)
         }
-        (BookingTable innerJoin FlightTable innerJoin UserTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                BookingTable.userId,
+                UserTable.id
+            )
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .select { selectCondition }
             .orderBy(BookingTable.createdAt, SortOrder.DESC)
             .map { row ->
@@ -294,8 +331,10 @@ class AdminRepository {
                     departureAirportNameCode = departureAirportNameCode,
                     arrivalAirportNameCode = arrivalAirportNameCode,
                     departureTime = row[FlightTable.departureTime],
+                    arrivalTime = row[FlightTable.arrivalTime],
                     status = row[BookingTable.status],
-                    createdAt = row[BookingTable.createdAt]
+                    createdAt = row[BookingTable.createdAt],
+                    aircraftType = row[AircraftTable.type]
                 )
             }
     }
@@ -324,6 +363,12 @@ class AdminRepository {
         }
         
         FlightTable
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .select { selectCondition }
             .orderBy(FlightTable.departureTime, SortOrder.ASC)
             .map { row ->
@@ -334,12 +379,13 @@ class AdminRepository {
                     arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
                     departureTime = row[FlightTable.departureTime],
                     arrivalTime = row[FlightTable.arrivalTime],
-                    status = row[FlightTable.status]
+                    status = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type]
                 )
             }
     }
 
-    fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime): Flight? = transaction {
+    fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime, changedByUserId: Int?): Flight? = transaction {
         val existingFlight = FlightTable
             .select { FlightTable.id eq flightId }
             .singleOrNull()?: return@transaction null
@@ -366,12 +412,37 @@ class AdminRepository {
             it[FlightChangeLogTable.oldArrivalTime] = oldArrivalTime
             it[FlightChangeLogTable.newArrivalTime] = newArrivalTime
             it[changedAt] = LocalDateTime.now()
+            it[FlightChangeLogTable.changedByUserId] = changedByUserId
         }
         FlightTable
             .select { FlightTable.id eq flightId }
             .map { row -> flightRepository.resultRowToFlight(row) }
             .singleOrNull()
+    }
+
+    private fun getUserNameById(userId: Int?): String? {
+        if (userId == null) return null
+
+        return UserTable
+            .select { UserTable.id eq userId }
+            .map { it[UserTable.firstname] + " " + it[UserTable.lastname] }
+            .singleOrNull()
+    }
+
+    fun updateFlightStatus(flightId: Int, newStatus: FlightStatus): Flight? = transaction {
+        val existingFlight = FlightTable
+            .select { FlightTable.id eq flightId }
+            .singleOrNull() ?: return@transaction null
+
+        FlightTable.update({ FlightTable.id eq flightId }) {
+            it[status] = newStatus
         }
+
+        FlightTable
+            .select { FlightTable.id eq flightId }
+            .map { row -> flightRepository.resultRowToFlight(row) }
+            .singleOrNull()
+    }
 
     fun getAllFlightChanges(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightChangeLogInfo> = transaction {
         var selectCondition: Op<Boolean> = Op.TRUE
@@ -396,6 +467,12 @@ class AdminRepository {
                 (FlightTable.departureTime lessEq dayEnd)
         }
         (FlightChangeLogTable innerJoin FlightTable)
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .select { selectCondition }
             .orderBy(FlightChangeLogTable.changedAt, SortOrder.DESC)
             .map { row ->
@@ -411,13 +488,23 @@ class AdminRepository {
                     newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
                     newArrivalTime = row[FlightChangeLogTable.newArrivalTime],
-                    changedAt = row[FlightChangeLogTable.changedAt]
+                    changedAt = row[FlightChangeLogTable.changedAt],
+                    flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
+                    changedByUserId = row[FlightChangeLogTable.changedByUserId],
+                    changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                 )
             }
     }
 
     fun getFlightChangesByFlightId(flightId: Int): List<FlightChangeLogInfo> = transaction {
         (FlightChangeLogTable innerJoin FlightTable)
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .select { FlightChangeLogTable.flightId eq flightId }
             .orderBy(FlightChangeLogTable.changedAt, SortOrder.DESC)
             .map { row ->
@@ -433,7 +520,11 @@ class AdminRepository {
                     newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                     oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
                     newArrivalTime = row[FlightChangeLogTable.newArrivalTime],
-                    changedAt = row[FlightChangeLogTable.changedAt]
+                    changedAt = row[FlightChangeLogTable.changedAt],
+                    flightStatus = row[FlightTable.status],
+                    aircraftType = row[AircraftTable.type],
+                    changedByUserId = row[FlightChangeLogTable.changedByUserId],
+                    changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                 )
             }
     }
@@ -443,6 +534,13 @@ class AdminRepository {
             .select { AirportTable.id eq airportId }
             .map { it[AirportTable.name] + " " + it[AirportTable.code] }
             .singleOrNull() ?: throw IllegalStateException("Airport not found")
+    }
+
+    private fun getAircraftTypeById(aircraftId: Int): String {
+        return AircraftTable
+            .select { AircraftTable.id eq aircraftId }
+            .map { it[AircraftTable.type] }
+            .singleOrNull() ?: throw IllegalStateException("Aircraft not found")
     }
 
     fun getAllReservations(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?,status: BookingStatus?
@@ -479,7 +577,25 @@ class AdminRepository {
             selectCondition = selectCondition and (BookingTable.status eq status)
         }
 
-        (BookingTable innerJoin FlightTable innerJoin UserTable)
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                BookingTable.userId,
+                UserTable.id
+            )
+                .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
             .join(
                 PaymentTable,
                 JoinType.LEFT,
@@ -503,10 +619,17 @@ class AdminRepository {
                     departureTime = row[FlightTable.departureTime],
                     bookingStatus = row[BookingTable.status],
                     createdAt = row[BookingTable.createdAt],
-                    amountPaid = row.getOrNull(PaymentTable.amount)
+                    amountPaid = row.getOrNull(PaymentTable.amount),
+                    aircraftType = row[AircraftTable.type]
                 )
             }
     }
 
-    
+    fun getAirportIdByCode(code: String): Int? = transaction {
+        AirportTable
+            .select { AirportTable.code eq code.uppercase() }
+            .map { row -> row[AirportTable.id] }
+            .singleOrNull()
+    }
+
 }
