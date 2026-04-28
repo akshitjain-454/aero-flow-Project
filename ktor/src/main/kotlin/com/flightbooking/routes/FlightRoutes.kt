@@ -19,10 +19,10 @@ fun Route.flightRoutes() {
     get("/search") {
         val params = call.request.queryParameters
 
-        val fromCodes = call.request.queryParameters.getAll("from")
-        val toCodes = call.request.queryParameters.getAll("to")
+        val fromCodes = params.getAll("from")?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
+        val toCodes = params.getAll("to")?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
         val date = try {
-                        params["date"]?.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) }
+                        params["departure_date"]?.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) }
                     }
                     catch (e: Exception) {
                         return@get call.respondPebble("index.peb", mapOf("error" to "Invalid date format"))
