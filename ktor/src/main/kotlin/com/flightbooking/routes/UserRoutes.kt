@@ -73,13 +73,13 @@ fun Route.userRoutes() {
             val vfySession = call.sessions.get<VerificationSession>() ?: return@post call.respondPebble("register.peb", mapOf("error" to "No verification session"))
             val params = call.receiveParameters()
 
-            val firstname = params["firstname"]?.trim()
-            val lastname  = params["lastname"]?.trim()
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
             val email     = vfySession.email
             val password  = params["password"]?.trim()
             val confirmedPassword = params["confirmed_password"]?.trim()
 
-            if (firstname == null || lastname == null || password == null || confirmedPassword == null) {
+            if (password == null || confirmedPassword == null) {
                 //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
                 return@post call.respondPebble("register.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
             }
@@ -104,8 +104,10 @@ fun Route.userRoutes() {
 
             // Fetch back the saved user to get the real DB-assigned ID
             val savedUser = userRepository.getUserByEmail(email)!!
+            
+            val initials = userRepository.getInitialsByUser(savedUser)
 
-            call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role, initials = "${savedUser.firstname.first().uppercaseChar()}${savedUser.lastname.first().uppercaseChar()}"))
+            call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role, initials = initials))
             call.respondRedirect("/")
         }
     }
@@ -152,7 +154,8 @@ fun Route.userRoutes() {
         }
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
-            call.sessions.set(UserSession(userId = user.id, role = user.role, initials = "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"))
+            val initials = userRepository.getInitialsByUser(user)
+            call.sessions.set(UserSession(userId = user.id, role = user.role, initials = initials))
             if (user.role == UserRole.ADMIN) {
                 call.respondRedirect("/admin") 
             } else {

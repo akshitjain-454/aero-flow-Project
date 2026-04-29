@@ -31,6 +31,21 @@ class UserRepository {
             .map { resultRowToUser(it) }.singleOrNull()
     }
 
+    fun getInitialsByUser(user: User): String = transaction {
+        if (user.firstname != null && user.lastname != null) {
+            "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"
+        }
+        else if ((user.firstname == null && user.lastname != null)) {
+            "${user.lastname.first().uppercaseChar()}"
+        }
+        else if ((user.firstname != null && user.lastname == null)) {
+            "${user.firstname.first().uppercaseChar()}"
+        }
+        else {
+            user.email.take(2).uppercase().ifEmpty { "U" }
+        }
+    }
+
     fun sendEmail(email: String, subject: String, body: String) {
         val props = Properties().apply {
             put("mail.smtp.host", "smtp.gmail.com")
