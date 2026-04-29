@@ -26,9 +26,15 @@
                 <p class="text-xs font-bold tracking-[0.4em] text-[--sky-blue] uppercase mb-4">
                     Welcome Back
                 </p>
-                <h1 class="text-4xl md:text-5xl font-light leading-tight mb-2 serif">
-                    Hello, <span class="italic">{{ user.firstname }}</span>
-                </h1>
+                {% if user.firstname %}
+                    <h1 class="text-4xl md:text-5xl font-light leading-tight mb-2 serif">
+                        Hello <span class="italic">{{ user.firstname }}</span>
+                    </h1>
+                {% else %}
+                    <h1 class="text-4xl md:text-5xl font-light leading-tight mb-2 serif">
+                        Hello <span class="italic">Member</span>
+                    </h1>
+                {% endif %}
                 <p class="text-gray-400 tracking-[0.2em] uppercase text-xs mb-8">
                     AetherianFly Member since {{ user.createdAt | date("yyyy") }}
                 </p>
@@ -43,11 +49,35 @@
         <div class="grid md:grid-cols-2 gap-8">
             <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
                 <h2 class="text-xl serif italic text-gray-900 mb-8 border-b border-gray-100 pb-4">Account Details</h2>
+                <a href="/overview/settings" class="mt-4 text-xs font-bold text-white bg-black px-6 py-2 rounded-full uppercase tracking-widest hover:bg-[--sky-blue] transition-colors" style="text-decoration: none;">Settings</a>
                 <div class="grid grid-cols-1 gap-6 text-sm flex-grow">
-                    <div>
+                    {% if user.firstname %}
+                        <div>
+                            <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
+                            <p class="font-medium text-lg">{{ user.firstname }} {{ user.lastname }}</p>
+                        </div>
+                    {% else %}
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
-                        <p class="font-medium text-lg">{{ user.firstname }} {{ user.lastname }}</p>
-                    </div>
+                        <form action="/overview/add_name" method="POST" class="space-y-6">
+                    
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="group">
+                                    <label for="first-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">First Name</label>
+                                    <input type="text" id="first-name" name="firstname"
+                                        class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                                </div>
+                                <div class="group">
+                                    <label for="last-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Last Name</label>
+                                    <input type="text" id="last-name" name="lastname"
+                                        class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg">
+                                Add Name
+                            </button>
+
+                        </form>
+                    {% endif %}
                     <div>
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Email Address</p>
                         <p class="font-medium text-lg">{{ user.email }}</p>

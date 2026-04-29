@@ -25,6 +25,19 @@ class UserRepository {
         }
     }
 
+    fun addNameToUser(userId: Int, firstname: String?, lastname: String?) {
+        transaction {
+            UserTable.update({ UserTable.id eq userId }) {
+                it[UserTable.firstname] = firstname
+                it[UserTable.lastname] = lastname
+            }
+        }
+    }
+
+    // fun updateUserDetails(user) {
+
+    // }
+
     fun getUserByEmail(email: String): User? = transaction {
         UserTable
             .select { UserTable.email eq email }

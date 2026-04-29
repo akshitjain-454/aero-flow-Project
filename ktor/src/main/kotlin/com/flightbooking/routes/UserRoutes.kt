@@ -111,25 +111,39 @@ fun Route.userRoutes() {
             call.respondRedirect("/")
         }
     }
-    get("/overview") {
-        val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
-        val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
-        
-        // Fetch bookings for the quick-view section
-        val bookingRepository = com.flightbooking.repositories.BookingRepository()
-        val allBookings = bookingRepository.getBookingsByUserId(session.userId)
-            .map { bookingRepository.getBookingInfoByBooking(it) }
-        
-        // Grab just the first 2 bookings for the dashboard preview
-        val recentBookings = allBookings.take(2)
 
-        call.respondPebble("overview.peb", mapOf(
-            "user" to user,
-            "recentBookings" to recentBookings,
-            "totalBookings" to allBookings.size
-        ))
+    route("/overview") {
+        get() {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
+            
+            // Fetch bookings for the quick-view section
+            val bookingRepository = com.flightbooking.repositories.BookingRepository()
+            val allBookings = bookingRepository.getBookingsByUserId(session.userId)
+                .map { bookingRepository.getBookingInfoByBooking(it) }
+            
+            // Grab just the first 2 bookings for the dashboard preview
+            val recentBookings = allBookings.take(2)
+
+            call.respondPebble("overview.peb", mapOf(
+                "user" to user,
+                "recentBookings" to recentBookings,
+                "totalBookings" to allBookings.size
+            ))
+        }
+        post("/add_name") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
+
+            userRepository.addNameToUser(user.id, firstname, lastname)
+            call.respondRedirect("/overview")
+        }
     }
-    
+
     post("/login") {
         val params = call.receiveParameters()
 
