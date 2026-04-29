@@ -44,7 +44,7 @@ class UserRepository {
         })
 
         MimeMessage(emailsession).apply {
-            setFrom(InternetAddress("aeroflow.noreplys@gmail.com"))
+            setFrom(InternetAddress("aetheria.noreply@gmail.com"))
             setRecipients(Message.RecipientType.TO, InternetAddress.parse(email))
             setSubject(subject)
             setText(body)
