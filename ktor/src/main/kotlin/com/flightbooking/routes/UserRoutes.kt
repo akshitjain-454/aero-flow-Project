@@ -139,10 +139,30 @@ fun Route.userRoutes() {
             val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
             val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
 
-            userRepository.addNameToUser(user.id, firstname, lastname)
+            userRepository.updateNameForUser(user.id, firstname, lastname)
             call.respondRedirect("/overview")
         }
     }
+    route("/settings") {
+        get() {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
+            call.respondPebble("settings.peb", mapOf("user" to user))
+        }
+        post("/update_name") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
+
+            userRepository.updateNameForUser(user.id, firstname, lastname)
+            call.respondRedirect("/overview")
+            
+        }
+    }
+    
 
     post("/login") {
         val params = call.receiveParameters()

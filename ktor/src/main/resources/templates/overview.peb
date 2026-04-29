@@ -48,8 +48,10 @@
 
         <div class="grid md:grid-cols-2 gap-8">
             <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
-                <h2 class="text-xl serif italic text-gray-900 mb-8 border-b border-gray-100 pb-4">Account Details</h2>
-                <a href="/overview/settings" class="mt-4 text-xs font-bold text-white bg-black px-6 py-2 rounded-full uppercase tracking-widest hover:bg-[--sky-blue] transition-colors" style="text-decoration: none;">Settings</a>
+                <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
+                    <h2 class="text-xl serif italic text-gray-900">Account Details</h2>
+                    <a href="/settings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-black transition-colors" style="text-decoration: none;">Settings</a>
+                </div>
                 <div class="grid grid-cols-1 gap-6 text-sm flex-grow">
                     {% if user.firstname %}
                         <div>
