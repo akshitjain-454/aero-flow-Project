@@ -158,8 +158,41 @@ fun Route.userRoutes() {
             val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
 
             userRepository.updateNameForUser(user.id, firstname, lastname)
-            call.respondRedirect("/overview")
+            call.respondRedirect("/settings")
+        }
+        post("/change_password") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val password = params["password"]
+            val newPassword  = params["new_password"]?.trim()
+            val confirmNewPassword = params["confirm_new_password"]?.trim()
+
+            if (password == null || newPassword == null || confirmNewPassword == null) {
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Missing required fields"))
+            }
             
+            if (BCrypt.checkpw(password, user.passwordHash) == false) {
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Old password is incorrect"))
+            }
+
+            if (newPassword != confirmNewPassword) {    
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Passwords do not match")) //shouldnt happen unless frontend is bypassed
+            }
+
+            val newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+
+            userRepository.changePasswordForUser(user.id, newPasswordHash)
+            call.respondRedirect("/settings")
+        }
+        post("/delete_account") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            
+            userRepository.deleteUser(user.id) //No turning back
+            call.sessions.clear<UserSession>()
+            call.respondRedirect("/")
         }
     }
     

@@ -25,11 +25,25 @@ class UserRepository {
         }
     }
 
+    fun deleteUser(userId: Int) {
+        transaction {
+            UserTable.deleteWhere { SqlExpressionBuilder.run { UserTable.id eq userId } }
+        }
+    }
+
     fun updateNameForUser(userId: Int, firstname: String?, lastname: String?) {
         transaction {
             UserTable.update({ UserTable.id eq userId }) {
                 it[UserTable.firstname] = firstname
                 it[UserTable.lastname] = lastname
+            }
+        }
+    }
+
+    fun changePasswordForUser(userId: Int, newPasswordHash: String) {
+        transaction {
+            UserTable.update({ UserTable.id eq userId }) {
+                it[UserTable.passwordHash] = newPasswordHash
             }
         }
     }
