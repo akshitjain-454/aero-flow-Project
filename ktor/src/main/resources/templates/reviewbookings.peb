@@ -339,21 +339,14 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-<<<<<<< VisualMap
-    {% if booking.bookingStatus == "CONFIRMED" %}
-        <a href="/booking/{{ booking.bookingReference }}/map" class="bg-gray-100 text-[--charcoal] px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-gray-200 transition-colors flex items-center shadow-sm" style="text-decoration: none;">
-            🗺️ View Map
-        </a>
-        <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center shadow-sm" style="text-decoration: none;">
-            View Tickets
-        </a>
-    {% endif %}
-=======
                             {% if booking.bookingStatus == "CONFIRMED" %}
                                 {% if booking.flightStatus == "CANCELLED" %}
                                     <button class="cancel-btn" disabled>Flight Cancelled</button>
                                 {% else %}
-                                    <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
+                                    <a href="/booking/{{ booking.bookingReference }}/map" class="bg-gray-100 text-[--charcoal] px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-gray-200 transition-colors flex items-center shadow-sm" style="text-decoration: none;">
+                                        🗺️ View Map
+                                    </a>
+                                    <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center shadow-sm" style="text-decoration: none;">
                                         View Tickets
                                     </a>
                                     <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
@@ -362,7 +355,6 @@
                                 {% endif %}
                             {% endif %}
 
->>>>>>> main
                             {% if booking.bookingStatus == "CANCELLED" %}
                                 <button class="delete-btn" onclick="deleteBooking('{{ booking.bookingReference }}')">
                                     Delete

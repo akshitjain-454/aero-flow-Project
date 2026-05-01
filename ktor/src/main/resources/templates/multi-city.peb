@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .serif { font-family: 'Playfair Display', serif; }
+    .input-focus:focus { border-color: #38bdf8; outline: none; }
+</style>
+
+<div class="min-h-screen bg-white">
+
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-24 px-8 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto relative z-10">
+      <p class="text-[10px] uppercase tracking-[0.4em] text-sky-400 font-extrabold mb-4">Book / Flights</p>
+      <h1 class="text-6xl font-serif font-light mb-6">Multi-City Flights</h1>
+      <p class="text-slate-400 text-sm font-light max-w-lg leading-relaxed">
+        Design a journey that spans continents. Add up to six destinations and build your custom itinerary city by city.
+      </p>
+    </div>
+  </div>
+
+  <!-- Booking Interface -->
+  <div class="max-w-7xl mx-auto px-8 py-20">
+    <form action="/search" method="GET" class="space-y-8">
+      
+      <!-- Journey Legs Container -->
+      <div id="itinerary-container" class="space-y-6">
+        
+        <!-- Flight Leg 1 -->
+        <div class="flight-leg bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-wrap lg:flex-nowrap items-end gap-6 relative">
+          <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold shadow-lg">1</div>
+          
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">From</label>
+            <input type="text" placeholder="Origin City" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">To</label>
+            <input type="text" placeholder="Destination City" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">Departure Date</label>
+            <input type="date" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+        </div>
+
+        <!-- Flight Leg 2 -->
+        <div class="flight-leg bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-wrap lg:flex-nowrap items-end gap-6 relative">
+          <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold shadow-lg">2</div>
+          
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">From</label>
+            <input type="text" placeholder="Origin City" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">To</label>
+            <input type="text" placeholder="Destination City" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+
+          <div class="flex-1 space-y-2">
+            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 ml-1">Departure Date</label>
+            <input type="date" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-light input-focus">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-100 gap-6">
+        <button type="button" class="group flex items-center gap-3 text-sky-500 hover:text-slate-900 transition-colors">
+            <span class="w-8 h-8 border border-current rounded-full flex items-center justify-center font-light text-xl group-hover:bg-sky-500 group-hover:text-white transition-all">+</span>
+            <span class="text-[10px] uppercase tracking-widest font-extrabold">Add Another Flight</span>
+        </button>
+
+        <div class="flex items-center gap-8">
+            <div class="text-right">
+                <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Travelers</label>
+                <select class="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer">
+                    <option>1 Passenger, Economy</option>
+                    <option>1 Passenger, Business</option>
+                    <option>2 Passengers, Economy</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-slate-900 text-white px-12 py-4 rounded-full text-[10px] uppercase tracking-[0.2em] font-extrabold hover:bg-sky-500 transition-all shadow-xl">
+                Search Flights
+            </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Travel Inspiration -->
+  <div class="bg-slate-50 py-24 px-8 border-t border-gray-100">
+    <div class="max-w-7xl mx-auto text-center">
+        <h2 class="text-3xl serif text-slate-900 mb-4">Need help with your itinerary?</h2>
+        <p class="text-sm text-gray-500 font-light mb-10">Our global network connects over 150 destinations. Explore our route map for inspiration.</p>
+        <a href="/route-map" class="text-[10px] uppercase tracking-widest font-extrabold text-sky-500 border-b border-sky-500/20 pb-1">View Route Map &rarr;</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

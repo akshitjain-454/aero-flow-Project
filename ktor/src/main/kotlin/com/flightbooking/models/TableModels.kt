@@ -7,8 +7,8 @@ import java.math.BigDecimal
 data class User(
 
     val id: Int,
-    val firstname: String,
-    val lastname: String,
+    val firstname: String?,
+    val lastname: String?,
     val email: String,
     val passwordHash: String,
     val role: UserRole,
