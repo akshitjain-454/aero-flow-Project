@@ -192,6 +192,79 @@ fun Route.adminRoutes() {
             )
         }
 
+        post("/complaints/{id}/handle") {
+            val session = call.sessions.get<UserSession>()
+
+            if (session == null) {
+                return@post call.respondRedirect("/login")
+            }
+
+            if (session.role != UserRole.ADMIN) {
+                return@post call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val complaintId = call.parameters["id"]?.toIntOrNull()
+
+            if (complaintId == null) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    mapOf("error" to "Invalid complaint id")
+                )
+            }
+
+            val params = call.receiveParameters()
+            val statusText = params["status"]?.trim()?.uppercase()
+            val reply = params["reply"]?.trim()
+
+            if (statusText.isNullOrBlank()) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    mapOf("error" to "Missing complaint status")
+                )
+            }
+
+            val newStatus = try {
+                ComplaintStatus.valueOf(statusText)
+            } catch (error: IllegalArgumentException) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf(
+                        "error" to "Invalid complaint status",
+                        "allowedStatuses" to listOf("OPEN", "IN_REVIEW", "RESOLVED")
+                    )
+                )
+            }
+
+            if (newStatus == ComplaintStatus.CLOSED) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "Please use OPEN, IN_REVIEW, or RESOLVED")
+                )
+            }
+
+            val updatedComplaint = complaintRepository.handleComplaint(
+                id = complaintId,
+                newStatus = newStatus,
+                reply = reply,
+                adminUserId = session.userId
+            )
+
+            if (updatedComplaint == null) {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    mapOf("error" to "Complaint not found")
+                )
+            } else {
+                call.respond(
+                    HttpStatusCode.OK,
+                    mapOf(
+                        "message" to "Complaint handled successfully",
+                        "complaint" to updatedComplaint
+                    )
+                )
+            }
+        }
+
         get("/reports/bookings-per-flight") {
             val session = call.sessions.get<UserSession>()
 

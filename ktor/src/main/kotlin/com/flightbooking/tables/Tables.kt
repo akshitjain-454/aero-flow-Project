@@ -100,6 +100,11 @@ object ComplaintTable : Table("Complaint") {
   val status = enumerationByName("status", 30, ComplaintStatus::class)
   val createdAt = datetime("created_at")
 
+  //Admin handling part
+  val adminReply = varchar("admin_reply", 1000).nullable()
+  val repliedAt = datetime("replied_at").nullable()
+  val repliedByUserId = integer("replied_by_user_id").references(UserTable.id).nullable()
+
   override val primaryKey = PrimaryKey(id)
 }
 
