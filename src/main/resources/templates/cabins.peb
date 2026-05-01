@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .serif { font-family: 'Playfair Display', serif; }
+    .zoom-img img { transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+    .group:hover .zoom-img img { transform: scale(1.05); }
+    .focus-within-ring:focus-within { ring: 2px solid var(--sky-blue); ring-offset: 2px; }
+</style>
+
+<div class="min-h-screen bg-white">
+    <!-- Hero Header -->
+    <div class="bg-slate-900 text-white py-20 px-8">
+        <div class="max-w-7xl mx-auto">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-sky-400 font-bold mb-4">Experience</p>
+            <h1 class="text-5xl serif font-light mb-4">Cabin Classes</h1>
+            <p class="text-slate-400 text-sm font-light max-w-lg">Discover a new standard of travel across every cabin, designed around your comfort.</p>
+        </div>
+    </div>
+
+    <!-- The Grid Section You Provided -->
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="mb-12">
+            <span class="text-[10px] uppercase tracking-[0.3em] text-sky-400 font-bold block mb-4">Flying With Aetheria</span>
+            <h2 class="text-4xl md:text-5xl serif leading-tight mb-6 text-slate-900">Make it an incredible journey</h2>
+            <p class="text-gray-500 font-light text-lg max-w-2xl leading-relaxed">Explore the Aetheria experience and discover the perfect cabin tailored to your journey.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- First Class (Featured) -->
+            <div class="lg:col-span-7">
+                <div class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-500 relative h-full flex flex-col focus-within-ring">
+                    <div class="aspect-[4/3] md:aspect-[3/2] lg:flex-grow overflow-hidden relative zoom-img">
+                        <img src="https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover" alt="First Class">
+                    </div>
+                    <div class="p-10 md:p-12">
+                        <h3 class="text-3xl serif mb-4 text-slate-900">First Class</h3>
+                        <p class="text-base text-gray-500 font-light mb-8 max-w-xl">Ultimate privacy and Michelin-starred dining in your personal sanctuary.</p>
+                        <a href="/cabins/first" class="inline-flex items-center text-[10px] uppercase tracking-widest font-extrabold text-sky-500 before:absolute before:inset-0">Learn More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Classes -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <!-- Business -->
+                <div class="group bg-white rounded-[24px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all relative flex h-full focus-within-ring">
+                    <div class="w-2/5 overflow-hidden zoom-img">
+                        <img src="https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Business Class">
+                    </div>
+                    <div class="w-3/5 p-6 md:p-8 flex flex-col justify-center">
+                        <h3 class="text-xl serif mb-2 text-slate-900">Business Class</h3>
+                        <p class="text-xs text-gray-500 font-light mb-4 line-clamp-2">Arrive refreshed with lie-flat seating and award-winning comfort.</p>
+                        <a href="/cabins/business" class="text-[9px] uppercase tracking-widest font-extrabold text-sky-500 before:absolute before:inset-0">Learn More</a>
+                    </div>
+                </div>
+
+                <!-- Premium Economy -->
+                <div class="group bg-white rounded-[24px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all relative flex h-full focus-within-ring">
+                    <div class="w-2/5 overflow-hidden zoom-img">
+                        <img src="https://images.unsplash.com/photo-1556388158-158ea5ccacbd?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Premium Economy">
+                    </div>
+                    <div class="w-3/5 p-6 md:p-8 flex flex-col justify-center">
+                        <h3 class="text-xl serif mb-2 text-slate-900">Premium Economy</h3>
+                        <p class="text-xs text-gray-500 font-light mb-4 line-clamp-2">Extra legroom and an elevated dining experience.</p>
+                        <a href="/cabins/premium" class="text-[9px] uppercase tracking-widest font-extrabold text-sky-500 before:absolute before:inset-0">Learn More</a>
+                    </div>
+                </div>
+
+                <!-- Economy -->
+                <div class="group bg-white rounded-[24px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all relative flex h-full focus-within-ring">
+                    <div class="w-2/5 overflow-hidden zoom-img">
+                        <img src="https://images.unsplash.com/photo-1556388275-bb5585725aca?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Economy">
+                    </div>
+                    <div class="w-3/5 p-6 md:p-8 flex flex-col justify-center">
+                        <h3 class="text-xl serif mb-2 text-slate-900">Economy</h3>
+                        <p class="text-xs text-gray-500 font-light mb-4 line-clamp-2">A brilliant standard with award-winning entertainment.</p>
+                        <a href="/cabins/economy" class="text-[9px] uppercase tracking-widest font-extrabold text-sky-500 before:absolute before:inset-0">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Secure Payment | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        transition: background-color 0.2s, transform 0.2s; text-decoration: none;
+    }
+    .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+
+    /* ── Hero ── */
+    .payment-hero {
+        background: var(--charcoal);
+        padding: 7rem 2rem 3rem;
+    }
+
+    /* ── Stepper ── */
+    .stepper { display: flex; align-items: center; gap: 0; margin-bottom: 2rem; }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+    .step-circle {
+        width: 2rem; height: 2rem; border-radius: 9999px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.65rem; font-weight: 800;
+    }
+    .step-circle.active   { background: var(--sky-blue); color: #fff; }
+    .step-circle.done     { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    .step-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; }
+    .step-label.active   { color: var(--sky-blue); }
+    .step-label.done     { color: rgba(255,255,255,0.4); }
+    .step-connector {
+        flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+        margin-bottom: 1.2rem; min-width: 2.5rem;
+    }
+
+    /* ── Payment Container & Methods ── */
+    .payment-container {
+        background: #ffffff; border-radius: 20px; border: 1px solid #e5e7eb;
+        padding: 2.5rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+        animation: fadeUp 0.4s ease both;
+    }
+    .section-title {
+        font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--charcoal);
+    }
+    
+    /* Adjusted grid for exactly 2 columns */
+    .method-grid {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;
+    }
+    .method-card {
+        border: 2px solid #f0f0f0; border-radius: 12px; padding: 1.25rem 1rem;
+        display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        cursor: pointer; transition: all 0.2s; background: #fafafa;
+    }
+    .method-card:hover { border-color: #cbd5e1; background: #fff; }
+    .method-card.active {
+        border-color: var(--sky-blue); background: #f0f6ff;
+        box-shadow: 0 4px 12px rgba(0,102,255,0.15);
+    }
+    .method-icon { font-size: 1.5rem; }
+    .method-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--charcoal); text-align: center; }
+
+    /* ── Form Inputs ── */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label {
+        display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: #6b7280; margin-bottom: 0.5rem;
+    }
+    .form-input {
+        width: 100%; padding: 0.85rem 1.25rem; border: 1px solid #d1d5db; border-radius: 10px;
+        font-size: 0.9rem; font-weight: 500; color: var(--charcoal); outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s; background: #fff;
+    }
+    .form-input:focus {
+        border-color: var(--sky-blue); box-shadow: 0 0 0 4px rgba(0,102,255,0.1);
+    }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* ── Order Summary ── */
+    .summary-card {
+        background: #f9fafb; border-radius: 20px; border: 1px solid #f0f0f0;
+        padding: 2rem; animation: fadeUp 0.45s ease both; position: sticky; top: 7rem;
+    }
+    .summary-title {
+        font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.2em; color: #9ca3af; margin-bottom: 1.5rem;
+    }
+    .summary-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.85rem 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .summary-row.total {
+        border-bottom: none; padding-top: 1.5rem; margin-top: 0.5rem; border-top: 2px dashed #e5e7eb;
+    }
+    .summary-label { font-size: 0.8rem; font-weight: 600; color: #6b7280; }
+    .summary-value { font-size: 0.85rem; font-weight: 700; color: var(--charcoal); }
+    .total-label { font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+    .total-value { font-size: 1.5rem; font-weight: 800; color: var(--sky-blue); }
+
+    /* Proceed / CTA */
+    .pay-btn {
+        display: block; width: 100%; padding: 1.25rem; border-radius: 9999px; border: none;
+        background: var(--sky-blue); color: #fff; font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer;
+        text-align: center; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 24px -4px rgba(0,102,255,0.35); margin-top: 2rem;
+    }
+    .pay-btn:hover {
+        background: var(--charcoal); transform: translateY(-2px);
+        box-shadow: 0 12px 32px -4px rgba(0,0,0,0.2);
+    }
+    
+    .secure-badge {
+        display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+        margin-top: 1.5rem; font-size: 0.65rem; font-weight: 600; color: #9ca3af;
+    }
+
+    .page-grid {
+        display: grid; grid-template-columns: 1fr 380px; gap: 3rem;
+        max-width: 72rem; margin: 0 auto; padding: 3rem 1.5rem; align-items: start;
+    }
+    @media (max-width: 960px) { .page-grid { grid-template-columns: 1fr; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn" style="text-decoration: none;">{{ userInitials }}</a>
+        {% else %}
+            <a href="/login" class="bg-black text-white px-8 py-2.5 rounded-full text-[10px] uppercase font-extrabold" style="text-decoration: none;">Login</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="payment-hero">
+    <div class="max-w-4xl mx-auto">
+        <div class="stepper">
+            <div class="step"><div class="step-circle done">✓</div><span class="step-label done">Flight</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle done">✓</div><span class="step-label done">Passengers</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle done">✓</div><span class="step-label done">Seats</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle active">4</div><span class="step-label active">Payment</span></div>
+        </div>
+        <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Complete your <span class="italic text-[--sky-blue]">booking</span></h1>
+        <p class="text-gray-500 text-xs uppercase tracking-[0.3em] font-bold mt-3">Booking ref: <span style="color: rgba(255,255,255,0.4);">{{ reference }}</span></p>
+    </div>
+</div>
+
+<main>
+    <div class="page-grid">
+        <div>
+            <div class="payment-container">
+                <h2 class="section-title">Payment Method</h2>
+                
+                <div class="method-grid">
+                    <div class="method-card active" onclick="selectMethod('CARD')" id="card-btn">
+                        <div class="method-icon">💳</div>
+                        <span class="method-label">Credit / Debit Card</span>
+                    </div>
+                    <div class="method-card" onclick="selectMethod('PAYPAL')" id="paypal-btn">
+                        <div class="method-icon">📱</div>
+                        <span class="method-label">PayPal</span>
+                    </div>
+                </div>
+
+                <form method="post" action="/booking/{{ reference }}/payment" id="payment-form">
+                    <input type="hidden" name="payment_method" id="payment_method" value="CARD">
+
+                    <div id="card-details">
+                        <div class="form-group">
+                            <label class="form-label">Name on Card</label>
+                            <input type="text" class="form-input" placeholder="e.g. Jane Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-input" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                        </div>
+                        <div class="input-row">
+                            <div class="form-group">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-input" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">CVC</label>
+                                <input type="text" class="form-input" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="paypal-details" style="display: none; text-align: center; padding: 2rem 0;">
+                        <p style="color: #6b7280; font-size: 0.9rem;">You will be securely redirected to PayPal to complete your purchase.</p>
+                    </div>
+
+                    <p style="color: #6b7280; font-size: 0.9rem;">Tick if you would like to use your loyalty points: You have {{ loyaltyPoints }}
+                        <input type="checkbox" name="use_loyalty_points" id="use_loyalty_points"></input>
+                    </p>
+
+                    <button type="submit" class="pay-btn">Pay £{{ price }}</button>
+                    
+                    <div class="secure-badge">
+                        🔒 Payments are encrypted and secure
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            <div class="summary-card">
+                <p class="summary-title">Order Summary</p>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Booking Reference</span>
+                    <span class="summary-value" style="font-family: monospace; letter-spacing: 0.05em;">{{ reference }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Taxes & Fees</span>
+                    <span class="summary-value">Included</span>
+                </div>
+                <div class="summary-row" id="discount-row" style="display: none;">
+                    <span class="summary-label">Loyalty Discount</span>
+                    <span class="summary-value" id="discount-value">-£0.00</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span class="total-label">Total</span>
+                    <span class="total-value">£{{ price }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function selectMethod(method) {
+        // Update hidden input for backend
+        document.getElementById('payment_method').value = method;
+
+        // Reset UI
+        document.getElementById('card-btn').classList.remove('active');
+        document.getElementById('paypal-btn').classList.remove('active');
+        
+        document.getElementById('card-details').style.display = 'none';
+        document.getElementById('paypal-details').style.display = 'none';
+
+        // Set active UI
+        if (method === 'CARD') {
+            document.getElementById('card-btn').classList.add('active');
+            document.getElementById('card-details').style.display = 'block';
+            
+            // Re-enable required validation
+            document.querySelectorAll('#card-details input').forEach(input => input.required = true);
+        } else if (method === 'PAYPAL') {
+            document.getElementById('paypal-btn').classList.add('active');
+            document.getElementById('paypal-details').style.display = 'block';
+            
+            // Disable required validation for hidden card inputs
+            document.querySelectorAll('#card-details input').forEach(input => input.required = false);
+        }
+    }
+</script>
+
+<script>
+    const fullPrice = {{ price }};
+    const loyaltyPoints = {{ loyaltyPoints }};
+    const discount = loyaltyPoints / 100;
+
+    document.getElementById('use_loyalty_points').addEventListener('change', function() {
+        //Mirrors backend logic so that the discounted price can be displayed when checkbox is clicked
+        const discount = loyaltyPoints / 100;
+        const discountedPrice = this.checked 
+            ? Math.max(0, fullPrice - discount).toFixed(2)
+            : fullPrice.toFixed(2);
+        
+        document.querySelector('.total-value').textContent = '£' + discountedPrice;
+        document.querySelector('.pay-btn').textContent = 'Pay £' + discountedPrice;
+        
+        // Show/hide discount row if needed
+        const discountRow = document.getElementById('discount-row');
+        if (this.checked) {
+            discountRow.style.display = 'flex';
+            document.getElementById('discount-value').textContent = '-£' + discount.toFixed(2);
+        } else {
+            discountRow.style.display = 'none';
+        }
+    });
+</script>
+
+{% endblock %}

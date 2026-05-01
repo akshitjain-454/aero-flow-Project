@@ -1,0 +1,58 @@
+<script>
+    function toggleProfileMenu() {
+        const dropdown = document.getElementById('profile-dropdown');
+        const isHidden = dropdown.classList.contains('hidden');
+        closeAllMenus();
+        if (isHidden) {
+            dropdown.classList.remove('hidden');
+            document.getElementById('profile-btn').setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function toggleHelpMenu() {
+        const dropdown = document.getElementById('help-dropdown');
+        const isHidden = dropdown.classList.contains('hidden');
+        closeAllMenus();
+        if (isHidden) {
+            dropdown.classList.remove('hidden');
+            document.getElementById('help-btn').setAttribute('aria-expanded', 'true');
+            const btn = document.getElementById('help-btn');
+            const arrow = document.getElementById('help-arrow');
+            const btnRect = btn.getBoundingClientRect();
+            const btnCenter = btnRect.left + btnRect.width / 2;
+            arrow.style.left = (btnCenter - 8) + 'px';
+        }
+    }
+
+    function closeAllMenus() {
+        ['help-dropdown', 'profile-dropdown'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        ['help-btn', 'profile-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        const insideHelp     = document.getElementById('help-menu-wrapper')?.contains(e.target);
+        const insideHelpDrop = document.getElementById('help-dropdown')?.contains(e.target);
+        const insideProfile  = document.getElementById('profile-menu-wrapper')?.contains(e.target);
+        if (!insideHelp && !insideHelpDrop && !insideProfile) closeAllMenus();
+    });
+
+    const searchForm = document.querySelector('form[action="/search"]');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function() {
+            const originInput = document.getElementById('origin');
+            const destInput   = document.getElementById('destination');
+            const extractCode = (val) => {
+                const match = val.match(/\(([A-Z]{3})\)/);
+                return match ? match[1] : val;
+            };
+            originInput.value = extractCode(originInput.value);
+            destInput.value   = extractCode(destInput.value);
+        });
+    }
+</script>

@@ -1,0 +1,862 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-32 px-6 ">
+
+    <!-- Background -->
+    <div class="absolute inset-0 -z-10 bg-slate-200">
+        <img src="https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1920&q=80"
+             class="w-full h-full object-cover opacity-30 grayscale">
+    </div>
+
+    <!-- Heading -->
+    <div class="text-center mb-12">
+        <h1 class="text-6xl md:text-8xl serif font-light leading-tight mb-4">
+            The Art of <span class="italic text-[--sky-blue]">Arrival</span>
+        </h1>
+        <p class="text-gray-400 uppercase tracking-[0.4em] text-[10px] font-bold">
+            Bespoke Private Flight Charters
+        </p>
+    </div>
+
+    <!-- Card -->
+    <div class="float-card w-full max-w-6xl rounded-[40px] p-6 overflow-visible">
+        <form method="GET" action="/flightsearch"
+              class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.2fr_1.8fr_1fr_auto] gap-6 items-end">
+
+            <input type="hidden" name="from"            id="from-code">
+            <input type="hidden" name="to"              id="to-code">
+            <input type="hidden" name="departure_date"  id="departure-date">
+            <input type="hidden" name="return_date"     id="return-date">
+            <input type="hidden" name="trip_type"       id="trip-type-input" value="oneway">
+            <input type="hidden" name="passengers"      id="passengers-count" value="1">
+            <input type="hidden" name="dep_flexibility" id="dep-flexibility" value="0">
+            <input type="hidden" name="ret_flexibility" id="ret-flexibility" value="0">
+
+            <!-- 1. Origin -->
+            <div class="relative" id="from-wrapper">
+                <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
+                <input type="text" id="from-display" placeholder="From?" autocomplete="off"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-base outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="from-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+            </div>
+
+            <!-- 2. Swap -->
+            <div class="flex items-end justify-center pb-1">
+                <button type="button" id="swap-btn"
+                        class="w-10 h-10 rounded-full border border-gray-200 hover:bg-gray-100 transition flex items-center justify-center text-sm">⇄</button>
+            </div>
+
+            <!-- 3. Destination -->
+            <div class="relative" id="to-wrapper">
+                <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
+                <input type="text" id="to-display" placeholder="To?" autocomplete="off"
+                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-base outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="to-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
+            </div>
+
+            <!-- 4. DATE FIELD -->
+            <div class="relative" id="date-wrapper">
+                <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Flight Dates</label>
+
+                <div id="date-display"
+                     class="w-full flex items-center justify-between border-b border-gray-200 pb-2 cursor-pointer select-none group hover:border-[--sky-blue] transition-colors">
+
+                    <!-- Departing -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] text-gray-400 font-medium">Departing</span>
+                        <span id="display-departing" class="text-sm font-semibold" style="color:#d1d5db;">—</span>
+                    </div>
+
+                    <!-- Separator — hidden on one-way -->
+                    <span id="date-separator" class="text-gray-300 mx-2">-</span>
+
+                    <!-- Returning — hidden on one-way -->
+                    <div class="flex items-center gap-2 text-right" id="display-returning-block">
+                        <span id="display-returning" class="text-sm font-semibold" style="color:#d1d5db;">—</span>
+                        <span class="text-[11px] text-gray-400 font-medium">Returning</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. PASSENGERS -->
+            <div class="relative" id="passenger-wrapper">
+                <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Passengers</label>
+                <div id="passenger-display"
+                     class="border-b border-gray-200 pb-2 cursor-pointer flex items-center justify-between">
+                    <span id="display-passengers" class="text-sm text-gray-800 font-medium">1 Passenger</span>
+                    <span class="text-gray-400 text-[10px]">▼</span>
+                </div>
+                <div id="passenger-dropdown"
+                     class="hidden absolute right-0 mt-4 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-6 w-64">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-gray-700">Total Travelers</span>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="p-minus"
+                                    class="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">-</button>
+                            <span id="p-count" class="font-bold text-sm">1</span>
+                            <button type="button" id="p-plus"
+                                    class="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Submit -->
+            <button type="submit"
+                    class="bg-[--charcoal] text-white h-[46px] px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300">
+                Search
+            </button>
+
+        </form>
+    </div>
+
+</section>
+
+<!-- Calendar dropdown — appended to body via JS -->
+<div id="calendar-dropdown"
+     class="hidden bg-white rounded-2xl shadow-2xl p-6"
+     style="position: absolute; width: 680px; z-index: 99999;">
+
+    <!-- Trip type toggle -->
+    <div class="flex gap-3 mb-5">
+        <button type="button" id="oneway-btn"    class="trip-btn active">One Way</button>
+        <button type="button" id="roundtrip-btn" class="trip-btn">Round Trip</button>
+        <button type="button" id="multicity-btn" class="trip-btn">Multi-City</button>
+    </div>
+
+    <!-- Departing / Returning summary + flexibility -->
+    <div class="flex gap-6 mb-5 pb-4 border-b border-gray-100">
+
+        <!-- Departing -->
+        <div class="flex-1">
+            <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Departing</div>
+            <div id="cal-label-dep" class="text-sm text-gray-400 italic mb-2">Select departure date</div>
+            <div id="dep-flex-row" style="display:none;" class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">± Days</span>
+                <div class="flex gap-1">
+                    <button type="button" data-flex="dep" data-val="0" class="flex-btn active-flex">Exact</button>
+                    <button type="button" data-flex="dep" data-val="1" class="flex-btn">± 1</button>
+                    <button type="button" data-flex="dep" data-val="2" class="flex-btn">± 2</button>
+                    <button type="button" data-flex="dep" data-val="3" class="flex-btn">± 3</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Returning -->
+        <div class="flex-1" id="cal-ret-block" style="display:none;">
+            <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Returning</div>
+            <div id="cal-label-ret" class="text-sm text-gray-400 italic mb-2">Select return date</div>
+            <div id="ret-flex-row" style="display:none;" class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">± Days</span>
+                <div class="flex gap-1">
+                    <button type="button" data-flex="ret" data-val="0" class="flex-btn active-flex">Exact</button>
+                    <button type="button" data-flex="ret" data-val="1" class="flex-btn">± 1</button>
+                    <button type="button" data-flex="ret" data-val="2" class="flex-btn">± 2</button>
+                    <button type="button" data-flex="ret" data-val="3" class="flex-btn">± 3</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Multi-city legs panel (hidden by default) -->
+    <div id="multicity-panel" style="display:none;" class="mb-5">
+        <div id="multicity-legs"></div>
+        <button type="button" id="add-leg-btn"
+                class="mt-3 text-xs uppercase font-bold text-[--sky-blue] tracking-widest hover:underline">
+            + Add Another Flight
+        </button>
+    </div>
+
+    <!-- Two-month calendar -->
+    <div id="dual-cal" class="grid grid-cols-2 gap-6">
+
+        <!-- LEFT MONTH -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <button type="button" id="prev-month"
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">←</button>
+                <span id="month-label-left" class="font-semibold text-sm text-gray-700"></span>
+                <div class="w-8"></div>
+            </div>
+            <div class="grid grid-cols-7 text-xs text-gray-400 mb-2 text-center gap-1">
+                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+            </div>
+            <div id="calendar-grid-left" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+        </div>
+
+        <!-- RIGHT MONTH -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <div class="w-8"></div>
+                <span id="month-label-right" class="font-semibold text-sm text-gray-700"></span>
+                <button type="button" id="next-month"
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">→</button>
+            </div>
+            <div class="grid grid-cols-7 text-xs text-gray-400 mb-2 text-center gap-1">
+                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+            </div>
+            <div id="calendar-grid-right" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* ── Airport dropdown ── */
+    .airport-dropdown::-webkit-scrollbar { width: 4px; }
+    .airport-dropdown::-webkit-scrollbar-track { background: transparent; }
+    .airport-dropdown::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+
+    .airport-item {
+        padding: 12px 18px;
+        font-size: 0.875rem;
+        color: #1e293b;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+        line-height: 1.4;
+    }
+    .airport-item:last-child { border-bottom: none; }
+    .airport-item:hover, .airport-item.active { background: #f8fafc; }
+    .airport-item .iata {
+        display: inline-block;
+        font-weight: 700;
+        color: var(--sky-blue, #38bdf8);
+        margin-right: 8px;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+    }
+    .airport-item .sub {
+        display: block;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+    .dropdown-empty, .dropdown-loading {
+        padding: 14px 18px;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-align: center;
+        font-style: italic;
+    }
+
+    /* ── Trip toggle buttons ── */
+    .trip-btn {
+        padding: 6px 16px;
+        border-radius: 999px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        background: white;
+        color: #374151;
+    }
+    .trip-btn.active {
+        background: #38bdf8;
+        color: white;
+        border-color: #38bdf8;
+    }
+
+    /* ── Calendar days ── */
+    .cal-day {
+        padding: 7px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+        font-size: 0.82rem;
+        line-height: 1;
+    }
+    .cal-day:hover:not(.cal-past) { background: #f1f5f9; }
+    .cal-day.cal-past { color: #cbd5e1; cursor: default; }
+    .cal-day.cal-today { font-weight: 700; color: #38bdf8; }
+    .cal-day.cal-selected {
+        background: #38bdf8 !important;
+        color: white !important;
+        font-weight: 700;
+    }
+    .cal-day.cal-range { background: #e0f2fe; border-radius: 0; }
+
+    /* ── Flexibility buttons ── */
+    .flex-btn {
+        padding: 3px 9px;
+        border-radius: 999px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.7rem;
+        cursor: pointer;
+        background: white;
+        color: #64748b;
+        transition: background 0.15s, color 0.15s;
+        font-weight: 600;
+    }
+    .flex-btn:hover { background: #f1f5f9; }
+    .flex-btn.active-flex {
+        background: #0ea5e9;
+        color: white;
+        border-color: #0ea5e9;
+    }
+
+    /* ── Multi-city leg row ── */
+    .mc-leg {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .mc-leg:last-child { border-bottom: none; }
+    .mc-leg label { font-size: 10px; font-weight: 700; color: #38bdf8; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .mc-leg input[type="text"],
+    .mc-leg input[type="date"] {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #e2e8f0;
+        outline: none;
+        font-size: 0.85rem;
+        padding-bottom: 4px;
+        background: transparent;
+        color: #1f2937;
+    }
+    .mc-leg input[type="text"]:focus,
+    .mc-leg input[type="date"]:focus { border-bottom-color: #38bdf8; }
+    .mc-remove {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        color: #94a3b8;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+    }
+    .mc-remove:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+</style>
+
+<script>
+(function () {
+
+    // ── ELEMENT SELECTORS ───────────────────────────────────────
+    const calDropdown    = document.getElementById('calendar-dropdown');
+    const dateDisplayEl  = document.getElementById('date-display');
+    const depInput       = document.getElementById('departure-date');
+    const retInput       = document.getElementById('return-date');
+    const tripTypeInput  = document.getElementById('trip-type-input');
+    const paxInput       = document.getElementById('passengers-count');
+    const depFlexInput   = document.getElementById('dep-flexibility');
+    const retFlexInput   = document.getElementById('ret-flexibility');
+    const oneWayBtn      = document.getElementById('oneway-btn');
+    const roundTripBtn   = document.getElementById('roundtrip-btn');
+    const multiCityBtn   = document.getElementById('multicity-btn');
+    const retBlockMain   = document.getElementById('display-returning-block');
+    const dateSeparator  = document.getElementById('date-separator');
+    const dispDep        = document.getElementById('display-departing');
+    const dispRet        = document.getElementById('display-returning');
+    const calRetBlock    = document.getElementById('cal-ret-block');
+    const calLabelDep    = document.getElementById('cal-label-dep');
+    const calLabelRet    = document.getElementById('cal-label-ret');
+    const dualCal        = document.getElementById('dual-cal');
+    const multicityPanel = document.getElementById('multicity-panel');
+    const multicityLegs  = document.getElementById('multicity-legs');
+    const addLegBtn      = document.getElementById('add-leg-btn');
+    const depFlexRow     = document.getElementById('dep-flex-row');
+    const retFlexRow     = document.getElementById('ret-flex-row');
+
+    const MONTHS = ["January","February","March","April","May","June",
+                    "July","August","September","October","November","December"];
+
+    let leftYear  = new Date().getFullYear();
+    let leftMonth = new Date().getMonth();
+    let tripType  = 'oneway';
+    let selDep    = null;
+    let selRet    = null;
+    let mcLegs    = [];
+
+    // Move calendar to body to escape overflow/z-index issues
+    if (calDropdown) document.body.appendChild(calDropdown);
+
+    // ── AIRPORT SEARCH ──────────────────────────────────────────
+    const FALLBACK_AIRPORTS = [
+        { iata:'LHR', name:'Heathrow Airport',              city:'London',        country:'GB' },
+        { iata:'LGW', name:'Gatwick Airport',               city:'London',        country:'GB' },
+        { iata:'STN', name:'Stansted Airport',              city:'London',        country:'GB' },
+        { iata:'MAN', name:'Manchester Airport',            city:'Manchester',    country:'GB' },
+        { iata:'EDI', name:'Edinburgh Airport',             city:'Edinburgh',     country:'GB' },
+        { iata:'BHX', name:'Birmingham Airport',            city:'Birmingham',    country:'GB' },
+        { iata:'GLA', name:'Glasgow Airport',               city:'Glasgow',       country:'GB' },
+        { iata:'CDG', name:'Charles de Gaulle Airport',     city:'Paris',         country:'FR' },
+        { iata:'ORY', name:'Orly Airport',                  city:'Paris',         country:'FR' },
+        { iata:'AMS', name:'Schiphol Airport',              city:'Amsterdam',     country:'NL' },
+        { iata:'FRA', name:'Frankfurt Airport',             city:'Frankfurt',     country:'DE' },
+        { iata:'MUC', name:'Munich Airport',                city:'Munich',        country:'DE' },
+        { iata:'MAD', name:'Barajas Airport',               city:'Madrid',        country:'ES' },
+        { iata:'BCN', name:'El Prat Airport',               city:'Barcelona',     country:'ES' },
+        { iata:'FCO', name:'Fiumicino Airport',             city:'Rome',          country:'IT' },
+        { iata:'MXP', name:'Malpensa Airport',              city:'Milan',         country:'IT' },
+        { iata:'ZRH', name:'Zurich Airport',                city:'Zurich',        country:'CH' },
+        { iata:'VIE', name:'Vienna Airport',                city:'Vienna',        country:'AT' },
+        { iata:'BRU', name:'Brussels Airport',              city:'Brussels',      country:'BE' },
+        { iata:'CPH', name:'Copenhagen Airport',            city:'Copenhagen',    country:'DK' },
+        { iata:'ARN', name:'Arlanda Airport',               city:'Stockholm',     country:'SE' },
+        { iata:'OSL', name:'Gardermoen Airport',            city:'Oslo',          country:'NO' },
+        { iata:'HEL', name:'Helsinki Airport',              city:'Helsinki',      country:'FI' },
+        { iata:'IST', name:'Istanbul Airport',              city:'Istanbul',      country:'TR' },
+        { iata:'DXB', name:'Dubai International Airport',   city:'Dubai',         country:'AE' },
+        { iata:'AUH', name:'Abu Dhabi Airport',             city:'Abu Dhabi',     country:'AE' },
+        { iata:'DOH', name:'Hamad International Airport',   city:'Doha',          country:'QA' },
+        { iata:'SIN', name:'Changi Airport',                city:'Singapore',     country:'SG' },
+        { iata:'HKG', name:'Hong Kong International',       city:'Hong Kong',     country:'HK' },
+        { iata:'NRT', name:'Narita International Airport',  city:'Tokyo',         country:'JP' },
+        { iata:'HND', name:'Haneda Airport',                city:'Tokyo',         country:'JP' },
+        { iata:'ICN', name:'Incheon International Airport', city:'Seoul',         country:'KR' },
+        { iata:'PEK', name:'Beijing Capital Airport',       city:'Beijing',       country:'CN' },
+        { iata:'PVG', name:'Pudong International Airport',  city:'Shanghai',      country:'CN' },
+        { iata:'BOM', name:'Chhatrapati Shivaji Airport',   city:'Mumbai',        country:'IN' },
+        { iata:'DEL', name:'Indira Gandhi Airport',         city:'Delhi',         country:'IN' },
+        { iata:'SYD', name:'Kingsford Smith Airport',       city:'Sydney',        country:'AU' },
+        { iata:'MEL', name:'Melbourne Airport',             city:'Melbourne',     country:'AU' },
+        { iata:'JNB', name:'O.R. Tambo International',      city:'Johannesburg',  country:'ZA' },
+        { iata:'CPT', name:'Cape Town International',       city:'Cape Town',     country:'ZA' },
+        { iata:'CAI', name:'Cairo International Airport',   city:'Cairo',         country:'EG' },
+        { iata:'JFK', name:'John F. Kennedy Airport',       city:'New York',      country:'US' },
+        { iata:'LGA', name:'LaGuardia Airport',             city:'New York',      country:'US' },
+        { iata:'EWR', name:'Newark Liberty Airport',        city:'Newark',        country:'US' },
+        { iata:'LAX', name:'Los Angeles Airport',           city:'Los Angeles',   country:'US' },
+        { iata:'ORD', name:"O'Hare International Airport",  city:'Chicago',       country:'US' },
+        { iata:'MDW', name:'Midway Airport',                city:'Chicago',       country:'US' },
+        { iata:'ATL', name:'Hartsfield-Jackson Airport',    city:'Atlanta',       country:'US' },
+        { iata:'DFW', name:'Dallas/Fort Worth Airport',     city:'Dallas',        country:'US' },
+        { iata:'MIA', name:'Miami International Airport',   city:'Miami',         country:'US' },
+        { iata:'SFO', name:'San Francisco Airport',         city:'San Francisco', country:'US' },
+        { iata:'BOS', name:'Logan International Airport',   city:'Boston',        country:'US' },
+        { iata:'SEA', name:'Seattle-Tacoma Airport',        city:'Seattle',       country:'US' },
+        { iata:'DEN', name:'Denver International Airport',  city:'Denver',        country:'US' },
+        { iata:'LAS', name:'Harry Reid Airport',            city:'Las Vegas',     country:'US' },
+        { iata:'PHX', name:'Phoenix Sky Harbor Airport',    city:'Phoenix',       country:'US' },
+        { iata:'IAD', name:'Dulles International Airport',  city:'Washington DC', country:'US' },
+        { iata:'DCA', name:'Reagan National Airport',       city:'Washington DC', country:'US' },
+        { iata:'IAH', name:'George Bush Airport',           city:'Houston',       country:'US' },
+        { iata:'MSP', name:'Minneapolis-St Paul Airport',   city:'Minneapolis',   country:'US' },
+        { iata:'DTW', name:'Detroit Metro Airport',         city:'Detroit',       country:'US' },
+        { iata:'GRU', name:'Guarulhos Airport',             city:'São Paulo',     country:'BR' },
+        { iata:'EZE', name:'Ministro Pistarini Airport',    city:'Buenos Aires',  country:'AR' },
+        { iata:'MEX', name:'Benito Juárez Airport',         city:'Mexico City',   country:'MX' },
+        { iata:'YYZ', name:'Pearson International Airport', city:'Toronto',       country:'CA' },
+        { iata:'YVR', name:'Vancouver International Airport',city:'Vancouver',    country:'CA' },
+        { iata:'YUL', name:'Montréal-Trudeau Airport',      city:'Montreal',      country:'CA' },
+        { iata:'AKL', name:'Auckland Airport',              city:'Auckland',      country:'NZ' },
+        { iata:'KUL', name:'Kuala Lumpur Airport',          city:'Kuala Lumpur',  country:'MY' },
+        { iata:'BKK', name:'Suvarnabhumi Airport',          city:'Bangkok',       country:'TH' },
+        { iata:'CGK', name:'Soekarno-Hatta Airport',        city:'Jakarta',       country:'ID' },
+        { iata:'MNL', name:'Ninoy Aquino Airport',          city:'Manila',        country:'PH' },
+        { iata:'RUH', name:'King Khalid Airport',           city:'Riyadh',        country:'SA' },
+        { iata:'KWI', name:'Kuwait International Airport',  city:'Kuwait City',   country:'KW' },
+        { iata:'MCT', name:'Muscat International Airport',  city:'Muscat',        country:'OM' },
+        { iata:'NBO', name:'Jomo Kenyatta Airport',         city:'Nairobi',       country:'KE' },
+        { iata:'ADD', name:'Bole International Airport',    city:'Addis Ababa',   country:'ET' },
+        { iata:'LOS', name:'Murtala Muhammed Airport',      city:'Lagos',         country:'NG' },
+        { iata:'ACC', name:'Kotoka International Airport',  city:'Accra',         country:'GH' },
+        { iata:'CMN', name:'Mohammed V Airport',            city:'Casablanca',    country:'MA' },
+    ];
+
+    function debounce(fn, delay) {
+        let t;
+        return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+    }
+
+    function searchFallback(query) {
+        const q = query.toLowerCase().trim();
+        if (!q) return [];
+        return FALLBACK_AIRPORTS.filter(a =>
+            a.iata.toLowerCase().startsWith(q) ||
+            a.name.toLowerCase().includes(q) ||
+            a.city.toLowerCase().includes(q) ||
+            a.country.toLowerCase().includes(q)
+        ).slice(0, 8);
+    }
+
+    async function fetchAirports(query) {
+        try {
+            const res = await fetch(`/airports?search=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error('non-ok');
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+            return data
+                .filter(a => a.code || (a.iata && a.iata.length === 3))
+                .map(a => ({
+                    iata:    a.code    || a.iata,
+                    name:    a.name,
+                    city:    a.city    || a.municipality || '',
+                    country: a.country || a.iso_country  || ''
+                }))
+                .slice(0, 8);
+        } catch {
+            return searchFallback(query);
+        }
+    }
+
+    function renderResults(results, dropdownEl, inputEl, codeInputEl) {
+        dropdownEl.innerHTML = '';
+        if (!results.length) {
+            dropdownEl.innerHTML = '<div class="dropdown-empty">No airports found</div>';
+            dropdownEl.classList.remove('hidden');
+            return;
+        }
+        results.forEach(airport => {
+            const item = document.createElement('div');
+            item.className = 'airport-item';
+            item.innerHTML = `
+                <span class="iata">${airport.iata}</span>
+                ${airport.city ? airport.city + ' — ' : ''}${airport.name}
+                <span class="sub">${airport.country}</span>
+            `;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                inputEl.value     = `${airport.city || airport.name} (${airport.iata})`;
+                codeInputEl.value = airport.iata;
+                dropdownEl.classList.add('hidden');
+            });
+            dropdownEl.appendChild(item);
+        });
+        dropdownEl.classList.remove('hidden');
+    }
+
+    function initAirportSearch(inputId, resultsId, codeInputId) {
+        const inputEl     = document.getElementById(inputId);
+        const resultsEl   = document.getElementById(resultsId);
+        const codeInputEl = document.getElementById(codeInputId);
+        if (!inputEl || !resultsEl || !codeInputEl) return;
+
+        const doSearch = debounce(async (query) => {
+            if (query.length < 2) { resultsEl.classList.add('hidden'); return; }
+            resultsEl.innerHTML = '<div class="dropdown-loading">Searching…</div>';
+            resultsEl.classList.remove('hidden');
+            const results = await fetchAirports(query);
+            renderResults(results, resultsEl, inputEl, codeInputEl);
+        }, 280);
+
+        inputEl.addEventListener('input', () => { codeInputEl.value = ''; doSearch(inputEl.value); });
+        inputEl.addEventListener('focus', () => { if (inputEl.value.length >= 2) doSearch(inputEl.value); });
+        inputEl.addEventListener('blur',  () => { setTimeout(() => resultsEl.classList.add('hidden'), 150); });
+        document.addEventListener('click', (e) => {
+            if (!inputEl.contains(e.target) && !resultsEl.contains(e.target))
+                resultsEl.classList.add('hidden');
+        });
+    }
+
+    initAirportSearch('from-display', 'from-results', 'from-code');
+    initAirportSearch('to-display',   'to-results',   'to-code');
+
+    // ── SWAP ────────────────────────────────────────────────────
+    document.getElementById('swap-btn').addEventListener('click', () => {
+        const fD = document.getElementById('from-display'), tD = document.getElementById('to-display');
+        const fC = document.getElementById('from-code'),    tC = document.getElementById('to-code');
+        [fD.value, tD.value] = [tD.value, fD.value];
+        [fC.value, tC.value] = [tC.value, fC.value];
+    });
+
+    // ── DATE FLEXIBILITY ────────────────────────────────────────
+    document.querySelectorAll('.flex-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const group = btn.dataset.flex;
+            const val   = btn.dataset.val;
+            document.querySelectorAll(`.flex-btn[data-flex="${group}"]`)
+                .forEach(b => b.classList.remove('active-flex'));
+            btn.classList.add('active-flex');
+            if (group === 'dep') depFlexInput.value = val;
+            if (group === 'ret') retFlexInput.value = val;
+        });
+    });
+
+    function showDepFlex() { depFlexRow.style.display = 'flex'; }
+    function showRetFlex() { retFlexRow.style.display = 'flex'; }
+
+    function resetFlex(group) {
+        document.querySelectorAll(`.flex-btn[data-flex="${group}"]`)
+            .forEach(b => b.classList.remove('active-flex'));
+        document.querySelector(`.flex-btn[data-flex="${group}"][data-val="0"]`)
+            ?.classList.add('active-flex');
+        if (group === 'dep') { depFlexInput.value = '0'; depFlexRow.style.display = 'none'; }
+        if (group === 'ret') { retFlexInput.value = '0'; retFlexRow.style.display = 'none'; }
+    }
+
+    // ── TRIP TYPE ───────────────────────────────────────────────
+    function setTripType(type) {
+        tripType = type;
+        tripTypeInput.value = type;
+
+        if (type === 'oneway' || type === 'multicity') {
+            selRet = null;
+            retInput.value = '';
+            resetFlex('dep');
+            resetFlex('ret');
+        }
+
+        [oneWayBtn, roundTripBtn, multiCityBtn].forEach(b => b.classList.remove('active'));
+        if (type === 'oneway')    oneWayBtn.classList.add('active');
+        if (type === 'roundtrip') roundTripBtn.classList.add('active');
+        if (type === 'multicity') multiCityBtn.classList.add('active');
+
+        const showRet = type === 'roundtrip';
+        retBlockMain.style.display  = showRet ? '' : 'none';
+        dateSeparator.style.display = showRet ? '' : 'none';
+        calRetBlock.style.display   = showRet ? '' : 'none';
+
+        if (type === 'multicity') {
+            dualCal.style.display        = 'none';
+            multicityPanel.style.display = '';
+            if (mcLegs.length === 0) addMcLeg();
+        } else {
+            dualCal.style.display        = '';
+            multicityPanel.style.display = 'none';
+        }
+
+        updateDisplayBar();
+        if (type !== 'multicity') renderBoth();
+    }
+
+    oneWayBtn.addEventListener('click',    () => setTripType('oneway'));
+    roundTripBtn.addEventListener('click', () => setTripType('roundtrip'));
+    multiCityBtn.addEventListener('click', () => setTripType('multicity'));
+
+    // ── MULTI-CITY LEGS ─────────────────────────────────────────
+    function addMcLeg() {
+        const idx = mcLegs.length;
+        mcLegs.push({ from: '', to: '', date: '' });
+        const row = document.createElement('div');
+        row.className   = 'mc-leg';
+        row.dataset.idx = idx;
+        row.innerHTML = `
+            <div>
+                <label>From</label>
+                <input type="text" placeholder="City or airport" class="mc-from" data-idx="${idx}">
+            </div>
+            <div>
+                <label>To</label>
+                <input type="text" placeholder="City or airport" class="mc-to" data-idx="${idx}">
+            </div>
+            <div>
+                <label>Date</label>
+                <input type="date" class="mc-date" data-idx="${idx}">
+            </div>
+            <button type="button" class="mc-remove" data-idx="${idx}" title="Remove">✕</button>
+        `;
+        row.querySelector('.mc-from').addEventListener('input',  e => { mcLegs[idx].from = e.target.value; });
+        row.querySelector('.mc-to').addEventListener('input',    e => { mcLegs[idx].to   = e.target.value; });
+        row.querySelector('.mc-date').addEventListener('change', e => { mcLegs[idx].date = e.target.value; });
+        row.querySelector('.mc-remove').addEventListener('click', () => removeMcLeg(row, idx));
+        multicityLegs.appendChild(row);
+    }
+
+    function removeMcLeg(row, idx) {
+        if (mcLegs.length <= 1) return;
+        row.remove();
+        mcLegs.splice(idx, 1);
+        [...multicityLegs.querySelectorAll('.mc-leg')].forEach((r, i) => { r.dataset.idx = i; });
+    }
+
+    addLegBtn.addEventListener('click', () => { if (mcLegs.length < 6) addMcLeg(); });
+
+    // ── CALENDAR OPEN / CLOSE ───────────────────────────────────
+    if (dateDisplayEl) {
+        dateDisplayEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = calDropdown.classList.contains('hidden');
+            if (isHidden) {
+                calDropdown.classList.remove('hidden');
+                positionCalendar();
+                if (tripType !== 'multicity') renderBoth();
+            } else {
+                calDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    function positionCalendar() {
+        if (!dateDisplayEl || !calDropdown) return;
+        const rect = dateDisplayEl.getBoundingClientRect();
+        let left = rect.left;
+        if (left + 680 > window.innerWidth) left = window.innerWidth - 690;
+        if (left < 8) left = 8;
+        const top = rect.bottom + window.scrollY + 12;
+        calDropdown.style.top      = top + 'px';
+        calDropdown.style.left     = left + 'px';
+        calDropdown.style.position = 'absolute';
+        calDropdown.style.zIndex   = '99999';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (calDropdown &&
+            !calDropdown.contains(e.target) &&
+            !dateDisplayEl.contains(e.target)) {
+            calDropdown.classList.add('hidden');
+        }
+    });
+
+    window.addEventListener('scroll', () => { if (!calDropdown.classList.contains('hidden')) positionCalendar(); }, true);
+    window.addEventListener('resize', () => { if (!calDropdown.classList.contains('hidden')) positionCalendar(); });
+
+    // ── CALENDAR RENDER ─────────────────────────────────────────
+    function renderBoth() {
+        let rYear = leftYear, rMonth = leftMonth + 1;
+        if (rMonth > 11) { rMonth = 0; rYear++; }
+        document.getElementById('month-label-left').textContent  = `${MONTHS[leftMonth]} ${leftYear}`;
+        document.getElementById('month-label-right').textContent = `${MONTHS[rMonth]} ${rYear}`;
+        renderGrid('calendar-grid-left',  leftYear, leftMonth);
+        renderGrid('calendar-grid-right', rYear,    rMonth);
+    }
+
+    function renderGrid(gridId, year, month) {
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        grid.innerHTML = '';
+        const today = new Date();
+        const tY = today.getFullYear(), tM = today.getMonth(), tD = today.getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const offset   = firstDay === 0 ? 6 : firstDay - 1;
+        const daysInM  = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < offset; i++)
+            grid.appendChild(Object.assign(document.createElement('div'), { className: 'cal-blank' }));
+
+        for (let d = 1; d <= daysInM; d++) {
+            const cell     = document.createElement('div');
+            cell.className = 'cal-day';
+            cell.textContent = d;
+
+            const thisDate = new Date(year, month, d);
+            const isPast   = thisDate < new Date(tY, tM, tD);
+            const isToday  = year === tY && month === tM && d === tD;
+            const isDepSel = selDep && selDep.y === year && selDep.m === month && selDep.d === d;
+            const isRetSel = selRet && selRet.y === year && selRet.m === month && selRet.d === d;
+
+            if (isPast)               cell.classList.add('cal-past');
+            if (isToday)              cell.classList.add('cal-today');
+            if (isDepSel || isRetSel) cell.classList.add('cal-selected');
+
+            if (selDep && selRet) {
+                const ts    = thisDate.getTime();
+                const depTs = new Date(selDep.y, selDep.m, selDep.d).getTime();
+                const retTs = new Date(selRet.y, selRet.m, selRet.d).getTime();
+                if (ts > depTs && ts < retTs) cell.classList.add('cal-range');
+            }
+
+            if (!isPast) cell.onclick = () => pickDate(year, month, d);
+            grid.appendChild(cell);
+        }
+    }
+
+    // ── PICK DATE ───────────────────────────────────────────────
+    function pickDate(y, m, d) {
+        const fmt = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+        if (tripType === 'oneway') {
+            selDep = { y, m, d };
+            selRet = null;
+            depInput.value = fmt;
+            showDepFlex();
+            updateDisplayBar();
+            calDropdown.classList.add('hidden');
+
+        } else {
+            // Round trip — first click = depart, second click = return
+            if (!selDep || selRet) {
+                selDep = { y, m, d };
+                selRet = null;
+                depInput.value = fmt;
+                retInput.value = '';
+                showDepFlex();
+                resetFlex('ret');
+            } else {
+                const depTs = new Date(selDep.y, selDep.m, selDep.d).getTime();
+                const selTs = new Date(y, m, d).getTime();
+                if (selTs <= depTs) {
+                    selDep = { y, m, d };
+                    selRet = null;
+                    depInput.value = fmt;
+                    retInput.value = '';
+                    showDepFlex();
+                    resetFlex('ret');
+                } else {
+                    selRet = { y, m, d };
+                    retInput.value = fmt;
+                    showRetFlex();
+                    calDropdown.classList.add('hidden');
+                }
+            }
+        }
+
+        updateDisplayBar();
+        renderBoth();
+    }
+
+    // ── DISPLAY BAR ─────────────────────────────────────────────
+    function updateDisplayBar() {
+        if (selDep) {
+            dispDep.textContent = `${selDep.d} ${MONTHS[selDep.m].substring(0, 3)}`;
+            dispDep.style.color = '#1f2937';
+            calLabelDep.textContent = `${selDep.d} ${MONTHS[selDep.m]} ${selDep.y}`;
+        } else {
+            dispDep.textContent = '—';
+            dispDep.style.color = '#d1d5db';
+            calLabelDep.textContent = 'Select departure date';
+        }
+
+        if (tripType === 'roundtrip' && selRet) {
+            dispRet.textContent = `${selRet.d} ${MONTHS[selRet.m].substring(0, 3)}`;
+            dispRet.style.color = '#1f2937';
+            if (calLabelRet) calLabelRet.textContent = `${selRet.d} ${MONTHS[selRet.m]} ${selRet.y}`;
+        } else {
+            dispRet.textContent = '—';
+            dispRet.style.color = '#d1d5db';
+            if (calLabelRet) calLabelRet.textContent = 'Select return date';
+        }
+    }
+
+    // ── PASSENGERS ──────────────────────────────────────────────
+    const paxDisplay  = document.getElementById('passenger-display');
+    const paxDropdown = document.getElementById('passenger-dropdown');
+    const paxLabel    = document.getElementById('display-passengers');
+    let paxCount = 1;
+
+    paxDisplay.addEventListener('click', (e) => { e.stopPropagation(); paxDropdown.classList.toggle('hidden'); });
+
+    document.getElementById('p-plus').onclick  = (e) => { e.stopPropagation(); if (paxCount < 20) { paxCount++; updatePaxUI(); } };
+    document.getElementById('p-minus').onclick = (e) => { e.stopPropagation(); if (paxCount > 1)  { paxCount--; updatePaxUI(); } };
+
+    document.addEventListener('click', (e) => {
+        if (!paxDropdown.contains(e.target) && !paxDisplay.contains(e.target))
+            paxDropdown.classList.add('hidden');
+    });
+
+    function updatePaxUI() {
+        document.getElementById('p-count').textContent = paxCount;
+        paxLabel.textContent = paxCount + (paxCount > 1 ? ' Passengers' : ' Passenger');
+        paxInput.value = paxCount;
+    }
+
+    // ── MONTH NAVIGATION ────────────────────────────────────────
+    document.getElementById('prev-month').onclick = (e) => {
+        e.stopPropagation();
+        if (--leftMonth < 0) { leftMonth = 11; leftYear--; }
+        renderBoth();
+    };
+    document.getElementById('next-month').onclick = (e) => {
+        e.stopPropagation();
+        if (++leftMonth > 11) { leftMonth = 0; leftYear++; }
+        renderBoth();
+    };
+
+    // ── INIT ────────────────────────────────────────────────────
+    const defaultType = "{{ defaultTripType | default('oneway') }}";
+    setTripType(defaultType);
+    updatePaxUI();
+
+})();
+</script>
+
+{% endblock %}

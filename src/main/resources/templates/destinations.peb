@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .serif { font-family: 'Playfair Display', serif; }
+    .dest-card img { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .dest-card:hover img { transform: scale(1.1); }
+    /* Custom Charcoal if not in tailwind config */
+    :root { --charcoal: #1a1a1a; }
+</style>
+
+<div class="min-h-screen bg-white">
+    <!-- Header Section -->
+    <div class="bg-slate-900 text-white py-24 px-8">
+        <div class="max-w-7xl mx-auto">
+            <p class="text-[10px] uppercase tracking-[0.4em] text-sky-400 font-extrabold mb-4">Routes / Network</p>
+            <h1 class="text-6xl font-serif font-light mb-6">Our Destinations</h1>
+            <p class="text-slate-400 text-sm font-light max-w-xl leading-relaxed">
+                From the neon-lit streets of Tokyo to the serene waters of the Maldives, explore our curated selection of global gateways.
+            </p>
+        </div>
+    </div>
+
+    <!-- Featured Grid -->
+    <section class="max-w-[1440px] mx-auto px-8 py-20">
+        <div class="flex justify-between items-end mb-12 max-w-7xl mx-auto">
+            <div>
+                <span class="text-[10px] uppercase tracking-[0.3em] text-sky-400 font-bold block mb-4">Curated Journeys</span>
+                <h2 class="text-4xl md:text-5xl serif leading-tight text-slate-900">Featured Destinations</h2>
+            </div>
+            <a href="/route-map" class="border-b border-gray-300 pb-1 text-[10px] uppercase tracking-widest font-extrabold text-gray-500 hover:text-black hover:border-black transition-all">Explore All Routes</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {# Macro for Destination Cards to keep it DRY #}
+            {{ destCard("Singapore", "Urban Oasis", "https://images.unsplash.com/photo-1525625293386-3f8f99389edd") }}
+            {{ destCard("Dubai", "Desert Majesty", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c") }}
+            {{ destCard("Austria", "Imperial Heritage", "https://images.unsplash.com/photo-1516550893923-42d28e5677af") }}
+            {{ destCard("Tokyo", "Neon Metropolis", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf") }}
+            {{ destCard("Paris", "Cultural Capital", "https://images.unsplash.com/photo-1502602898657-3e91760cbb34") }}
+            {{ destCard("Maldives", "Ultimate Seclusion", "https://images.unsplash.com/photo-1514282401047-d79a71a590e8") }}
+            {{ destCard("New York", "Metropolitan Energy", "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9") }}
+            {{ destCard("Santorini", "Aegean Elegance", "https://images.unsplash.com/photo-1533105079780-92b9be482077") }}
+        </div>
+
+        <div class="mt-16 flex justify-center">
+            <a href="#" class="inline-flex items-center px-10 py-4 border border-slate-900 text-slate-900 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-slate-900 hover:text-white transition-all">
+                View All Destinations
+            </a>
+        </div>
+    </section>
+</div>
+
+{% macro destCard(name, tagline, imgUrl) %}
+<a href="/destinations/{{ name | lower }}" class="dest-card group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
+    <img src="{{ imgUrl }}?auto=format&fit=crop&w=800&q=80" alt="{{ name }}" class="w-full h-full object-cover">
+    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity"></div>
+    <div class="absolute bottom-8 left-8 text-white transition-transform duration-500 group-hover:-translate-y-2">
+        <p class="text-[9px] uppercase tracking-widest font-bold mb-2 text-sky-400">{{ tagline }}</p>
+        <h3 class="text-2xl serif">{{ name }}</h3>
+    </div>
+</a>
+{% endmacro %}
+
+{% endblock %}

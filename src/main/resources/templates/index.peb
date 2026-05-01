@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Aetheria | Sky-High Elegance{% endblock %}
+
+{% block extra_css %}
+        body {
+            background-color: var(--pearl);
+            color: var(--charcoal);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .float-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 40px 100px -20px rgba(0, 40, 100, 0.1);
+        }
+
+        .nav-link { position: relative; padding-bottom: 6px; }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 3px;
+            background-color: var(--sky-blue);
+            transition: width 0.3s ease-in-out;
+            border-radius: 3px;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        .focus-within-ring:focus-within {
+            outline: 3px solid var(--sky-blue);
+            outline-offset: 4px;
+        }
+
+        .zoom-img { background-color: #E2E8F0; }
+        .zoom-img img { transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .zoom-img:hover img { transform: scale(1.08); }
+
+        .custom-input {
+            background-image: linear-gradient(var(--sky-blue), var(--sky-blue));
+            background-size: 0% 2px;
+            background-repeat: no-repeat;
+            background-position: bottom left;
+            transition: background-size 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .custom-input:focus { background-size: 100% 2px; }
+        input::-webkit-calendar-picker-indicator { display: none !important; }
+
+        @keyframes ambientGlow {
+            0%   { transform: scale(1) translate(0, 0); opacity: 0.1; }
+            50%  { transform: scale(1.2) translate(20px, -20px); opacity: 0.2; }
+            100% { transform: scale(1) translate(0, 0); opacity: 0.1; }
+        }
+        .glow-blob { animation: ambientGlow 8s infinite alternate ease-in-out; }
+
+        .banner-fallback { background: linear-gradient(to right, #1A1A1A, #2D3748); }
+
+        .avatar-btn {
+            width: 2.5rem; height: 2.5rem;
+            border-radius: 9999px;
+            background-color: var(--sky-blue);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.35);
+            transition: background-color 0.2s, transform 0.2s;
+            text-decoration: none;
+        }
+        .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+{% endblock %}
+
+{% block body_classes %}relative{% endblock %}
+
+{% block content %}
+        
+    <a href="#main-content" class="absolute -top-[100px] left-4 bg-[--sky-blue] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest z-[1000] focus:top-4 transition-all duration-300 rounded-b-xl shadow-2xl">
+        Skip to main content
+    </a>
+
+    {% include "header.peb" %}
+
+    <main id="main-content">
+        {% include "search.peb" %}
+        {% include "membership-banner.peb" %}
+        {% include "destinations.peb" %}
+        {% include "plus-banner.peb" %}
+        {% include "cabins.peb" %}
+        {% include "ethos.peb" %}
+    </main>
+
+    {% include "footer.peb" %}
+    {% include "scripts.peb" %}
+{% endblock %}

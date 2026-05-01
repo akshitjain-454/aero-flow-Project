@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings | Aetheria{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link.active::after { width: 100%; }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        transition: background-color 0.2s, transform 0.2s; text-decoration: none;
+    }
+    .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+
+    /* ── Hero ── */
+    .dashboard-hero {
+        background: var(--charcoal);
+        padding: 8rem 2rem 4rem;
+    }
+
+    /* ── Bookings Grid ── */
+    .dashboard-container {
+        max-width: 64rem; margin: -2rem auto 4rem;
+        padding: 0 1.5rem; position: relative; z-index: 10;
+    }
+
+    .empty-state {
+        background: #fff; border-radius: 20px; padding: 4rem 2rem;
+        text-align: center; border: 1px dashed #d1d5db;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03); animation: fadeUp 0.4s ease both;
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-text { font-size: 1.1rem; font-weight: 600; color: #6b7280; margin-bottom: 1.5rem; }
+    .book-now-btn {
+        display: inline-block; padding: 0.85rem 2rem; border-radius: 9999px;
+        background: var(--sky-blue); color: #fff; font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.15em; text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35); transition: all 0.2s;
+    }
+    .book-now-btn:hover { background: var(--charcoal); transform: translateY(-2px); }
+
+    /* ── Booking Cards ── */
+    .booking-grid {
+        display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+    }
+    .booking-card {
+        background: #fff; border-radius: 20px; border: 1px solid #f0f0f0;
+        padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        animation: fadeUp 0.4s ease both; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .booking-card:hover {
+        transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
+    /* Card Header */
+    .card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-bottom: 1.25rem; border-bottom: 1px solid #f0f0f0; margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+    .ref-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .ref-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #9ca3af; }
+    .ref-value { font-size: 1.1rem; font-weight: 800; font-family: monospace; color: var(--charcoal); letter-spacing: 0.05em; }
+
+    /* Status Badges */
+    .status-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .status-badge {
+        padding: 0.35rem 0.8rem; border-radius: 9999px; font-size: 0.6rem;
+        font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+        white-space: nowrap;
+    }
+
+    .status-CONFIRMED,
+    .status-SCHEDULED,
+    .status-ARRIVED {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .status-CREATED,
+    .status-DELAYED {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-CANCELLED {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-UNKNOWN {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    /* Flight Segments */
+    .flight-segment {
+        display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .airport-block { display: flex; flex-direction: column; }
+    .airport-block.right { text-align: right; }
+    .airport-code { font-size: 1.5rem; font-weight: 800; color: var(--charcoal); letter-spacing: 0.05em; }
+    .airport-name { font-size: 0.75rem; font-weight: 600; color: #6b7280; margin-top: 0.25rem; }
+    .flight-date { font-size: 0.75rem; font-weight: 700; color: var(--sky-blue); margin-top: 0.5rem; }
+
+    .flight-divider {
+        display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        color: #d1d5db; font-size: 1.25rem;
+    }
+    .flight-line { width: 100%; height: 2px; background: repeating-linear-gradient(to right, #d1d5db 0, #d1d5db 4px, transparent 4px, transparent 8px); }
+
+    .return-badge {
+        display: inline-block; padding: 0.2rem 0.6rem; background: #f3f4f6; color: #4b5563;
+        border-radius: 6px; font-size: 0.55rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.1em; margin-bottom: 0.75rem;
+    }
+
+    .flight-warning {
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+        background: #fef2f2;
+        color: #991b1b;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: 1px solid #fecaca;
+    }
+
+    .flight-delay-notice {
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+        background: #fffbeb;
+        color: #92400e;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: 1px solid #fde68a;
+    }
+
+    /* Card Footer */
+    .card-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-top: 1.25rem; border-top: 1px solid #f0f0f0; background: #fafafa;
+        margin: 0 -2rem -2rem; padding: 1.5rem 2rem; border-radius: 0 0 20px 20px;
+        gap: 1rem;
+    }
+    .footer-info { display: flex; gap: 2rem; }
+    .info-block { display: flex; flex-direction: column; gap: 0.25rem; }
+    .info-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; }
+    .info-value { font-size: 0.85rem; font-weight: 700; color: var(--charcoal); }
+
+    .cancel-btn {
+        background: transparent; border: 1px solid #ef4444; color: #ef4444;
+        padding: 0.6rem 1.25rem; border-radius: 9999px; font-size: 0.65rem;
+        font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .cancel-btn:hover { background: #fef2f2; }
+    .cancel-btn:disabled { border-color: #d1d5db; color: #9ca3af; background: transparent; cursor: not-allowed; }
+
+    .delete-btn {
+        background: #fee2e2; border: 1px solid #ef4444; color: #991b1b;
+        padding: 0.6rem 1.25rem; border-radius: 9999px; font-size: 0.65rem;
+        font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .delete-btn:hover { background: #fecaca; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Utility to extract just the 3-letter code from "Airport Name XYZ" */
+    .extract-code { font-family: monospace; }
+
+    @media (max-width: 768px) {
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .status-group {
+            justify-content: flex-start;
+        }
+
+        .card-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link active hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn" style="text-decoration: none;">{{ userInitials }}</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="dashboard-hero">
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Manage your <span class="italic text-[--sky-blue]">trips</span></h1>
+        <p class="text-gray-400 text-sm mt-4 font-medium">View, modify, or cancel your upcoming flights.</p>
+    </div>
+</div>
+
+<main class="dashboard-container">
+    {% if bookingsInfo is empty %}
+        <div class="empty-state">
+            <div class="empty-icon">✈️</div>
+            <p class="empty-text">You don't have any bookings yet.</p>
+            <a href="/" class="book-now-btn">Book a Flight</a>
+        </div>
+    {% else %}
+        <div class="booking-grid">
+            {% for booking in bookingsInfo %}
+                <div class="booking-card" style="animation-delay: {{ loop.index * 0.1 }}s">
+
+                    <div class="card-header">
+                        <div class="ref-group">
+                            <span class="ref-label">Booking Reference</span>
+                            <span class="ref-value">{{ booking.bookingReference }}</span>
+                        </div>
+
+                        <div class="status-group">
+                            <span class="status-badge status-{{ booking.bookingStatus }}" id="badge-{{ booking.bookingReference }}">
+                                Booking: {{ booking.bookingStatus }}
+                            </span>
+
+                            {% if booking.flightStatus != null %}
+                                <span class="status-badge status-{{ booking.flightStatus }}">
+                                    Flight: {{ booking.flightStatus }}
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-UNKNOWN">
+                                    Flight: UNKNOWN
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="return-badge">Outbound • {{ booking.flightCode }}</span>
+                        <div class="flight-segment">
+                            <div class="airport-block">
+                                <span class="airport-name">{{ booking.departureAirportNameCode }}</span>
+                                <span class="flight-date">{{ booking.departureTime | date("dd MMM yyyy, HH:mm") }}</span>
+                            </div>
+
+                            <div class="flight-divider">
+                                <span>✈</span>
+                            </div>
+
+                            <div class="airport-block right">
+                                <span class="airport-name">{{ booking.arrivalAirportNameCode }}</span>
+                                <span class="flight-date" style="color: transparent; user-select: none;">Time</span>
+                            </div>
+                        </div>
+
+                        {% if booking.flightStatus == "CANCELLED" %}
+                            <div class="flight-warning">
+                                This flight has been cancelled by the airline. Please contact support for further assistance.
+                            </div>
+                        {% endif %}
+
+                        {% if booking.flightStatus == "DELAYED" %}
+                            <div class="flight-delay-notice">
+                                This flight is currently delayed. Please check your updated schedule before travelling.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if booking.returnFlightCode != null %}
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed #e5e7eb;">
+                        <span class="return-badge">Return • {{ booking.returnFlightCode }}</span>
+                        <div class="flight-segment">
+                            <div class="airport-block">
+                                <span class="airport-name">{{ booking.returnDepartureAirportNameCode }}</span>
+                                <span class="flight-date">{{ booking.returnDepartureTime | date("dd MMM yyyy, HH:mm") }}</span>
+                            </div>
+
+                            <div class="flight-divider">
+                                <span style="transform: scaleX(-1);">✈</span>
+                            </div>
+
+                            <div class="airport-block right">
+                                <span class="airport-name">{{ booking.returnArrivalAirportNameCode }}</span>
+                                <span class="flight-date" style="color: transparent; user-select: none;">Time</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="card-footer">
+                        <div class="footer-info">
+                            <div class="info-block">
+                                <span class="info-label">Passengers</span>
+                                <span class="info-value">{{ booking.numOfPassengers }}</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Total Paid</span>
+                                <span class="info-value">{% if booking.amountPaid != null %}£{{ booking.amountPaid }}{% else %}£0.00{% endif %}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            {% if booking.bookingStatus == "CONFIRMED" %}
+                                {% if booking.flightStatus == "CANCELLED" %}
+                                    <button class="cancel-btn" disabled>Flight Cancelled</button>
+                                {% else %}
+                                    <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
+                                        View Tickets
+                                    </a>
+                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                        Cancel
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if booking.bookingStatus == "CANCELLED" %}
+                                <button class="delete-btn" onclick="deleteBooking('{{ booking.bookingReference }}')">
+                                    Delete
+                                </button>
+                                <button class="cancel-btn" disabled>Cancelled</button>
+                            {% endif %}
+
+                            {% if booking.bookingStatus == "CREATED" %}
+                                {% if booking.flightStatus == "CANCELLED" %}
+                                    <button class="cancel-btn" disabled>Flight Cancelled</button>
+                                {% else %}
+                                    <a href="/booking/{{ booking.bookingReference }}/passengers" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center" style="text-decoration: none;">
+                                        Modify
+                                    </a>
+                                    <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
+                                        Cancel
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</main>
+
+<script>
+    function cancelBooking(reference) {
+        if(!confirm("Are you absolutely sure you want to cancel booking " + reference + "? This action cannot be undone.")) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-' + reference);
+        const badge = document.getElementById('badge-' + reference);
+
+        if (btn) {
+            btn.textContent = "Cancelling...";
+            btn.disabled = true;
+        }
+
+        fetch('/booking/' + reference + '/cancel', {
+            method: 'POST'
+        })
+        .then(response => {
+            if(response.ok) {
+                if (btn) {
+                    btn.textContent = "Cancelled";
+                }
+                if (badge) {
+                    badge.textContent = "Booking: CANCELLED";
+                    badge.className = "status-badge status-CANCELLED";
+                }
+                window.location.reload();
+            } else {
+                alert("Failed to cancel the booking. Please try again or contact support.");
+                if (btn) {
+                    btn.textContent = "Cancel";
+                    btn.disabled = false;
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("A network error occurred.");
+            if (btn) {
+                btn.textContent = "Cancel";
+                btn.disabled = false;
+            }
+        });
+    }
+</script>
+
+<script>
+    function deleteBooking(reference) {
+        if(!confirm("Are you absolutely sure you want to delete the cancelled booking " + reference + "? This action cannot be undone.")) {
+            return;
+        }
+        fetch('/booking/' + reference + '/clear', {
+            method: 'POST'
+        })
+        .then(() => window.location.reload());
+    }
+</script>
+{% endblock %}

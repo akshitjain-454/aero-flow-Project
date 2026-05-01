@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Successful | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        text-decoration: none; transition: all 0.2s;
+    }
+    .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+
+    .success-hero {
+        background: var(--charcoal);
+        padding: 8rem 2rem 5rem;
+        text-align: center;
+    }
+
+    .success-icon {
+        width: 80px; height: 80px; background: var(--sky-blue);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; color: white; margin: 0 auto 2rem;
+        box-shadow: 0 10px 30px rgba(0,102,255,0.4);
+        animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .receipt-card {
+        background: #fff; border-radius: 24px; border: 1px solid #f0f0f0;
+        padding: 3rem; max-width: 32rem; margin: -3rem auto 4rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08); position: relative; z-index: 10;
+        animation: fadeUp 0.5s ease 0.2s both;
+    }
+
+    .receipt-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .receipt-row:last-of-type { border-bottom: none; }
+    .receipt-label { font-size: 0.75rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
+    .receipt-value { font-size: 0.9rem; font-weight: 800; color: var(--charcoal); }
+    .receipt-value.mono { font-family: monospace; letter-spacing: 0.05em; }
+
+    .action-btn {
+        display: block; width: 100%; padding: 1.25rem; border-radius: 9999px; border: none;
+        background: var(--sky-blue); color: #fff; font-size: 0.75rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer;
+        text-align: center; transition: all 0.2s; box-shadow: 0 8px 24px -4px rgba(0,102,255,0.35);
+        margin-top: 2.5rem;
+    }
+    .action-btn:hover { background: var(--charcoal); transform: translateY(-2px); box-shadow: 0 12px 32px -4px rgba(0,0,0,0.2); }
+    .action-btn:disabled { background: #10b981; box-shadow: 0 8px 24px -4px rgba(16, 185, 129, 0.35); cursor: default; transform: none; }
+
+    @keyframes popIn {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn" style="text-decoration: none;">{{ userInitials }}</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="success-hero">
+    <div class="success-icon">✓</div>
+    <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Payment <span class="italic text-[--sky-blue]">Successful</span></h1>
+    <p class="text-gray-400 text-sm mt-4 font-medium">Your flight is confirmed and your seats are reserved.</p>
+</div>
+
+<main>
+    <div class="receipt-card">
+        <h2 class="text-center text-xl font-bold mb-6">Transaction Receipt</h2>
+        
+        <div class="receipt-row">
+            <span class="receipt-label">Booking Ref</span>
+            <span class="receipt-value mono">{{ reference }}</span>
+        </div>
+        <div class="receipt-row">
+            <span class="receipt-label">Transaction ID</span>
+            <span class="receipt-value mono">{{ payment.transactionId }}</span>
+        </div>
+        <div class="receipt-row">
+            <span class="receipt-label">Payment Method</span>
+            <span class="receipt-value">{{ payment.paymentMethod }}</span>
+        </div>
+        <div class="receipt-row">
+            <span class="receipt-label">Amount Paid</span>
+            <span class="receipt-value text-[--sky-blue] text-xl">£{{ payment.amount }}</span>
+        </div>
+        <div class="receipt-row">
+            <span class="receipt-label">Loyalty Points Gained</span>
+            <span class="receipt-value text-[--sky-blue] text-xl">{{ addedPoints }}</span>
+        </div>
+
+        <button type="button" class="action-btn" id="send-tickets-btn" onclick="sendTickets()">
+            Send E-Tickets to Email ✈️
+        </button>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 pt-2">
+            <a href="/" class="text-[0.65rem] font-bold text-gray-400 hover:text-[--sky-blue] uppercase tracking-widest transition-colors flex items-center gap-2" style="text-decoration: none;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Return to Homepage
+            </a>
+            <span class="hidden sm:block text-gray-300">•</span>
+            <a href="/review_bookings" class="text-[0.65rem] font-bold text-gray-400 hover:text-[--sky-blue] uppercase tracking-widest transition-colors flex items-center gap-2" style="text-decoration: none;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                View Dashboard
+            </a>
+        </div>
+    </div>
+</main>
+
+<script>
+    function sendTickets() {
+        const btn = document.getElementById('send-tickets-btn');
+        btn.textContent = "Sending...";
+        btn.style.opacity = "0.8";
+        
+        // Post to your send_tickets route in the background
+        fetch('/booking/{{ reference }}/send_tickets', {
+            method: 'POST',
+        })
+        .then(response => {
+            if (response.ok) {
+                btn.textContent = "Tickets Sent! ✓";
+                btn.disabled = true;
+                btn.style.opacity = "1";
+            } else {
+                btn.textContent = "Error sending tickets. Try again.";
+                btn.style.opacity = "1";
+            }
+        })
+        .catch(error => {
+            btn.textContent = "Error sending tickets. Try again.";
+            btn.style.opacity = "1";
+        });
+    }
+</script>
+{% endblock %}
