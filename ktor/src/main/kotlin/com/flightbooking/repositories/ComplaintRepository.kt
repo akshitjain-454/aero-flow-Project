@@ -6,6 +6,8 @@ import com.flightbooking.enums.ComplaintStatus
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import com.flightbooking.models.ComplaintSummary
+import com.flightbooking.tables.UserTable
 
 class ComplaintRepository {
 
@@ -34,11 +36,28 @@ class ComplaintRepository {
             .map { resultRowToComplaint(it) }
     }
     //admin part：getAllComplaints()，getComplaintById(),updateComplaintStatus()
-    fun getAllComplaints(): List<Complaint> = transaction {
+    fun getAllComplaints(): List<ComplaintSummary> = transaction {
         ComplaintTable
+            .join(
+                UserTable,
+                JoinType.INNER,
+                ComplaintTable.userId,
+                UserTable.id
+            )
             .select { ComplaintTable.status neq ComplaintStatus.CLOSED } //The closed status is not displayed
             .orderBy(ComplaintTable.createdAt, SortOrder.DESC)
-            .map { resultRowToComplaint(it) }
+            .map { row ->
+                ComplaintSummary(
+                    id = row[ComplaintTable.id],
+                    userId = row[ComplaintTable.userId],
+                    firstname = row[UserTable.firstname],
+                    lastname = row[UserTable.lastname],
+                    email = row[UserTable.email],
+                    message = row[ComplaintTable.message],
+                    status = row[ComplaintTable.status],
+                    createdAt = row[ComplaintTable.createdAt]
+                    )
+            }
     }
 
     fun getComplaintById(id: Int): Complaint? = transaction {
