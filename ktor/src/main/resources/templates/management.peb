@@ -1,6 +1,3 @@
-下面是完整的 `management.peb`，直接复制替换 `ktor/src/main/resources/templates/management.peb`。我按你最新版项目里已有的管理端接口和 `base.html` 结构整理了这版。
-
-```html
 {% extends "base.html" %}
 
 {% block title %}Management Dashboard | Aetheria Admin{% endblock %}
