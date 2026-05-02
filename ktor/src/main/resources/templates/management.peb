@@ -243,16 +243,11 @@
 
             <!-- Dashboard -->
             <section id="dashboardOverview">
-                <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+                <header class="mb-8">
                     <div>
                         <h1 class="text-3xl font-bold text-[--charcoal] serif">Dashboard Overview</h1>
                         <p class="text-sm text-gray-500 mt-1">Live flight operations and management metrics</p>
                     </div>
-
-                    <button onclick="refreshAllDashboardData()"
-                            class="px-4 py-2 rounded-lg bg-[--sky-blue] text-white text-sm font-bold hover:opacity-90">
-                        Refresh Overview
-                    </button>
                 </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -416,15 +411,20 @@
                 <!-- Report switcher -->
                 <div id="reportSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="loadBookingsPerFlight()"
-                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                        <button id="reportTabBookingsPerFlight"
+                                onclick="loadBookingsPerFlight()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Bookings Per Flight
                         </button>
-                        <button onclick="loadPopularRoutes()"
+
+                        <button id="reportTabPopularRoutes"
+                                onclick="loadPopularRoutes()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Popular Routes
                         </button>
-                        <button onclick="loadPeakBookingTimes()"
+
+                        <button id="reportTabPeakBookingTimes"
+                                onclick="loadPeakBookingTimes()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Peak Times
                         </button>
@@ -434,15 +434,20 @@
                 <!-- Changes switcher -->
                 <div id="changesSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="loadFlightChanges()"
-                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                        <button id="changesTabFlightChanges"
+                                onclick="loadFlightChanges()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Flight Changes
                         </button>
-                        <button onclick="loadCancelledBookings()"
+
+                        <button id="changesTabCancelledBookings"
+                                onclick="loadCancelledBookings()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Cancelled Bookings
                         </button>
-                        <button onclick="loadCancelledFlights()"
+
+                        <button id="changesTabCancelledFlights"
+                                onclick="loadCancelledFlights()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Cancelled Flights
                         </button>
@@ -640,6 +645,50 @@
         } else {
             changesSwitcher.classList.add("hidden");
         }
+    }
+
+    function setChangesTabActive(activeTabId) {
+        const tabIds = [
+            "changesTabFlightChanges",
+            "changesTabCancelledBookings",
+            "changesTabCancelledFlights"
+        ];
+
+        tabIds.forEach(tabId => {
+            const tab = document.getElementById(tabId);
+
+            if (!tab) return;
+
+            tab.classList.remove("bg-blue-50", "text-[--sky-blue]");
+            tab.classList.add("bg-gray-50", "text-gray-700");
+
+            if (tabId === activeTabId) {
+                tab.classList.remove("bg-gray-50", "text-gray-700");
+                tab.classList.add("bg-blue-50", "text-[--sky-blue]");
+            }
+        });
+    }
+
+    function setReportTabActive(activeTabId) {
+        const tabIds = [
+            "reportTabBookingsPerFlight",
+            "reportTabPopularRoutes",
+            "reportTabPeakBookingTimes"
+        ];
+
+        tabIds.forEach(tabId => {
+            const tab = document.getElementById(tabId);
+
+            if (!tab) return;
+
+            tab.classList.remove("bg-blue-50", "text-[--sky-blue]");
+            tab.classList.add("bg-gray-50", "text-gray-700");
+
+            if (tabId === activeTabId) {
+                tab.classList.remove("bg-gray-50", "text-gray-700");
+                tab.classList.add("bg-blue-50", "text-[--sky-blue]");
+            }
+        });
     }
 
     function showLoading() {
@@ -974,6 +1023,7 @@
             "Showing customer bookings that have been cancelled.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabCancelledBookings");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1014,6 +1064,7 @@
             "Showing flights with CANCELLED status.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabCancelledFlights");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1051,6 +1102,7 @@
             "Showing flight route and schedule change logs.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabFlightChanges");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1092,6 +1144,7 @@
             "Showing booking counts per flight.",
             { showReports: true }
         );
+        setReportTabActive("reportTabBookingsPerFlight");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1130,6 +1183,7 @@
             "Showing most popular routes by booking count.",
             { showReports: true }
         );
+        setReportTabActive("reportTabPopularRoutes");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1163,6 +1217,7 @@
             "Showing booking counts by hour.",
             { showReports: true }
         );
+        setReportTabActive("reportTabPeakBookingTimes");
 
         if (shouldScroll) scrollToPanel();
 
@@ -1912,4 +1967,3 @@
     });
 </script>
 {% endblock %}
-```
