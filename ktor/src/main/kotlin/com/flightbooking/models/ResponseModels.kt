@@ -175,5 +175,10 @@ data class ComplaintSummary(
     val email: String,
     val message: String,
     val status: ComplaintStatus,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    //Admin handling part
+    val adminReply: String?,
+    val repliedAt: LocalDateTime?,
+    val repliedByUserId: Int?,
+    val repliedByName: String?
 )

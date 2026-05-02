@@ -3,7 +3,6 @@
 {% block title %}Management Dashboard | Aetheria Admin{% endblock %}
 
 {% block extra_css %}
-<style>
     body {
         background-color: #f8fafc;
         color: #1e293b;
@@ -22,8 +21,8 @@
         align-items: center;
         padding: 0.25rem 0.6rem;
         border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.72rem;
+        font-weight: 800;
         text-transform: uppercase;
         white-space: nowrap;
     }
@@ -32,7 +31,8 @@
     .status-completed,
     .status-resolved,
     .status-closed,
-    .status-scheduled {
+    .status-scheduled,
+    .status-arrived {
         background-color: #dcfce7;
         color: #166534;
     }
@@ -57,25 +57,128 @@
         color: #1d4ed8;
     }
 
-    .chart-axis {
-        border-left: 2px solid #cbd5e1;
-        border-bottom: 2px solid #cbd5e1;
+    .admin-airport-dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        margin-top: 0.5rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+        z-index: 9999;
+        max-height: 260px;
+        overflow-y: auto;
     }
 
-    .chart-bg {
-        background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
-        background-size: 18px 18px;
+    .admin-airport-dropdown::-webkit-scrollbar {
+        width: 4px;
     }
-</style>
+
+    .admin-airport-dropdown::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .admin-airport-dropdown::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 99px;
+    }
+
+    .admin-airport-item {
+        padding: 12px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
+        color: #1e293b;
+        line-height: 1.4;
+    }
+
+    .admin-airport-item:last-child {
+        border-bottom: none;
+    }
+
+    .admin-airport-item:hover,
+    .admin-airport-item.active {
+        background: #f8fafc;
+    }
+
+    .admin-airport-item .iata {
+        display: inline-block;
+        font-weight: 800;
+        color: var(--sky-blue);
+        margin-right: 8px;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+    }
+
+    .admin-airport-item .sub {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.72rem;
+        margin-top: 2px;
+    }
+
+    .admin-dropdown-empty,
+    .admin-dropdown-loading {
+        padding: 14px;
+        font-size: 0.8rem;
+        text-align: center;
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .admin-date-dropdown {
+        width: 320px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+        padding: 1rem;
+    }
+
+    .admin-cal-day {
+        padding: 8px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        line-height: 1;
+    }
+
+    .admin-cal-day:hover {
+        background: #f1f5f9;
+    }
+
+    .admin-cal-day.admin-today {
+        font-weight: 800;
+        color: var(--sky-blue);
+    }
+
+    .admin-cal-day.admin-selected {
+        background: var(--sky-blue);
+        color: white;
+        font-weight: 800;
+    }
+
+    .modal-field-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--sky-blue);
+    }
 {% endblock %}
 
 {% block content %}
 <div class="flex h-screen w-full bg-slate-50 pt-20">
 
+    <!-- Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-10">
         <div class="p-6 border-b border-gray-100">
             <h2 class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Welcome back,</h2>
-            <p class="text-sm font-bold text-[--sky-blue]">Staff {{ userInitials | default('Admin') }}</p>
+            <p class="text-sm font-bold text-[--sky-blue]">Staff Admin</p>
         </div>
 
         <nav class="flex-1 overflow-y-auto py-4">
@@ -83,71 +186,41 @@
                 <li>
                     <a id="nav-dashboard" href="javascript:void(0)" onclick="showDashboardOverview()"
                        class="admin-link active flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                            </path>
-                        </svg>
                         Dashboard
                     </a>
                 </li>
 
                 <li>
-                    <a id="nav-changes" href="javascript:void(0)" onclick="loadFlightChanges()"
+                    <a id="nav-reservations" href="javascript:void(0)" onclick="loadReservations()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
-                            </path>
-                        </svg>
-                        Changes and Cancellations
+                        Reservations
                     </a>
                 </li>
 
                 <li>
                     <a id="nav-flights" href="javascript:void(0)" onclick="loadFlightAvailability()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                            </path>
-                        </svg>
                         Flights and Available
+                    </a>
+                </li>
+
+                <li>
+                    <a id="nav-changes" href="javascript:void(0)" onclick="loadFlightChanges()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Changes and Cancellations
                     </a>
                 </li>
 
                 <li>
                     <a id="nav-report" href="javascript:void(0)" onclick="loadBookingsPerFlight()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        Report
-                    </a>
-                </li>
-
-                <li>
-                    <a id="nav-reservation" href="javascript:void(0)" onclick="loadReservations()"
-                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
-                            </path>
-                        </svg>
-                        Reservation
+                        Reports
                     </a>
                 </li>
 
                 <li>
                     <a id="nav-complaints" href="javascript:void(0)" onclick="loadComplaints()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z">
-                            </path>
-                        </svg>
                         Complaints
                     </a>
                 </li>
@@ -164,20 +237,17 @@
         </div>
     </aside>
 
+    <!-- Main -->
     <main class="flex-1 overflow-y-auto p-8 h-full">
-        <div class="max-w-6xl mx-auto pb-20">
+        <div class="max-w-7xl mx-auto pb-20">
 
+            <!-- Dashboard -->
             <section id="dashboardOverview">
-                <header class="mb-8 flex justify-between items-end">
+                <header class="mb-8">
                     <div>
                         <h1 class="text-3xl font-bold text-[--charcoal] serif">Dashboard Overview</h1>
                         <p class="text-sm text-gray-500 mt-1">Live flight operations and management metrics</p>
                     </div>
-
-                    <button onclick="refreshAllDashboardData()"
-                            class="px-4 py-2 rounded-lg bg-[--sky-blue] text-white text-sm font-bold hover:opacity-90">
-                        Refresh Overview
-                    </button>
                 </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -202,66 +272,30 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">
+                            Top Popular Routes
+                        </h3>
+                        <div id="popularRoutesBox" class="space-y-3 text-sm text-gray-600">
+                            Loading...
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">
                             Peak Booking Times
                         </h3>
-                        <div id="peakTimesChart" class="w-full min-h-64 chart-bg chart-axis px-6 py-6">
-                            <p class="text-sm text-gray-400">Loading peak booking times...</p>
+                        <div id="peakTimesBox" class="space-y-3 text-sm text-gray-600">
+                            Loading...
                         </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-6">
-                            Top 5 Popular Routes
-                        </h3>
-                        <div id="popularRoutesChart" class="w-full h-64 chart-axis flex items-end gap-5 px-6 pb-0 overflow-hidden">
-                            <p class="text-sm text-gray-400">Loading popular routes...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
-                        <h3 class="text-sm uppercase tracking-widest font-bold text-red-500 mb-4">Management Checks</h3>
-                        <ul class="space-y-4">
-                            <li class="flex items-start gap-3 pb-4 border-b border-gray-50">
-                                <div class="w-2 h-2 mt-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800">Cancellations tracking</p>
-                                    <p class="text-xs text-gray-500">
-                                        Cancelled bookings and cancelled flights are available in the Changes and Cancellations section.
-                                    </p>
-                                </div>
-                            </li>
-
-                            <li class="flex items-start gap-3">
-                                <div class="w-2 h-2 mt-1.5 rounded-full bg-orange-400 flex-shrink-0"></div>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800">Flight availability tracking</p>
-                                    <p class="text-xs text-gray-500">
-                                        Seat availability updates after bookings are created or cancelled.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 class="text-sm uppercase tracking-widest font-bold text-[--charcoal] mb-4">Recent Operation Log</h3>
-                        <ul id="recentOperationLog" class="space-y-4">
-                            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
-                                <span class="font-bold">System</span> loading dashboard data.
-                                <span class="text-xs text-gray-400 block mt-1">Now</span>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </section>
 
-            <section id="managementPanel" class="mt-10 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Management panel -->
+            <section id="managementPanel" class="mt-10 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-visible">
+                <div class="px-6 py-5 border-b border-gray-100 flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
                     <div>
                         <h2 id="sectionTitle" class="text-2xl font-bold text-[--charcoal] serif">Reservations</h2>
                         <p id="sectionDescription" class="text-sm text-gray-500 mt-1">
@@ -269,13 +303,66 @@
                         </p>
                     </div>
 
-                    <div id="filterBox" class="flex flex-wrap gap-2">
-                        <input id="filterFrom" type="text" placeholder="From code, e.g. LBA"
-                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
-                        <input id="filterTo" type="text" placeholder="To code, e.g. DXB"
-                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-40">
-                        <input id="filterDate" type="date"
-                               class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <!-- Enhanced filter box -->
+                    <div id="filterBox" class="flex flex-wrap gap-3 items-end">
+
+                        <!-- Origin -->
+                        <div class="relative w-56" id="filterFromWrapper">
+                            <label class="text-[10px] uppercase font-bold text-[--sky-blue] tracking-widest block mb-1">
+                                Origin
+                            </label>
+
+                            <input id="filterFrom" type="hidden">
+
+                            <input id="filterFromDisplay"
+                                   type="text"
+                                   placeholder="From where?"
+                                   autocomplete="off"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
+
+                            <div id="filterFromResults" class="admin-airport-dropdown hidden"></div>
+                        </div>
+
+                        <!-- Swap -->
+                        <button type="button"
+                                id="adminSwapBtn"
+                                class="px-3 py-2 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50">
+                            ⇄
+                        </button>
+
+                        <!-- Destination -->
+                        <div class="relative w-56" id="filterToWrapper">
+                            <label class="text-[10px] uppercase font-bold text-[--sky-blue] tracking-widest block mb-1">
+                                Destination
+                            </label>
+
+                            <input id="filterTo" type="hidden">
+
+                            <input id="filterToDisplay"
+                                   type="text"
+                                   placeholder="To where?"
+                                   autocomplete="off"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
+
+                            <div id="filterToResults" class="admin-airport-dropdown hidden"></div>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="relative w-48" id="filterDateWrapper">
+                            <label class="text-[10px] uppercase font-bold text-[--sky-blue] tracking-widest block mb-1">
+                                Departure
+                            </label>
+
+                            <input id="filterDate" type="hidden">
+
+                            <button type="button"
+                                    id="filterDateDisplay"
+                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-left bg-white hover:bg-gray-50">
+                                <span id="filterDateText" class="text-gray-400">Any date</span>
+                            </button>
+                        </div>
+
+                        <!-- Reservation status -->
                         <select id="filterStatus"
                                 class="px-3 py-2 border border-gray-200 rounded-lg text-sm hidden">
                             <option value="">All Status</option>
@@ -283,10 +370,12 @@
                             <option value="CONFIRMED">CONFIRMED</option>
                             <option value="CANCELLED">CANCELLED</option>
                         </select>
+
                         <button onclick="loadCurrentSection()"
                                 class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
                             Apply
                         </button>
+
                         <button onclick="clearFilters()"
                                 class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
                             Clear
@@ -294,34 +383,71 @@
                     </div>
                 </div>
 
+                <!-- Calendar dropdown -->
+                <div id="adminDateDropdown"
+                     class="admin-date-dropdown hidden"
+                     style="position: fixed; z-index: 99999;">
+                    <div class="flex justify-between items-center mb-4">
+                        <button type="button" id="adminPrevMonth"
+                                class="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-500">
+                            ←
+                        </button>
+
+                        <span id="adminMonthLabel" class="font-bold text-sm text-gray-700"></span>
+
+                        <button type="button" id="adminNextMonth"
+                                class="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-500">
+                            →
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 text-xs text-gray-400 mb-2 text-center gap-1">
+                        <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+                    </div>
+
+                    <div id="adminCalendarGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+                </div>
+
+                <!-- Report switcher -->
                 <div id="reportSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="loadBookingsPerFlight()"
-                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                        <button id="reportTabBookingsPerFlight"
+                                onclick="loadBookingsPerFlight()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Bookings Per Flight
                         </button>
-                        <button onclick="loadPopularRoutes()"
+
+                        <button id="reportTabPopularRoutes"
+                                onclick="loadPopularRoutes()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Popular Routes
                         </button>
-                        <button onclick="loadPeakBookingTimes()"
+
+                        <button id="reportTabPeakBookingTimes"
+                                onclick="loadPeakBookingTimes()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Peak Times
                         </button>
                     </div>
                 </div>
 
+                <!-- Changes switcher -->
                 <div id="changesSwitcher" class="px-6 py-4 border-b border-gray-100 hidden">
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="loadFlightChanges()"
-                                class="px-4 py-2 rounded-lg bg-blue-50 text-[--sky-blue] text-sm font-bold">
+                        <button id="changesTabFlightChanges"
+                                onclick="loadFlightChanges()"
+                                class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Flight Changes
                         </button>
-                        <button onclick="loadCancelledBookings()"
+
+                        <button id="changesTabCancelledBookings"
+                                onclick="loadCancelledBookings()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Cancelled Bookings
                         </button>
-                        <button onclick="loadCancelledFlights()"
+
+                        <button id="changesTabCancelledFlights"
+                                onclick="loadCancelledFlights()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
                             Cancelled Flights
                         </button>
@@ -352,89 +478,93 @@
     </main>
 </div>
 
-<div id="flightEditModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+<!-- Edit flight modal -->
+<div id="editFlightModal"
+     class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[99999] px-4">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-visible">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-start gap-4">
             <div>
-                <h3 class="text-xl font-bold text-[--charcoal] serif">Edit Flight Information</h3>
-                <p id="editFlightSubtitle" class="text-sm text-gray-500 mt-1">Update route, time, or status.</p>
+                <h3 class="text-xl font-bold text-[--charcoal] serif">Edit Flight</h3>
+                <p id="editFlightCodeText" class="text-sm text-gray-500 mt-1">Update flight route, times, and status.</p>
             </div>
 
-            <button onclick="closeFlightEditModal()"
-                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">
-                &times;
+            <button type="button"
+                    onclick="closeEditFlightModal()"
+                    class="w-9 h-9 rounded-full hover:bg-gray-100 text-gray-500 text-xl leading-none">
+                ×
             </button>
         </div>
 
-        <div class="p-6">
-            <input id="editFlightId" type="hidden">
+        <div class="p-6 space-y-5">
+            <input type="hidden" id="editFlightId">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative" id="editDepartureWrapper">
+                    <label class="modal-field-label">Departure Airport</label>
+                    <input id="editDepartureAirportCode"
+                           type="text"
+                           maxlength="3"
+                           autocomplete="off"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase outline-none focus:border-[--sky-blue]"
+                           placeholder="LBA">
+                    <div id="editDepartureResults" class="admin-airport-dropdown hidden"></div>
+                </div>
+
+                <div class="relative" id="editArrivalWrapper">
+                    <label class="modal-field-label">Arrival Airport</label>
+                    <input id="editArrivalAirportCode"
+                           type="text"
+                           maxlength="3"
+                           autocomplete="off"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase outline-none focus:border-[--sky-blue]"
+                           placeholder="DXB">
+                    <div id="editArrivalResults" class="admin-airport-dropdown hidden"></div>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Departure Airport Code
-                    </label>
-                    <input id="editDepartureAirportCode" type="text" placeholder="e.g. LBA"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <label class="modal-field-label">Departure Time</label>
+                    <input id="editDepartureTime"
+                           type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
                 </div>
 
                 <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Arrival Airport Code
-                    </label>
-                    <input id="editArrivalAirportCode" type="text" placeholder="e.g. DXB"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Departure Time
-                    </label>
-                    <input id="editDepartureTime" type="datetime-local"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Arrival Time
-                    </label>
-                    <input id="editArrivalTime" type="datetime-local"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Flight Status
-                    </label>
-                    <select id="editFlightStatus"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                        <option value="SCHEDULED">SCHEDULED</option>
-                        <option value="DELAYED">DELAYED</option>
-                        <option value="ARRIVED">ARRIVED</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                        Aircraft
-                    </label>
-                    <input id="editAircraftType" type="text" disabled
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500">
-                    <p class="text-xs text-gray-400 mt-1">Aircraft type is display-only.</p>
+                    <label class="modal-field-label">Arrival Time</label>
+                    <input id="editArrivalTime"
+                           type="datetime-local"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
                 </div>
             </div>
 
-            <div id="flightEditError" class="hidden mt-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm"></div>
+            <div>
+                <label class="modal-field-label">Flight Status</label>
+                <select id="editFlightStatus"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
+                    <option value="SCHEDULED">SCHEDULED</option>
+                    <option value="DELAYED">DELAYED</option>
+                    <option value="ARRIVED">ARRIVED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                </select>
+            </div>
+
+            <div id="editFlightError"
+                 class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+            </div>
         </div>
 
         <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="closeFlightEditModal()"
+            <button type="button"
+                    onclick="closeEditFlightModal()"
                     class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
                 Cancel
             </button>
-            <button onclick="saveFlightEdit()"
-                    class="px-4 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+
+            <button type="button"
+                    onclick="submitFlightEdit()"
+                    class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
                 Save Changes
             </button>
         </div>
@@ -443,6 +573,7 @@
 
 <script>
     let currentSection = "reservations";
+    window.adminFlightRows = window.adminFlightRows || {};
 
     function setActiveNav(navId) {
         document.querySelectorAll(".admin-link").forEach(link => {
@@ -451,6 +582,7 @@
         });
 
         const active = document.getElementById(navId);
+
         if (active) {
             active.classList.add("active");
             active.classList.remove("text-gray-600");
@@ -459,6 +591,7 @@
 
     function scrollToPanel() {
         const panel = document.getElementById("managementPanel");
+
         if (panel) {
             panel.scrollIntoView({ behavior: "smooth", block: "start" });
         }
@@ -514,6 +647,50 @@
         }
     }
 
+    function setChangesTabActive(activeTabId) {
+        const tabIds = [
+            "changesTabFlightChanges",
+            "changesTabCancelledBookings",
+            "changesTabCancelledFlights"
+        ];
+
+        tabIds.forEach(tabId => {
+            const tab = document.getElementById(tabId);
+
+            if (!tab) return;
+
+            tab.classList.remove("bg-blue-50", "text-[--sky-blue]");
+            tab.classList.add("bg-gray-50", "text-gray-700");
+
+            if (tabId === activeTabId) {
+                tab.classList.remove("bg-gray-50", "text-gray-700");
+                tab.classList.add("bg-blue-50", "text-[--sky-blue]");
+            }
+        });
+    }
+
+    function setReportTabActive(activeTabId) {
+        const tabIds = [
+            "reportTabBookingsPerFlight",
+            "reportTabPopularRoutes",
+            "reportTabPeakBookingTimes"
+        ];
+
+        tabIds.forEach(tabId => {
+            const tab = document.getElementById(tabId);
+
+            if (!tab) return;
+
+            tab.classList.remove("bg-blue-50", "text-[--sky-blue]");
+            tab.classList.add("bg-gray-50", "text-gray-700");
+
+            if (tabId === activeTabId) {
+                tab.classList.remove("bg-gray-50", "text-gray-700");
+                tab.classList.add("bg-blue-50", "text-[--sky-blue]");
+            }
+        });
+    }
+
     function showLoading() {
         document.getElementById("loadingMessage").classList.remove("hidden");
         document.getElementById("errorMessage").classList.add("hidden");
@@ -545,15 +722,6 @@
             .replaceAll("'", "&#039;");
     }
 
-    function escapeJsString(value) {
-        if (value === null || value === undefined) return "";
-        return value.toString()
-            .replaceAll("\\", "\\\\")
-            .replaceAll("'", "\\'")
-            .replaceAll("\n", " ")
-            .replaceAll("\r", " ");
-    }
-
     function formatDateTime(value) {
         if (!value) return "-";
 
@@ -579,29 +747,42 @@
         </span>`;
     }
 
-    function getFilterQuery(includeStatus) {
-        const params = new URLSearchParams();
-
-        const from = document.getElementById("filterFrom").value.trim().toUpperCase();
-        const to = document.getElementById("filterTo").value.trim().toUpperCase();
-        const date = document.getElementById("filterDate").value;
-        const status = document.getElementById("filterStatus").value;
-
-        if (from) params.append("from", from);
-        if (to) params.append("to", to);
-        if (date) params.append("date", date);
-        if (includeStatus && status) params.append("status", status);
-
-        const query = params.toString();
-        return query ? "?" + query : "";
+    function getResults(data) {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        return data.results || [];
     }
 
-    function clearFilters() {
-        document.getElementById("filterFrom").value = "";
-        document.getElementById("filterTo").value = "";
-        document.getElementById("filterDate").value = "";
-        document.getElementById("filterStatus").value = "";
-        loadCurrentSection();
+    function renderTable(headers, rows) {
+        const head = document.getElementById("tableHead");
+        const body = document.getElementById("tableBody");
+
+        head.innerHTML = `
+            <tr>
+                ${headers.map(header => `
+                    <th class="px-6 py-3 font-black tracking-widest whitespace-nowrap">
+                        ${escapeHtml(header)}
+                    </th>
+                `).join("")}
+            </tr>
+        `;
+
+        if (!rows || rows.length === 0) {
+            body.innerHTML = `
+                <tr>
+                    <td colspan="${headers.length}" class="px-6 py-10 text-center text-gray-400">
+                        No data found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        body.innerHTML = rows.join("");
+    }
+
+    function setSummary(text) {
+        document.getElementById("summaryBox").textContent = text;
     }
 
     async function fetchData(url) {
@@ -631,9 +812,7 @@
                 }
             });
 
-            if (!response.ok) {
-                return null;
-            }
+            if (!response.ok) return null;
 
             return await response.json();
         } catch (error) {
@@ -642,103 +821,61 @@
         }
     }
 
-    function getResults(data) {
-        if (!data) return [];
-        if (Array.isArray(data)) return data;
-        return data.results || [];
+    function getAirportCodeFilter(hiddenInputId, displayInputId) {
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const displayInput = document.getElementById(displayInputId);
+
+        const hiddenValue = hiddenInput ? hiddenInput.value.trim().toUpperCase() : "";
+
+        if (hiddenValue) return hiddenValue;
+
+        const displayValue = displayInput ? displayInput.value.trim().toUpperCase() : "";
+        const match = displayValue.match(/^[A-Z]{3}/);
+
+        return match ? match[0] : "";
     }
 
-    function renderTable(headers, rows) {
-        const head = document.getElementById("tableHead");
-        const body = document.getElementById("tableBody");
+    function getFilterQuery(includeStatus) {
+        const params = new URLSearchParams();
 
-        head.innerHTML = `
-            <tr>
-                ${headers.map(header => `
-                    <th class="px-6 py-3 font-black whitespace-nowrap">${escapeHtml(header)}</th>
-                `).join("")}
-            </tr>
-        `;
+        const from = getAirportCodeFilter("filterFrom", "filterFromDisplay");
+        const to = getAirportCodeFilter("filterTo", "filterToDisplay");
+        const date = document.getElementById("filterDate").value;
+        const status = document.getElementById("filterStatus").value;
 
-        if (!rows || rows.length === 0) {
-            body.innerHTML = `
-                <tr>
-                    <td colspan="${headers.length}" class="px-6 py-10 text-center text-gray-500">
-                        No data available.
-                    </td>
-                </tr>
-            `;
-            return;
+        if (from) params.append("from", from);
+        if (to) params.append("to", to);
+        if (date) params.append("date", date);
+        if (includeStatus && status) params.append("status", status);
+
+        const query = params.toString();
+
+        return query ? "?" + query : "";
+    }
+
+    function clearFilters() {
+        document.getElementById("filterFrom").value = "";
+        document.getElementById("filterTo").value = "";
+        document.getElementById("filterDate").value = "";
+        document.getElementById("filterStatus").value = "";
+
+        if (window.resetAdminEnhancedFilters) {
+            window.resetAdminEnhancedFilters();
         }
 
-        body.innerHTML = rows.join("");
+        loadCurrentSection();
     }
 
-    function setSummary(text) {
-        document.getElementById("summaryBox").textContent = text;
-    }
-
-    function renderPopularRoutesChart(routes) {
-        const chart = document.getElementById("popularRoutesChart");
-
-        if (!routes || routes.length === 0) {
-            chart.innerHTML = `<p class="text-sm text-gray-400">No route data available.</p>`;
-            return;
-        }
-
-        const topRoutes = routes.slice(0, 5);
-        const maxBookings = Math.max(...topRoutes.map(route => Number(route.bookingCount || 0)), 1);
-
-        chart.innerHTML = topRoutes.map(route => {
-            const count = Number(route.bookingCount || 0);
-            const height = Math.max((count / maxBookings) * 100, 8);
-
-            return `
-                <div class="flex flex-col items-center justify-end h-full flex-1 min-w-0">
-                    <div class="text-xs font-bold text-gray-700 mb-2">${count}</div>
-                    <div class="w-full max-w-14 bg-[--sky-blue] rounded-t-md"
-                         style="height: ${height}%; min-height: 18px;">
-                    </div>
-                    <div class="text-[10px] text-gray-500 mt-2 text-center leading-tight w-full truncate"
-                         title="${escapeHtml(route.departureAirportNameCode)} → ${escapeHtml(route.arrivalAirportNameCode)}">
-                        ${escapeHtml(route.departureAirportNameCode)}
-                        <br>
-                        →
-                        <br>
-                        ${escapeHtml(route.arrivalAirportNameCode)}
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-    function renderPeakTimesChart(times) {
-        const chart = document.getElementById("peakTimesChart");
-
-        if (!times || times.length === 0) {
-            chart.innerHTML = `<p class="text-sm text-gray-400">No peak booking data available.</p>`;
-            return;
-        }
-
-        const topTimes = times.slice(0, 5);
-        const maxBookings = Math.max(...topTimes.map(item => Number(item.bookingCount || 0)), 1);
-
-        chart.innerHTML = topTimes.map((item, index) => {
-            const count = Number(item.bookingCount || 0);
-            const width = Math.max((count / maxBookings) * 100, 8);
-
-            return `
-                <div class="mb-4">
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="font-bold text-gray-700">#${index + 1} ${escapeHtml(item.bookingHour)}</span>
-                        <span class="font-bold text-[--sky-blue]">${count}</span>
-                    </div>
-                    <div class="w-full bg-blue-50 rounded-full h-3 overflow-hidden">
-                        <div class="bg-[--sky-blue] h-3 rounded-full" style="width: ${width}%"></div>
-                    </div>
-                </div>
-            `;
-        }).join("");
+    function loadCurrentSection() {
+        if (currentSection === "reservations") return loadReservations(false);
+        if (currentSection === "availability") return loadFlightAvailability(false);
+        if (currentSection === "cancelledBookings") return loadCancelledBookings(false);
+        if (currentSection === "cancelledFlights") return loadCancelledFlights(false);
+        if (currentSection === "changes") return loadFlightChanges(false);
+        if (currentSection === "bookingsPerFlight") return loadBookingsPerFlight(false);
+        if (currentSection === "popularRoutes") return loadPopularRoutes(false);
+        if (currentSection === "peakBookingTimes") return loadPeakBookingTimes(false);
+        if (currentSection === "complaints") return loadComplaints(false);
     }
 
     async function refreshAllDashboardData() {
@@ -764,31 +901,25 @@
             return sum + Number(item.availableSeats || 0);
         }, 0);
 
-        document.getElementById("overviewAvailableSeats").textContent = availableSeats.toLocaleString();
+        document.getElementById("overviewAvailableSeats").textContent = availableSeats;
 
-        renderPopularRoutesChart(popularRoutes);
-        renderPeakTimesChart(peakTimes);
+        document.getElementById("popularRoutesBox").innerHTML = popularRoutes.slice(0, 5).map(item => `
+            <div class="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                <span>${escapeHtml(item.departureAirportNameCode)} → ${escapeHtml(item.arrivalAirportNameCode)}</span>
+                <strong>${escapeHtml(item.bookingCount)}</strong>
+            </div>
+        `).join("") || `<p class="text-gray-400">No route data.</p>`;
 
-        const log = document.getElementById("recentOperationLog");
-
-        log.innerHTML = `
-            <li class="text-sm text-gray-600 border-l-2 border-[--sky-blue] pl-3 py-1">
-                <span class="font-bold">System</span> loaded ${reservations.length} reservations.
-                <span class="text-xs text-gray-400 block mt-1">Now</span>
-            </li>
-            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
-                <span class="font-bold">System</span> found ${cancelled.length} cancelled bookings.
-                <span class="text-xs text-gray-400 block mt-1">Now</span>
-            </li>
-            <li class="text-sm text-gray-600 border-l-2 border-gray-300 pl-3 py-1">
-                <span class="font-bold">System</span> found ${changes.length} flight changes.
-                <span class="text-xs text-gray-400 block mt-1">Now</span>
-            </li>
-        `;
+        document.getElementById("peakTimesBox").innerHTML = peakTimes.slice(0, 5).map(item => `
+            <div class="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                <span>${escapeHtml(item.bookingHour)}</span>
+                <strong>${escapeHtml(item.bookingCount)}</strong>
+            </div>
+        `).join("") || `<p class="text-gray-400">No peak time data.</p>`;
     }
 
     async function loadReservations(shouldScroll = true) {
-        setActiveNav("nav-reservation");
+        setActiveNav("nav-reservations");
         setSection(
             "reservations",
             "Reservations",
@@ -804,21 +935,25 @@
             const rows = results.map(item => `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</div>
+                        <div class="text-xs text-gray-400">User #${escapeHtml(item.userId)}</div>
+                    </td>
                     <td class="px-6 py-4">${escapeHtml(item.email)}</td>
-                    <td class="px-6 py-4 font-semibold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4 font-bold">${escapeHtml(item.flightCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
-                    <td class="px-6 py-4 font-bold">${formatMoney(item.amountPaid)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                    <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
                 </tr>
             `);
 
-            setSummary(`Total reservations shown: ${results.length}`);
+            setSummary(`Reservations shown: ${results.length}`);
             renderTable(
-                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Paid"],
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created", "Paid"],
                 rows
             );
         } catch (error) {
@@ -826,52 +961,49 @@
         }
     }
 
-    async function loadFlightAvailability() {
+    async function loadFlightAvailability(shouldScroll = true) {
         setActiveNav("nav-flights");
         setSection(
             "availability",
-            "Flight Availability",
-            "Showing booked seats, available seats, and editable flight information."
+            "Flights and Available",
+            "Showing flight availability, seat counts, and admin flight editing tools."
         );
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/availability" + getFilterQuery(false));
             const results = getResults(data);
 
-            const totalAvailable = results.reduce((sum, item) => sum + Number(item.availableSeats || 0), 0);
-            const totalBooked = results.reduce((sum, item) => sum + Number(item.bookedSeats || 0), 0);
+            window.adminFlightRows = {};
 
-            const rows = results.map(item => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
-                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.totalSeats)}</td>
-                    <td class="px-6 py-4 font-bold text-red-600">${escapeHtml(item.bookedSeats)}</td>
-                    <td class="px-6 py-4 font-bold text-green-600">${escapeHtml(item.availableSeats)}</td>
-                    <td class="px-6 py-4">
-                        <button onclick="openFlightEditModalByValues(
-                                    ${Number(item.flightId)},
-                                    '${escapeJsString(item.flightCode)}',
-                                    '${escapeJsString(item.departureAirportNameCode)}',
-                                    '${escapeJsString(item.arrivalAirportNameCode)}',
-                                    '${escapeJsString(item.departureTime)}',
-                                    '${escapeJsString(item.arrivalTime)}',
-                                    '${escapeJsString(item.flightStatus)}',
-                                    '${escapeJsString(item.aircraftType)}'
-                                )"
-                                class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap">
-                            Edit
-                        </button>
-                    </td>
-                </tr>
-            `);
+            const totalBooked = results.reduce((sum, item) => sum + Number(item.bookedSeats || 0), 0);
+            const totalAvailable = results.reduce((sum, item) => sum + Number(item.availableSeats || 0), 0);
+
+            const rows = results.map(item => {
+                window.adminFlightRows[item.flightId] = item;
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
+                        <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                        <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                        <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
+                        <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
+                        <td class="px-6 py-4">${escapeHtml(item.totalSeats)}</td>
+                        <td class="px-6 py-4 font-bold text-red-600">${escapeHtml(item.bookedSeats)}</td>
+                        <td class="px-6 py-4 font-bold text-green-600">${escapeHtml(item.availableSeats)}</td>
+                        <td class="px-6 py-4">
+                            <button onclick="openEditFlightModal(${Number(item.flightId)})"
+                                    class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-xs font-bold hover:opacity-90">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
 
             setSummary(`Flights shown: ${results.length} | Booked seats: ${totalBooked} | Available seats: ${totalAvailable}`);
             renderTable(
@@ -883,7 +1015,7 @@
         }
     }
 
-    async function loadCancelledBookings() {
+    async function loadCancelledBookings(shouldScroll = true) {
         setActiveNav("nav-changes");
         setSection(
             "cancelledBookings",
@@ -891,8 +1023,9 @@
             "Showing customer bookings that have been cancelled.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabCancelledBookings");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/bookings/cancelled" + getFilterQuery(false));
@@ -908,7 +1041,6 @@
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.status)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
                 </tr>
@@ -916,7 +1048,7 @@
 
             setSummary(`Cancelled bookings shown: ${results.length}`);
             renderTable(
-                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Created At"],
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created At"],
                 rows
             );
         } catch (error) {
@@ -924,7 +1056,7 @@
         }
     }
 
-    async function loadCancelledFlights() {
+    async function loadCancelledFlights(shouldScroll = true) {
         setActiveNav("nav-changes");
         setSection(
             "cancelledFlights",
@@ -932,8 +1064,9 @@
             "Showing flights with CANCELLED status.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabCancelledFlights");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/cancelled" + getFilterQuery(false));
@@ -961,16 +1094,17 @@
         }
     }
 
-    async function loadFlightChanges() {
+    async function loadFlightChanges(shouldScroll = true) {
         setActiveNav("nav-changes");
         setSection(
             "changes",
             "Flight Changes",
-            "Showing flight route and schedule changes.",
+            "Showing flight route and schedule change logs.",
             { showChanges: true }
         );
+        setChangesTabActive("changesTabFlightChanges");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/flights/changes" + getFilterQuery(false));
@@ -980,23 +1114,21 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.flightCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
-                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.newDepartureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.oldArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.newArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldDepartureTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newDepartureTime)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldArrivalTime)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newArrivalTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.changedAt)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.changedByName || "Unknown")}</td>
+                    <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.changedByName || item.changedByUserId || "-")}</td>
                 </tr>
             `);
 
             setSummary(`Flight changes shown: ${results.length}`);
             renderTable(
-                ["Flight", "Aircraft", "Status", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Old Arrival", "New Arrival", "Changed At", "Changed By"],
+                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At", "Status", "Changed By"],
                 rows
             );
         } catch (error) {
@@ -1004,16 +1136,17 @@
         }
     }
 
-    async function loadBookingsPerFlight() {
+    async function loadBookingsPerFlight(shouldScroll = true) {
         setActiveNav("nav-report");
         setSection(
-            "bookingsReport",
+            "bookingsPerFlight",
             "Bookings Per Flight",
-            "Showing the number of active bookings for each flight.",
+            "Showing booking counts per flight.",
             { showReports: true }
         );
+        setReportTabActive("reportTabBookingsPerFlight");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/bookings-per-flight");
@@ -1028,13 +1161,13 @@
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.arrivalTime)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
-                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-bold text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
-            setSummary(`Flights in report: ${results.length}`);
+            setSummary(`Report rows: ${results.length}`);
             renderTable(
-                ["Flight Code", "Aircraft", "From", "To", "Departure", "Arrival", "Flight Status", "Bookings"],
+                ["Flight", "Aircraft", "From", "To", "Departure", "Arrival", "Status", "Bookings"],
                 rows
             );
         } catch (error) {
@@ -1042,33 +1175,33 @@
         }
     }
 
-    async function loadPopularRoutes() {
+    async function loadPopularRoutes(shouldScroll = true) {
         setActiveNav("nav-report");
         setSection(
-            "routesReport",
-            "Most Popular Routes",
-            "Showing routes ranked by booking count.",
+            "popularRoutes",
+            "Popular Routes",
+            "Showing most popular routes by booking count.",
             { showReports: true }
         );
+        setReportTabActive("reportTabPopularRoutes");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/most-popular-routes");
             const results = getResults(data);
 
-            const rows = results.map((item, index) => `
+            const rows = results.map(item => `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
                     <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
-                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-bold text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
-            setSummary(`Routes in report: ${results.length}`);
+            setSummary(`Popular routes shown: ${results.length}`);
             renderTable(
-                ["Rank", "From", "To", "Bookings"],
+                ["From", "To", "Bookings"],
                 rows
             );
         } catch (error) {
@@ -1076,32 +1209,32 @@
         }
     }
 
-    async function loadPeakBookingTimes() {
+    async function loadPeakBookingTimes(shouldScroll = true) {
         setActiveNav("nav-report");
         setSection(
-            "timesReport",
+            "peakBookingTimes",
             "Peak Booking Times",
-            "Showing the hours when customers make the most bookings.",
+            "Showing booking counts by hour.",
             { showReports: true }
         );
+        setReportTabActive("reportTabPeakBookingTimes");
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/reports/peak-booking-times");
             const results = getResults(data);
 
-            const rows = results.map((item, index) => `
+            const rows = results.map(item => `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.bookingHour)}</td>
-                    <td class="px-6 py-4 font-black text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingHour)}</td>
+                    <td class="px-6 py-4 font-bold text-[--sky-blue]">${escapeHtml(item.bookingCount)}</td>
                 </tr>
             `);
 
-            setSummary(`Time slots in report: ${results.length}`);
+            setSummary(`Peak booking time rows: ${results.length}`);
             renderTable(
-                ["Rank", "Booking Hour", "Bookings"],
+                ["Hour", "Bookings"],
                 rows
             );
         } catch (error) {
@@ -1109,56 +1242,94 @@
         }
     }
 
-    async function loadComplaints() {
+    async function loadComplaints(shouldScroll = true) {
         setActiveNav("nav-complaints");
         setSection(
             "complaints",
             "Complaints",
-            "Showing customer complaints and allowing staff to update complaint status."
+            "Handle customer complaints, update status, and reply to users."
         );
 
-        scrollToPanel();
+        if (shouldScroll) scrollToPanel();
 
         try {
             const data = await fetchData("/admin/complaints");
             const results = getResults(data);
 
-            const rows = results.map(item => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-gray-900">
-                            ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
-                        </div>
-                        <div class="text-xs text-gray-400">
-                            User #${escapeHtml(item.userId)}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
-                    <td class="px-6 py-4 min-w-80">${escapeHtml(item.message)}</td>
-                    <td class="px-6 py-4">${statusBadge(item.status)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex gap-2">
-                            <select id="complaint-status-${escapeHtml(item.id)}"
-                                    class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                                <option value="OPEN" ${item.status === "OPEN" ? "selected" : ""}>OPEN</option>
-                                <option value="IN_REVIEW" ${item.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
-                                <option value="RESOLVED" ${item.status === "RESOLVED" ? "selected" : ""}>RESOLVED</option>
-                                <option value="CLOSED" ${item.status === "CLOSED" ? "selected" : ""}>CLOSED</option>
-                            </select>
-                            <button onclick="updateComplaintStatus(${Number(item.id)})"
-                                    class="px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
-                                Update
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `);
+            const rows = results.map(item => {
+                const hasReply = item.adminReply && item.adminReply.trim().length > 0;
+
+                return `
+                    <tr class="hover:bg-gray-50 align-top">
+                        <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">
+                                ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                User #${escapeHtml(item.userId)}
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">
+                                ${escapeHtml(item.email)}
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 min-w-80">
+                            ${escapeHtml(item.message)}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            ${statusBadge(item.status)}
+                            <div class="text-xs text-gray-400 mt-2">
+                                Created: ${formatDateTime(item.createdAt)}
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 min-w-80">
+                            ${
+                                hasReply
+                                    ? `
+                                        <div class="rounded-xl bg-blue-50 border border-blue-100 p-3 text-sm text-gray-700 mb-3">
+                                            <div class="font-bold text-[--sky-blue] mb-1">Current Reply</div>
+                                            <div>${escapeHtml(item.adminReply)}</div>
+                                            <div class="text-xs text-gray-400 mt-2">
+                                                ${item.repliedByName ? "By " + escapeHtml(item.repliedByName) + " · " : ""}
+                                                ${formatDateTime(item.repliedAt)}
+                                            </div>
+                                        </div>
+                                    `
+                                    : `<div class="text-xs text-gray-400 italic mb-3">No reply yet.</div>`
+                            }
+
+                            <textarea id="complaint-reply-${Number(item.id)}"
+                                    rows="4"
+                                    placeholder="Write or update admin reply..."
+                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">${hasReply ? escapeHtml(item.adminReply) : ""}</textarea>
+                        </td>
+
+                        <td class="px-6 py-4 min-w-56">
+                            <div class="space-y-3">
+                                <select id="complaint-status-${Number(item.id)}"
+                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                                    <option value="OPEN" ${item.status === "OPEN" ? "selected" : ""}>Open</option>
+                                    <option value="IN_REVIEW" ${item.status === "IN_REVIEW" ? "selected" : ""}>In Review</option>
+                                    <option value="RESOLVED" ${item.status === "RESOLVED" ? "selected" : ""}>Resolved</option>
+                                </select>
+
+                                <button onclick="handleComplaint(${Number(item.id)})"
+                                        class="w-full px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                                    Save Response
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
 
             setSummary(`Complaints shown: ${results.length}`);
             renderTable(
-                ["ID", "Customer", "Email", "Message", "Status", "Created At", "Action"],
+                ["ID", "Customer", "Complaint", "Status", "Admin Reply", "Handle"],
                 rows
             );
         } catch (error) {
@@ -1166,15 +1337,18 @@
         }
     }
 
-    async function updateComplaintStatus(complaintId) {
-        const select = document.getElementById("complaint-status-" + complaintId);
-        if (!select) return;
+    async function handleComplaint(complaintId) {
+        const statusSelect = document.getElementById("complaint-status-" + complaintId);
+        const replyBox = document.getElementById("complaint-reply-" + complaintId);
+
+        if (!statusSelect || !replyBox) return;
 
         const formData = new URLSearchParams();
-        formData.append("status", select.value);
+        formData.append("status", statusSelect.value);
+        formData.append("reply", replyBox.value.trim());
 
         try {
-            const response = await fetch("/admin/complaints/" + complaintId + "/status", {
+            const response = await fetch("/admin/complaints/" + complaintId + "/handle", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -1184,10 +1358,11 @@
             });
 
             if (!response.ok) {
-                throw new Error("Failed to update complaint status: " + response.status);
+                const text = await response.text();
+                throw new Error(text || "Failed to handle complaint: " + response.status);
             }
 
-            await loadComplaints();
+            await loadComplaints(false);
             await refreshAllDashboardData();
         } catch (error) {
             showError(error);
@@ -1197,146 +1372,593 @@
     function extractAirportCode(nameCode) {
         if (!nameCode) return "";
 
-        const parts = nameCode.toString().trim().split(/\s+/);
-        return parts.length > 0 ? parts[parts.length - 1].toUpperCase() : "";
+        const match = nameCode.toString().trim().toUpperCase().match(/([A-Z]{3})$/);
+        return match ? match[1] : "";
     }
 
-    function toDatetimeLocalValue(value) {
+    function toDateTimeLocal(value) {
         if (!value) return "";
 
-        if (typeof value === "string") {
-            return value.substring(0, 16);
+        return value.toString().replace(" ", "T").substring(0, 16);
+    }
+
+    function showEditFlightError(message) {
+        const box = document.getElementById("editFlightError");
+        box.textContent = message;
+        box.classList.remove("hidden");
+    }
+
+    function hideEditFlightError() {
+        const box = document.getElementById("editFlightError");
+        box.textContent = "";
+        box.classList.add("hidden");
+    }
+
+    function openEditFlightModal(flightId) {
+        const flight = window.adminFlightRows[flightId];
+
+        if (!flight) {
+            alert("Flight data not found. Please refresh the table.");
+            return;
         }
 
-        return value.toString().substring(0, 16);
-    }
+        hideEditFlightError();
 
-    function openFlightEditModalByValues(
-        flightId,
-        flightCode,
-        departureAirportNameCode,
-        arrivalAirportNameCode,
-        departureTime,
-        arrivalTime,
-        flightStatus,
-        aircraftType
-    ) {
-        document.getElementById("editFlightId").value = flightId;
-        document.getElementById("editFlightSubtitle").textContent =
-            "Editing " + flightCode + " | " + departureAirportNameCode + " → " + arrivalAirportNameCode;
+        document.getElementById("editFlightId").value = flight.flightId;
+        document.getElementById("editFlightCodeText").textContent =
+            `${flight.flightCode} — ${flight.departureAirportNameCode} to ${flight.arrivalAirportNameCode}`;
 
         document.getElementById("editDepartureAirportCode").value =
-            extractAirportCode(departureAirportNameCode);
+            extractAirportCode(flight.departureAirportNameCode);
 
         document.getElementById("editArrivalAirportCode").value =
-            extractAirportCode(arrivalAirportNameCode);
+            extractAirportCode(flight.arrivalAirportNameCode);
 
         document.getElementById("editDepartureTime").value =
-            toDatetimeLocalValue(departureTime);
+            toDateTimeLocal(flight.departureTime);
 
         document.getElementById("editArrivalTime").value =
-            toDatetimeLocalValue(arrivalTime);
+            toDateTimeLocal(flight.arrivalTime);
 
-        document.getElementById("editFlightStatus").value = flightStatus || "SCHEDULED";
-        document.getElementById("editAircraftType").value = aircraftType || "-";
+        document.getElementById("editFlightStatus").value =
+            flight.flightStatus || flight.status || "SCHEDULED";
 
-        document.getElementById("flightEditError").classList.add("hidden");
-        document.getElementById("flightEditModal").classList.remove("hidden");
-        document.getElementById("flightEditModal").classList.add("flex");
+        const modal = document.getElementById("editFlightModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
     }
 
-    function closeFlightEditModal() {
-        document.getElementById("flightEditModal").classList.add("hidden");
-        document.getElementById("flightEditModal").classList.remove("flex");
+    function closeEditFlightModal() {
+        const modal = document.getElementById("editFlightModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
     }
 
-    function showFlightEditError(message) {
-        const errorBox = document.getElementById("flightEditError");
-        errorBox.textContent = message;
-        errorBox.classList.remove("hidden");
+    async function readErrorMessage(response) {
+        const text = await response.text();
+
+        try {
+            const json = JSON.parse(text);
+            return json.error || json.message || text;
+        } catch (error) {
+            return text;
+        }
     }
 
-    async function saveFlightEdit() {
+    async function submitFlightEdit() {
+        hideEditFlightError();
+
         const flightId = document.getElementById("editFlightId").value;
         const departureAirportCode = document.getElementById("editDepartureAirportCode").value.trim().toUpperCase();
         const arrivalAirportCode = document.getElementById("editArrivalAirportCode").value.trim().toUpperCase();
         const departureTime = document.getElementById("editDepartureTime").value;
         const arrivalTime = document.getElementById("editArrivalTime").value;
         const status = document.getElementById("editFlightStatus").value;
+        const originalFlight = window.adminFlightRows[flightId];
 
-        if (!flightId || !departureAirportCode || !arrivalAirportCode || !departureTime || !arrivalTime || !status) {
-            showFlightEditError("Please fill in all required fields.");
+        if (!flightId || !departureAirportCode || !arrivalAirportCode || !departureTime || !arrivalTime) {
+            showEditFlightError("Please fill in departure airport, arrival airport, departure time, and arrival time.");
+            return;
+        }
+
+        if (departureAirportCode.length !== 3 || arrivalAirportCode.length !== 3) {
+            showEditFlightError("Airport codes must be 3 letters, for example LBA or DXB.");
+            return;
+        }
+
+        const originalDepartureCode = originalFlight ? extractAirportCode(originalFlight.departureAirportNameCode) : "";
+        const originalArrivalCode = originalFlight ? extractAirportCode(originalFlight.arrivalAirportNameCode) : "";
+        const originalDepartureTime = originalFlight ? toDateTimeLocal(originalFlight.departureTime) : "";
+        const originalArrivalTime = originalFlight ? toDateTimeLocal(originalFlight.arrivalTime) : "";
+        const originalStatus = originalFlight ? (originalFlight.flightStatus || originalFlight.status || "") : "";
+
+        const scheduleChanged =
+            departureAirportCode !== originalDepartureCode ||
+            arrivalAirportCode !== originalArrivalCode ||
+            departureTime !== originalDepartureTime ||
+            arrivalTime !== originalArrivalTime;
+
+        const statusChanged = status !== originalStatus;
+
+        if (!scheduleChanged && !statusChanged) {
+            showEditFlightError("No changes to save.");
             return;
         }
 
         try {
-            const scheduleForm = new URLSearchParams();
-            scheduleForm.append("departureAirportCode", departureAirportCode);
-            scheduleForm.append("arrivalAirportCode", arrivalAirportCode);
-            scheduleForm.append("departureTime", departureTime);
-            scheduleForm.append("arrivalTime", arrivalTime);
+            if (scheduleChanged) {
+                const scheduleBody = new URLSearchParams();
+                scheduleBody.append("departureAirportCode", departureAirportCode);
+                scheduleBody.append("arrivalAirportCode", arrivalAirportCode);
+                scheduleBody.append("departureTime", departureTime);
+                scheduleBody.append("arrivalTime", arrivalTime);
 
-            const scheduleResponse = await fetch("/admin/flights/" + flightId + "/update-schedule", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json"
-                },
-                body: scheduleForm.toString()
-            });
+                const scheduleResponse = await fetch(`/admin/flights/${flightId}/update-schedule`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Accept": "application/json"
+                    },
+                    body: scheduleBody.toString()
+                });
 
-            if (!scheduleResponse.ok) {
-                const text = await scheduleResponse.text();
-                throw new Error("Failed to update flight schedule: " + scheduleResponse.status + " " + text);
+                if (!scheduleResponse.ok) {
+                    throw new Error(await readErrorMessage(scheduleResponse) || "Failed to update flight schedule.");
+                }
             }
 
-            const statusForm = new URLSearchParams();
-            statusForm.append("status", status);
+            if (statusChanged) {
+                const statusBody = new URLSearchParams();
+                statusBody.append("status", status);
 
-            const statusResponse = await fetch("/admin/flights/" + flightId + "/status", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json"
-                },
-                body: statusForm.toString()
-            });
+                const statusResponse = await fetch(`/admin/flights/${flightId}/status`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Accept": "application/json"
+                    },
+                    body: statusBody.toString()
+                });
 
-            if (!statusResponse.ok) {
-                const text = await statusResponse.text();
-                throw new Error("Failed to update flight status: " + statusResponse.status + " " + text);
+                if (!statusResponse.ok) {
+                    throw new Error(await readErrorMessage(statusResponse) || "Failed to update flight status.");
+                }
             }
 
-            closeFlightEditModal();
-            await loadFlightAvailability();
+            closeEditFlightModal();
+            await loadFlightAvailability(false);
             await refreshAllDashboardData();
         } catch (error) {
             console.error(error);
-            showFlightEditError(error.message || "Failed to update flight.");
+            showEditFlightError(error.message || "Failed to update flight.");
         }
     }
 
-    function loadCurrentSection() {
-        if (currentSection === "reservations") {
-            loadReservations();
-        } else if (currentSection === "availability") {
-            loadFlightAvailability();
-        } else if (currentSection === "cancelledBookings") {
-            loadCancelledBookings();
-        } else if (currentSection === "cancelledFlights") {
-            loadCancelledFlights();
-        } else if (currentSection === "changes") {
-            loadFlightChanges();
-        } else if (currentSection === "bookingsReport") {
-            loadBookingsPerFlight();
-        } else if (currentSection === "routesReport") {
-            loadPopularRoutes();
-        } else if (currentSection === "timesReport") {
-            loadPeakBookingTimes();
-        } else if (currentSection === "complaints") {
-            loadComplaints();
+    // Airport autocomplete and custom calendar
+    (function () {
+        const adminDateDropdown = document.getElementById("adminDateDropdown");
+
+        if (adminDateDropdown) {
+            document.body.appendChild(adminDateDropdown);
         }
-    }
+
+        const airportConfigs = [
+            {
+                key: "FilterFrom",
+                wrapperId: "filterFromWrapper",
+                displayId: "filterFromDisplay",
+                codeId: "filterFrom",
+                resultsId: "filterFromResults",
+                displayMode: "full"
+            },
+            {
+                key: "FilterTo",
+                wrapperId: "filterToWrapper",
+                displayId: "filterToDisplay",
+                codeId: "filterTo",
+                resultsId: "filterToResults",
+                displayMode: "full"
+            },
+            {
+                key: "EditDeparture",
+                wrapperId: "editDepartureWrapper",
+                displayId: "editDepartureAirportCode",
+                codeId: "editDepartureAirportCode",
+                resultsId: "editDepartureResults",
+                displayMode: "code"
+            },
+            {
+                key: "EditArrival",
+                wrapperId: "editArrivalWrapper",
+                displayId: "editArrivalAirportCode",
+                codeId: "editArrivalAirportCode",
+                resultsId: "editArrivalResults",
+                displayMode: "code"
+            }
+        ];
+
+        const airportTimers = {};
+        const airportActiveIndex = {};
+
+        airportConfigs.forEach(config => {
+            airportActiveIndex[config.key] = -1;
+
+            const display = document.getElementById(config.displayId);
+            const codeInput = document.getElementById(config.codeId);
+            const dropdown = document.getElementById(config.resultsId);
+
+            if (!display || !codeInput || !dropdown) return;
+
+            display.addEventListener("input", () => {
+                clearTimeout(airportTimers[config.key]);
+
+                if (config.displayMode === "full" && codeInput !== display) {
+                    codeInput.value = "";
+                }
+
+                if (config.displayMode === "code") {
+                    display.value = display.value.toUpperCase();
+                }
+
+                const query = display.value.trim();
+
+                if (query.length < 2) {
+                    closeAirportDropdown(config);
+                    return;
+                }
+
+                showAirportLoading(config);
+
+                airportTimers[config.key] = setTimeout(() => {
+                    fetchAdminAirports(config, query);
+                }, 250);
+            });
+
+            display.addEventListener("keydown", event => {
+                const items = dropdown.querySelectorAll(".admin-airport-item");
+
+                if (!items.length) return;
+
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    airportActiveIndex[config.key]++;
+                } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    airportActiveIndex[config.key]--;
+                } else if (event.key === "Enter") {
+                    event.preventDefault();
+
+                    if (airportActiveIndex[config.key] >= 0) {
+                        items[airportActiveIndex[config.key]].click();
+                    }
+
+                    return;
+                } else {
+                    return;
+                }
+
+                airportActiveIndex[config.key] = Math.max(
+                    0,
+                    Math.min(airportActiveIndex[config.key], items.length - 1)
+                );
+
+                updateAirportActive(config, items);
+            });
+        });
+
+        async function fetchAdminAirports(config, query) {
+            try {
+                const response = await fetch(`/airports?search=${encodeURIComponent(query)}`, {
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Airport search failed");
+                }
+
+                const airports = await response.json();
+                renderAirportDropdown(config, airports);
+            } catch (error) {
+                console.error(error);
+                renderAirportError(config);
+            }
+        }
+
+        function renderAirportDropdown(config, airports) {
+            const dropdown = document.getElementById(config.resultsId);
+
+            dropdown.innerHTML = "";
+            airportActiveIndex[config.key] = 0;
+
+            if (!airports || airports.length === 0) {
+                dropdown.innerHTML = `<div class="admin-dropdown-empty">No airports found</div>`;
+                dropdown.classList.remove("hidden");
+                return;
+            }
+
+            airports.forEach(airport => {
+                const item = document.createElement("div");
+                item.className = "admin-airport-item";
+
+                item.innerHTML = `
+                    <span class="iata">${escapeHtml(airport.code)}</span>
+                    ${escapeHtml(airport.name)}
+                    <span class="sub">${escapeHtml(airport.city)}, ${escapeHtml(airport.country)}</span>
+                `;
+
+                item.addEventListener("mousedown", event => {
+                    event.preventDefault();
+                    selectAdminAirport(config, airport);
+                });
+
+                dropdown.appendChild(item);
+            });
+
+            updateAirportActive(config, dropdown.querySelectorAll(".admin-airport-item"));
+            dropdown.classList.remove("hidden");
+        }
+
+        function selectAdminAirport(config, airport) {
+            const display = document.getElementById(config.displayId);
+            const codeInput = document.getElementById(config.codeId);
+
+            codeInput.value = airport.code;
+
+            if (config.displayMode === "code") {
+                display.value = airport.code;
+            } else {
+                display.value = `${airport.code} – ${airport.name}`;
+            }
+
+            closeAirportDropdown(config);
+        }
+
+        function closeAirportDropdown(config) {
+            const dropdown = document.getElementById(config.resultsId);
+
+            if (!dropdown) return;
+
+            dropdown.classList.add("hidden");
+            dropdown.innerHTML = "";
+        }
+
+        function showAirportLoading(config) {
+            const dropdown = document.getElementById(config.resultsId);
+            dropdown.innerHTML = `<div class="admin-dropdown-loading">Searching…</div>`;
+            dropdown.classList.remove("hidden");
+        }
+
+        function renderAirportError(config) {
+            const dropdown = document.getElementById(config.resultsId);
+            dropdown.innerHTML = `<div class="admin-dropdown-empty">Error loading airports</div>`;
+            dropdown.classList.remove("hidden");
+        }
+
+        function updateAirportActive(config, items) {
+            items.forEach((item, index) => {
+                item.classList.toggle("active", index === airportActiveIndex[config.key]);
+            });
+        }
+
+        document.addEventListener("click", event => {
+            airportConfigs.forEach(config => {
+                const wrapper = document.getElementById(config.wrapperId);
+
+                if (wrapper && !wrapper.contains(event.target)) {
+                    closeAirportDropdown(config);
+                }
+            });
+        });
+
+        const adminSwapBtn = document.getElementById("adminSwapBtn");
+
+        if (adminSwapBtn) {
+            adminSwapBtn.addEventListener("click", () => {
+                const fromCode = document.getElementById("filterFrom");
+                const toCode = document.getElementById("filterTo");
+                const fromDisplay = document.getElementById("filterFromDisplay");
+                const toDisplay = document.getElementById("filterToDisplay");
+
+                [fromCode.value, toCode.value] = [toCode.value, fromCode.value];
+                [fromDisplay.value, toDisplay.value] = [toDisplay.value, fromDisplay.value];
+            });
+        }
+
+        const dateButton = document.getElementById("filterDateDisplay");
+        const dateInput = document.getElementById("filterDate");
+        const dateText = document.getElementById("filterDateText");
+        const monthLabel = document.getElementById("adminMonthLabel");
+        const calendarGrid = document.getElementById("adminCalendarGrid");
+        const prevMonthBtn = document.getElementById("adminPrevMonth");
+        const nextMonthBtn = document.getElementById("adminNextMonth");
+
+        const MONTHS = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        let adminCalendarYear = new Date().getFullYear();
+        let adminCalendarMonth = new Date().getMonth();
+        let adminSelectedDate = null;
+
+        if (dateButton && adminDateDropdown) {
+            dateButton.addEventListener("click", event => {
+                event.stopPropagation();
+
+                const isHidden = adminDateDropdown.classList.contains("hidden");
+                adminDateDropdown.classList.toggle("hidden");
+
+                if (isHidden) {
+                    positionAdminCalendar();
+                    renderAdminCalendar();
+                }
+            });
+
+            document.addEventListener("click", event => {
+                if (!dateButton.contains(event.target) && !adminDateDropdown.contains(event.target)) {
+                    adminDateDropdown.classList.add("hidden");
+                }
+            });
+
+            window.addEventListener("scroll", () => {
+                if (!adminDateDropdown.classList.contains("hidden")) {
+                    positionAdminCalendar();
+                }
+            }, true);
+
+            window.addEventListener("resize", () => {
+                if (!adminDateDropdown.classList.contains("hidden")) {
+                    positionAdminCalendar();
+                }
+            });
+        }
+
+        if (prevMonthBtn) {
+            prevMonthBtn.addEventListener("click", () => {
+                adminCalendarMonth--;
+
+                if (adminCalendarMonth < 0) {
+                    adminCalendarMonth = 11;
+                    adminCalendarYear--;
+                }
+
+                renderAdminCalendar();
+            });
+        }
+
+        if (nextMonthBtn) {
+            nextMonthBtn.addEventListener("click", () => {
+                adminCalendarMonth++;
+
+                if (adminCalendarMonth > 11) {
+                    adminCalendarMonth = 0;
+                    adminCalendarYear++;
+                }
+
+                renderAdminCalendar();
+            });
+        }
+
+        function positionAdminCalendar() {
+            const rect = dateButton.getBoundingClientRect();
+            const width = 320;
+            const height = 360;
+
+            let left = rect.left;
+            let top = rect.bottom + 8;
+
+            if (left + width > window.innerWidth - 8) {
+                left = window.innerWidth - width - 8;
+            }
+
+            if (left < 8) {
+                left = 8;
+            }
+
+            if (top + height > window.innerHeight - 8) {
+                top = rect.top - height - 8;
+            }
+
+            if (top < 8) {
+                top = 8;
+            }
+
+            adminDateDropdown.style.left = left + "px";
+            adminDateDropdown.style.top = top + "px";
+        }
+
+        function renderAdminCalendar() {
+            if (!monthLabel || !calendarGrid) return;
+
+            monthLabel.textContent = `${MONTHS[adminCalendarMonth]} ${adminCalendarYear}`;
+            calendarGrid.innerHTML = "";
+
+            const today = new Date();
+            const firstDay = new Date(adminCalendarYear, adminCalendarMonth, 1).getDay();
+            const offset = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(adminCalendarYear, adminCalendarMonth + 1, 0).getDate();
+
+            for (let i = 0; i < offset; i++) {
+                calendarGrid.appendChild(document.createElement("div"));
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement("div");
+                cell.className = "admin-cal-day";
+                cell.textContent = day;
+
+                const isToday =
+                    adminCalendarYear === today.getFullYear() &&
+                    adminCalendarMonth === today.getMonth() &&
+                    day === today.getDate();
+
+                const isSelected =
+                    adminSelectedDate &&
+                    adminSelectedDate.year === adminCalendarYear &&
+                    adminSelectedDate.month === adminCalendarMonth &&
+                    adminSelectedDate.day === day;
+
+                if (isToday) {
+                    cell.classList.add("admin-today");
+                }
+
+                if (isSelected) {
+                    cell.classList.add("admin-selected");
+                }
+
+                cell.addEventListener("click", () => {
+                    selectAdminDate(adminCalendarYear, adminCalendarMonth, day);
+                });
+
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        function selectAdminDate(year, month, day) {
+            const value = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+            adminSelectedDate = { year, month, day };
+            dateInput.value = value;
+
+            dateText.textContent = `${day} ${MONTHS[month]} ${year}`;
+            dateText.classList.remove("text-gray-400");
+            dateText.classList.add("text-gray-800");
+
+            renderAdminCalendar();
+
+            setTimeout(() => {
+                adminDateDropdown.classList.add("hidden");
+            }, 150);
+        }
+
+        window.resetAdminEnhancedFilters = function () {
+            const fromDisplay = document.getElementById("filterFromDisplay");
+            const toDisplay = document.getElementById("filterToDisplay");
+
+            if (fromDisplay) fromDisplay.value = "";
+            if (toDisplay) toDisplay.value = "";
+
+            adminSelectedDate = null;
+
+            if (dateText) {
+                dateText.textContent = "Any date";
+                dateText.classList.add("text-gray-400");
+                dateText.classList.remove("text-gray-800");
+            }
+
+            airportConfigs.forEach(closeAirportDropdown);
+
+            if (adminDateDropdown) {
+                adminDateDropdown.classList.add("hidden");
+            }
+
+            renderAdminCalendar();
+        };
+
+        renderAdminCalendar();
+    })();
 
     document.addEventListener("DOMContentLoaded", async function () {
         await refreshAllDashboardData();

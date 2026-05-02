@@ -85,7 +85,11 @@ data class Complaint (
   val userId: Int,
   val message: String,
   val status: ComplaintStatus,
-  val createdAt : LocalDateTime
+  val createdAt : LocalDateTime,
+  //Admin handling part
+  val adminReply: String? = null,
+  val repliedAt: LocalDateTime? = null,
+  val repliedByUserId: Int? = null
 )
 
 data class Seat (
