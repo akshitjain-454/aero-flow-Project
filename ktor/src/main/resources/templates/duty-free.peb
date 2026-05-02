@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .serif { font-family: 'Playfair Display', serif; }
+    .shop-card img { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .shop-card:hover img { transform: scale(1.08); }
+</style>
+
+<div class="min-h-screen bg-white">
+
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-24 px-8 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto relative z-10">
+      <p class="text-[10px] uppercase tracking-[0.35em] text-sky-400 font-bold mb-4">Experience / At The Airport</p>
+      <h1 class="text-6xl font-serif font-light mb-6">Aetheria <span class="italic">Boutique</span></h1>
+      <p class="text-slate-400 text-sm font-light max-w-lg leading-relaxed">
+        Indulge in a curated collection of world-class brands. From exclusive fragrances to master-crafted timepieces, enjoy tax-free shopping at its most refined.
+      </p>
+    </div>
+    <!-- Subtle overlay image -->
+    <div class="absolute top-0 right-0 w-2/5 h-full opacity-30 hidden lg:block">
+        <img src="https://images.unsplash.com/photo-1549439602-43ebca2327af?q=80&w=1200" class="object-cover h-full w-full">
+    </div>
+  </div>
+
+  <!-- Featured Collections Grid -->
+  <div class="max-w-7xl mx-auto px-8 py-20">
+    <div class="flex justify-between items-end mb-12">
+        <h2 class="text-3xl serif text-slate-900">The Collections</h2>
+        <a href="#" class="text-[10px] uppercase tracking-widest font-extrabold text-sky-500 border-b border-sky-500/20 pb-1">View Full Catalog</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Fragrance & Beauty -->
+        <div class="shop-card group cursor-pointer">
+            <div class="aspect-[3/4] rounded-[32px] overflow-hidden mb-6 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800" class="w-full h-full object-cover">
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-sky-500 font-bold mb-2">Exclusives</p>
+            <h3 class="text-xl serif text-slate-900 mb-2">Fragrance & Beauty</h3>
+            <p class="text-xs text-gray-400 font-light leading-relaxed mb-4">Discover limited edition scents and skincare from the world's leading houses.</p>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-900 group-hover:text-sky-500 transition-colors">Shop Now &rarr;</span>
+        </div>
+
+        <!-- Watches & Jewelry -->
+        <div class="shop-card group cursor-pointer">
+            <div class="aspect-[3/4] rounded-[32px] overflow-hidden mb-6 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=800" class="w-full h-full object-cover">
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-sky-500 font-bold mb-2">Heritage</p>
+            <h3 class="text-xl serif text-slate-900 mb-2">Watches & Jewelry</h3>
+            <p class="text-xs text-gray-400 font-light leading-relaxed mb-4">Timeless elegance and precision engineering for the discerning traveler.</p>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-900 group-hover:text-sky-500 transition-colors">Shop Now &rarr;</span>
+        </div>
+
+        <!-- Spirits & Fine Food -->
+        <div class="shop-card group cursor-pointer">
+            <div class="aspect-[3/4] rounded-[32px] overflow-hidden mb-6 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=800" class="w-full h-full object-cover">
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-sky-500 font-bold mb-2">Connoisseur</p>
+            <h3 class="text-xl serif text-slate-900 mb-2">Fine Spirits</h3>
+            <p class="text-xs text-gray-400 font-light leading-relaxed mb-4">Rare vintages and artisanal flavors curated from across the globe.</p>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-900 group-hover:text-sky-500 transition-colors">Shop Now &rarr;</span>
+        </div>
+
+    </div>
+  </div>
+
+  <!-- Pre-Order Banner -->
+  <div class="max-w-7xl mx-auto px-8 pb-24">
+    <div class="bg-slate-900 rounded-[40px] p-12 lg:p-20 relative overflow-hidden flex flex-col items-center text-center">
+        <div class="absolute inset-0 opacity-10">
+            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1500" class="w-full h-full object-cover">
+        </div>
+        <div class="relative z-10 max-w-2xl">
+            <h2 class="text-3xl md:text-4xl serif text-white mb-6">Reserve Before You Fly</h2>
+            <p class="text-slate-400 text-sm font-light mb-10 leading-relaxed">
+                Ensure your favorites are waiting for you. Browse our boutique and pre-order up to 48 hours before departure to have your items delivered directly to your seat.
+            </p>
+            <a href="/login" class="bg-white text-slate-900 px-12 py-4 rounded-full text-[10px] uppercase tracking-[0.2em] font-extrabold hover:bg-sky-400 hover:text-white transition-all shadow-xl">
+                Browse Full Catalog
+            </a>
+        </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

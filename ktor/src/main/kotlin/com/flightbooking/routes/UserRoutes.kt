@@ -73,13 +73,13 @@ fun Route.userRoutes() {
             val vfySession = call.sessions.get<VerificationSession>() ?: return@post call.respondPebble("register.peb", mapOf("error" to "No verification session"))
             val params = call.receiveParameters()
 
-            val firstname = params["firstname"]?.trim()
-            val lastname  = params["lastname"]?.trim()
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
             val email     = vfySession.email
             val password  = params["password"]?.trim()
             val confirmedPassword = params["confirmed_password"]?.trim()
 
-            if (firstname == null || lastname == null || password == null || confirmedPassword == null) {
+            if (password == null || confirmedPassword == null) {
                 //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
                 return@post call.respondPebble("register.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
             }
@@ -104,30 +104,99 @@ fun Route.userRoutes() {
 
             // Fetch back the saved user to get the real DB-assigned ID
             val savedUser = userRepository.getUserByEmail(email)!!
+            
+            val initials = userRepository.getInitialsByUser(savedUser)
 
-            call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role, initials = "${savedUser.firstname.first().uppercaseChar()}${savedUser.lastname.first().uppercaseChar()}"))
+            call.sessions.set(UserSession(userId = savedUser.id, role = savedUser.role, initials = initials))
             call.respondRedirect("/")
         }
     }
-    get("/overview") {
-        val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
-        val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
-        
-        // Fetch bookings for the quick-view section
-        val bookingRepository = com.flightbooking.repositories.BookingRepository()
-        val allBookings = bookingRepository.getBookingsByUserId(session.userId)
-            .map { bookingRepository.getBookingInfoByBooking(it) }
-        
-        // Grab just the first 2 bookings for the dashboard preview
-        val recentBookings = allBookings.take(2)
 
-        call.respondPebble("overview.peb", mapOf(
-            "user" to user,
-            "recentBookings" to recentBookings,
-            "totalBookings" to allBookings.size
-        ))
+    route("/overview") {
+        get() {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
+            
+            // Fetch bookings for the quick-view section
+            val bookingRepository = com.flightbooking.repositories.BookingRepository()
+            val allBookings = bookingRepository.getBookingsByUserId(session.userId)
+                .map { bookingRepository.getBookingInfoByBooking(it) }
+            
+            // Grab just the first 2 bookings for the dashboard preview
+            val recentBookings = allBookings.take(2)
+
+            call.respondPebble("overview.peb", mapOf(
+                "user" to user,
+                "recentBookings" to recentBookings,
+                "totalBookings" to allBookings.size
+            ))
+        }
+        post("/add_name") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
+
+            userRepository.updateNameForUser(user.id, firstname, lastname)
+            call.respondRedirect("/overview")
+        }
+    }
+    route("/settings") {
+        get() {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@get call.respondRedirect("/login")
+            call.respondPebble("settings.peb", mapOf("user" to user))
+        }
+        post("/update_name") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
+
+            userRepository.updateNameForUser(user.id, firstname, lastname)
+            call.respondRedirect("/settings")
+        }
+        post("/change_password") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+
+            val password = params["password"]
+            val newPassword  = params["new_password"]?.trim()
+            val confirmNewPassword = params["confirm_new_password"]?.trim()
+
+            if (password == null || newPassword == null || confirmNewPassword == null) {
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Missing required fields"))
+            }
+            
+            if (BCrypt.checkpw(password, user.passwordHash) == false) {
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Old password is incorrect"))
+            }
+
+            if (newPassword != confirmNewPassword) {    
+                return@post call.respondPebble("settings.peb", mapOf("error" to "Passwords do not match")) //shouldnt happen unless frontend is bypassed
+            }
+
+            val newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+
+            userRepository.changePasswordForUser(user.id, newPasswordHash)
+            call.respondRedirect("/settings")
+        }
+        post("/delete_account") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+            val user = userRepository.getUserById(session.userId) ?: return@post call.respondRedirect("/login")
+            
+            userRepository.deleteUser(user.id) //No turning back
+            call.sessions.clear<UserSession>()
+            call.respondRedirect("/")
+        }
     }
     
+
     post("/login") {
         val params = call.receiveParameters()
 
@@ -152,7 +221,8 @@ fun Route.userRoutes() {
         }
 
         if (BCrypt.checkpw(password, user.passwordHash)) {
-            call.sessions.set(UserSession(userId = user.id, role = user.role, initials = "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"))
+            val initials = userRepository.getInitialsByUser(user)
+            call.sessions.set(UserSession(userId = user.id, role = user.role, initials = initials))
             if (user.role == UserRole.ADMIN) {
                 call.respondRedirect("/admin") 
             } else {

@@ -25,10 +25,48 @@ class UserRepository {
         }
     }
 
+    fun deleteUser(userId: Int) {
+        transaction {
+            UserTable.deleteWhere { SqlExpressionBuilder.run { UserTable.id eq userId } }
+        }
+    }
+
+    fun updateNameForUser(userId: Int, firstname: String?, lastname: String?) {
+        transaction {
+            UserTable.update({ UserTable.id eq userId }) {
+                it[UserTable.firstname] = firstname
+                it[UserTable.lastname] = lastname
+            }
+        }
+    }
+
+    fun changePasswordForUser(userId: Int, newPasswordHash: String) {
+        transaction {
+            UserTable.update({ UserTable.id eq userId }) {
+                it[UserTable.passwordHash] = newPasswordHash
+            }
+        }
+    }
+
     fun getUserByEmail(email: String): User? = transaction {
         UserTable
             .select { UserTable.email eq email }
             .map { resultRowToUser(it) }.singleOrNull()
+    }
+
+    fun getInitialsByUser(user: User): String = transaction {
+        if (user.firstname != null && user.lastname != null) {
+            "${user.firstname.first().uppercaseChar()}${user.lastname.first().uppercaseChar()}"
+        }
+        else if ((user.firstname == null && user.lastname != null)) {
+            "${user.lastname.first().uppercaseChar()}"
+        }
+        else if ((user.firstname != null && user.lastname == null)) {
+            "${user.firstname.first().uppercaseChar()}"
+        }
+        else {
+            user.email.take(2).uppercase().ifEmpty { "U" }
+        }
     }
 
     fun sendEmail(email: String, subject: String, body: String) {

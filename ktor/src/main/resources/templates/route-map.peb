@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .serif { font-family: 'Playfair Display', serif; }
+    .map-container {
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 40px 40px;
+    }
+    .city-link:hover .dot { transform: scale(1.5); background-color: #38bdf8; }
+</style>
+
+<div class="min-h-screen bg-white">
+
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-24 px-8 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto relative z-10">
+      <p class="text-[10px] uppercase tracking-[0.4em] text-sky-400 font-extrabold mb-4">Where We Fly / Network</p>
+      <h1 class="text-6xl font-serif font-light mb-6">Route Map</h1>
+      <p class="text-slate-400 text-sm font-light max-w-lg leading-relaxed">
+        Connecting continents through our primary hubs. Explore our expansive global network and plan your next seamless connection with Aero Flow.
+      </p>
+    </div>
+  </div>
+
+  <!-- Interactive Map Visualization Area -->
+  <div class="max-w-[1440px] mx-auto px-8 py-12">
+    <div class="map-container relative bg-slate-900 rounded-[48px] aspect-[21/9] overflow-hidden shadow-2xl flex items-center justify-center border border-slate-800">
+        <!-- Mock Map Background -->
+        <img src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=2000" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity">
+        
+        <!-- Interactive UI Overlay -->
+        <div class="relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full mb-6">
+                <span class="w-2 h-2 bg-sky-400 rounded-full animate-pulse"></span>
+                <span class="text-[10px] text-white uppercase tracking-widest font-bold">152 Destinations Live</span>
+            </div>
+            <h2 class="text-4xl serif text-white mb-4">Global Connections</h2>
+            <p class="text-slate-400 text-xs font-light tracking-wide">Select a region below to view specific flight frequencies and stopover options.</p>
+        </div>
+        
+        <!-- Floating Stats -->
+        <div class="absolute bottom-12 left-12 hidden lg:block">
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sky-400 text-2xl serif">32</p>
+                    <p class="text-slate-500 text-[9px] uppercase tracking-widest">European Cities</p>
+                </div>
+                <div>
+                    <p class="text-sky-400 text-2xl serif">18</p>
+                    <p class="text-slate-500 text-[9px] uppercase tracking-widest">Asian Hubs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Hub Categories -->
+  <div class="max-w-7xl mx-auto px-8 py-20">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+        
+        <!-- Region: Europe -->
+        <div>
+            <h3 class="text-[11px] uppercase tracking-[0.3em] font-extrabold text-slate-900 border-b border-slate-100 pb-6 mb-8">Europe & Americas</h3>
+            <ul class="space-y-6">
+                {{ cityItem("London", "LHR", "3 Daily Flights") }}
+                {{ cityItem("Paris", "CDG", "2 Daily Flights") }}
+                {{ cityItem("New York", "JFK", "4 Daily Flights") }}
+                {{ cityItem("Frankfurt", "FRA", "2 Daily Flights") }}
+            </ul>
+        </div>
+
+        <!-- Region: Asia Pacific -->
+        <div>
+            <h3 class="text-[11px] uppercase tracking-[0.3em] font-extrabold text-slate-900 border-b border-slate-100 pb-6 mb-8">Asia & Pacific</h3>
+            <ul class="space-y-6">
+                {{ cityItem("Singapore", "SIN", "3 Daily Flights") }}
+                {{ cityItem("Tokyo", "HND", "2 Daily Flights") }}
+                {{ cityItem("Sydney", "SYD", "1 Daily Flight") }}
+                {{ cityItem("Hong Kong", "HKG", "2 Daily Flights") }}
+            </ul>
+        </div>
+
+        <!-- Region: Middle East -->
+        <div>
+            <h3 class="text-[11px] uppercase tracking-[0.3em] font-extrabold text-slate-900 border-b border-slate-100 pb-6 mb-8">Middle East & Africa</h3>
+            <ul class="space-y-6">
+                {{ cityItem("Dubai", "DXB", "6 Daily Flights") }}
+                {{ cityItem("Doha", "DOH", "3 Daily Flights") }}
+                {{ cityItem("Cape Town", "CPT", "1 Daily Flight") }}
+                {{ cityItem("Istanbul", "IST", "3 Daily Flights") }}
+            </ul>
+        </div>
+
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="max-w-7xl mx-auto px-8 pb-32">
+    <div class="bg-slate-50 rounded-[40px] p-12 text-center border border-slate-100">
+        <h2 class="text-2xl serif text-slate-900 mb-4">Start your journey today</h2>
+        <p class="text-sm text-gray-500 font-light mb-8 max-w-md mx-auto leading-relaxed">
+            Ready to explore? Book your flight now and experience the world-class service of Aero Flow.
+        </p>
+        <a href="/search" class="bg-slate-900 text-white px-12 py-4 rounded-full text-[10px] uppercase tracking-[0.2em] font-extrabold hover:bg-sky-500 transition-all shadow-xl">
+            Search Flights
+        </a>
+    </div>
+  </div>
+
+</div>
+
+{% macro cityItem(name, code, freq) %}
+<li class="city-link group flex justify-between items-center cursor-pointer">
+    <div class="flex items-center gap-4">
+        <span class="dot w-1.5 h-1.5 bg-slate-200 rounded-full transition-all duration-300"></span>
+        <div>
+            <p class="text-sm font-bold text-slate-900 group-hover:text-sky-500 transition-colors">{{ name }}</p>
+            <p class="text-[10px] text-slate-400 font-light uppercase tracking-tighter">{{ freq }}</p>
+        </div>
+    </div>
+    <span class="text-[10px] font-mono text-slate-300 group-hover:text-slate-900 transition-colors">{{ code }}</span>
+</li>
+{% endmacro %}
+
+{% endblock %}
