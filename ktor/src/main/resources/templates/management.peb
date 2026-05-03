@@ -1120,6 +1120,8 @@
                     <td class="px-6 py-4">${escapeHtml(item.newArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldDepartureTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newDepartureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldArrivalTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newArrivalTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.changedAt)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.changedByName || item.changedByUserId || "-")}</td>
@@ -1128,7 +1130,7 @@
 
             setSummary(`Flight changes shown: ${results.length}`);
             renderTable(
-                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At", "Status", "Changed By"],
+                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Old Arrival", "New Arrival","Changed At", "Status", "Changed By"],
                 rows
             );
         } catch (error) {
