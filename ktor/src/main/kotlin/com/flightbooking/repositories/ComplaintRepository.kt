@@ -1,5 +1,4 @@
 package com.flightbooking.repositories
-
 import com.flightbooking.models.Complaint
 import com.flightbooking.tables.ComplaintTable
 import com.flightbooking.enums.ComplaintStatus
