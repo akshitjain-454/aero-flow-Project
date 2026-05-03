@@ -22,17 +22,17 @@
 
     <!-- Card -->
     <div class="float-card w-full max-w-6xl rounded-[40px] p-6 overflow-visible">
-        <form method="GET" action="/flightsearch"
+        <form method="GET" action="/search"
               class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.2fr_1.8fr_1fr_auto] gap-6 items-end">
 
-            <input type="hidden" name="from"            id="from-code">
-            <input type="hidden" name="to"              id="to-code">
-            <input type="hidden" name="departure_date"  id="departure-date">
-            <input type="hidden" name="return_date"     id="return-date">
-            <input type="hidden" name="trip_type"       id="trip-type-input" value="oneway">
-            <input type="hidden" name="passengers"      id="passengers-count" value="1">
-            <input type="hidden" name="dep_flexibility" id="dep-flexibility" value="0">
-            <input type="hidden" name="ret_flexibility" id="ret-flexibility" value="0">
+<input type="hidden" name="from"                   id="from-code">
+<input type="hidden" name="to"                     id="to-code">
+<input type="hidden" name="departure_date"         id="departure-date">
+<input type="hidden" name="return_date"            id="return-date">
+
+<!-- ✅ FIXED -->
+<input type="hidden" name="num_of_passengers"      id="passengers-count" value="1">
+<input type="hidden" name="departure_flexibility"  id="dep-flexibility" value="0">
 
             <!-- 1. Origin -->
             <div class="relative" id="from-wrapper">
@@ -104,10 +104,11 @@
             </div>
 
             <!-- 6. Submit -->
-            <button type="submit"
-                    class="bg-[--charcoal] text-white h-[46px] px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300">
-                Search
-            </button>
+            <button type="submit" id="search-btn"
+        class="bg-[--charcoal] text-white h-[46px] px-6 rounded-xl font-bold uppercase 
+               tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300">
+    Search
+</button>
 
         </form>
     </div>
@@ -857,6 +858,116 @@
     updatePaxUI();
 
 })();
+// ── SEARCH BUTTON HANDLER ────────────────────────────────────
+// Backend expects: from, to, departure_date, passengers, dep_flexibility
+// These MUST match exactly what FlightRepository.searchFlights() reads
+
+document.getElementById('search-btn').addEventListener('click', function () {
+
+    // Clear old errors
+    document.getElementById('from-error')?.remove();
+    document.getElementById('to-error')?.remove();
+    document.getElementById('date-error')?.remove();
+    document.getElementById('from-display').style.borderBottomColor = '';
+    document.getElementById('to-display').style.borderBottomColor   = '';
+
+    let valid = true;
+
+    // ── STEP 1: Resolve airport codes ─────────────────────────
+    // Backend reads `from` and `to` as List<String> (airport codes like "LHR")
+    // So from-code and to-code hidden inputs MUST be populated
+
+    const fromDisplay = document.getElementById('from-display');
+    const toDisplay   = document.getElementById('to-display');
+    const fromCode    = document.getElementById('from-code');
+    const toCode      = document.getElementById('to-code');
+
+    // Auto-match if user typed IATA code directly (e.g. "LHR") without clicking dropdown
+    if (!fromCode.value.trim() && fromDisplay.value.trim()) {
+        const q = fromDisplay.value.trim().toUpperCase();
+        const match = FALLBACK_AIRPORTS.find(a =>
+            a.iata === q ||
+            a.city.toLowerCase() === fromDisplay.value.trim().toLowerCase()
+        );
+        if (match) {
+            fromCode.value    = match.iata;
+            fromDisplay.value = `${match.city} (${match.iata})`;
+        }
+    }
+
+    if (!toCode.value.trim() && toDisplay.value.trim()) {
+        const q = toDisplay.value.trim().toUpperCase();
+        const match = FALLBACK_AIRPORTS.find(a =>
+            a.iata === q ||
+            a.city.toLowerCase() === toDisplay.value.trim().toLowerCase()
+        );
+        if (match) {
+            toCode.value    = match.iata;
+            toDisplay.value = `${match.city} (${match.iata})`;
+        }
+    }
+
+    // Validate origin
+    if (!fromCode.value.trim()) {
+        valid = false;
+        fromDisplay.style.borderBottomColor = '#ef4444';
+        const err = document.createElement('div');
+        err.id = 'from-error';
+        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
+        err.textContent   = 'Please select a departure airport';
+        document.getElementById('from-wrapper').appendChild(err);
+    }
+
+    // Validate destination
+    if (!toCode.value.trim()) {
+        valid = false;
+        toDisplay.style.borderBottomColor = '#ef4444';
+        const err = document.createElement('div');
+        err.id = 'to-error';
+        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
+        err.textContent   = 'Please select a destination airport';
+        document.getElementById('to-wrapper').appendChild(err);
+    }
+
+    // ── STEP 2: Validate departure date ───────────────────────
+    // Backend reads `departure_date` as LocalDate — format must be YYYY-MM-DD
+    // This is already set by pickDate() as `departure-date` hidden input
+
+    const depDateVal = document.getElementById('departure-date').value;
+    if (!depDateVal) {
+        valid = false;
+        const err = document.createElement('div');
+        err.id = 'date-error';
+        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;';
+        err.textContent   = 'Please select a departure date';
+        document.getElementById('date-wrapper').appendChild(err);
+    }
+
+    if (!valid) return; // stop here, show errors
+
+   
+
+    const params = new URLSearchParams();
+
+params.set('from', fromCode.value.trim());
+params.set('to', toCode.value.trim());
+params.set('departure_date', depDateVal);
+
+
+params.set('num_of_passengers', document.getElementById('passengers-count').value);
+params.set('departure_flexibility', document.getElementById('dep-flexibility').value);
+
+// optional return
+if (retDateVal) {
+    params.set('return_date', retDateVal);
+}
+
+    // Include trip type so the results page knows what to show
+    params.set('trip_type', document.getElementById('trip-type-input').value);
+
+    // ── NAVIGATE ──────────────────────────────────────────────
+    window.location.href = '/search?' + params.toString();
+});
 </script>
 
 {% endblock %}
