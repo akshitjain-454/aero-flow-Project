@@ -37,7 +37,33 @@
 </head>
 <body class="antialiased {% block body_classes %}{% endblock %}">
     
-    {% block content %}{% endblock %}
 
+    <div id="global-notification" class="notification hidden">
+        <span id="notification-message"></span>
+        <button onclick="closeNotification()">✕</button>
+    </div>
+
+    {% block content %}{% endblock %}
+    <script>
+        const eventSource = new EventSource("/notifications/stream");
+
+        eventSource.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            showNotification(data.message, data.type);
+        };
+
+        function showNotification(msg, type = "info") {
+            const toast = document.getElementById("global-notification");
+            const text  = document.getElementById("notification-message");
+            text.textContent = msg;
+            toast.className = `notification ${type}`;
+            setTimeout(() => closeNotification(), 5000);
+        }
+
+        function closeNotification() {
+            document.getElementById("global-notification")
+                .className = "notification hidden";
+        }
+    </script>
 </body>
 </html>

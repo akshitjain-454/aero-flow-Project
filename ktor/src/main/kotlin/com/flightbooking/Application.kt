@@ -26,6 +26,7 @@ import com.flightbooking.routes.flightRoutes
 import com.flightbooking.routes.bookingRoutes
 import com.flightbooking.routes.complaintRoutes
 import com.flightbooking.routes.adminRoutes
+import com.flightbooking.routes.notificationRoutes
 import kotlin.time.Duration.Companion.minutes
 
 suspend fun ApplicationCall.respondPebble(template: String, model: Map<String, Any> = emptyMap()) {
@@ -95,5 +96,6 @@ fun Application.module() {
         flightRoutes()
         bookingRoutes()
         adminRoutes()
+        notificationRoutes()
     }
 }
