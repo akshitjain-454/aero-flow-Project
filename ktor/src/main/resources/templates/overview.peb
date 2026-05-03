@@ -21,27 +21,94 @@
 <section class="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-24">
     <div class="w-full max-w-4xl">
 
-        <div class="bg-white rounded-[30px] p-10 md:p-14 shadow-xl mb-8 relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-xs font-bold tracking-[0.4em] text-[--sky-blue] uppercase mb-4">
-                    Welcome Back
-                </p>
-                <h1 class="text-4xl md:text-5xl font-light leading-tight mb-2 serif">
-                    Hello, <span class="italic">{{ user.firstname }}</span>
-                </h1>
-                <p class="text-gray-400 tracking-[0.2em] uppercase text-xs mb-8">
-                    AetherianFly Member since {{ user.createdAt | date("yyyy") }}
-                </p>
-                <p class="text-gray-400 tracking-[0.2em] uppercase text-xs mb-8">
-                    Loyalty Points: {{ user.loyaltyPoints }}
-                </p>
-            </div>
+        <!-- ⭐ ENHANCED HERO SECTION WITH FLIGHT TRACKER ⭐ -->
+        <div class="bg-white rounded-[30px] p-10 md:p-14 shadow-2xl shadow-blue-900/5 mb-8 relative overflow-hidden border border-blue-50">
             
-            <div class="absolute -right-20 -top-20 w-96 h-96 bg-[--sky-blue] rounded-full opacity-5 blur-3xl pointer-events-none"></div>
+            <!-- Ambient Background Glows -->
+            <div class="absolute -left-20 -top-20 w-72 h-72 bg-gradient-to-br from-sky-300 to-blue-500 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+            <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tl from-indigo-300 to-purple-400 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                
+                <!-- Header & Points Card -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+                    <div>
+                        <p class="text-[10px] font-extrabold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 uppercase mb-3">
+                            Welcome Back, {{ user.firstname }}
+                        </p>
+                        <h1 class="text-4xl md:text-5xl font-light leading-tight serif text-gray-900">
+                            <span id="currentTierDisplay" class="italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900">Loading...</span> Member
+                        </h1>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-slate-50 to-white px-8 py-5 rounded-2xl border border-slate-100 shadow-sm min-w-[200px] text-right">
+                        <p class="text-[10px] font-bold tracking-widest uppercase text-slate-400 mb-1">Total Balance</p>
+                        <p class="text-4xl font-light serif text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">
+                            {{ user.loyaltyPoints }}<span class="text-sm text-slate-400 font-sans ml-1">pts</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Beautiful Animated Number Line -->
+                <div class="mt-16 mb-8 relative pt-8 px-4">
+                    <!-- Base Track -->
+                    <div class="relative w-full h-3 bg-slate-100 rounded-full shadow-inner overflow-visible">
+                        
+                        <!-- Glowing Progress Fill -->
+                        <div id="loyaltyProgressBar" class="absolute top-0 left-0 h-full rounded-full transition-all duration-1500 ease-out bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)]" style="width: 0%;">
+                            
+                            <!-- The Airplane Indicator -->
+                            <div class="absolute -right-5 -top-4 w-10 h-10 bg-white rounded-full shadow-xl border-2 border-indigo-100 flex items-center justify-center transform transition-transform cursor-pointer z-30">
+                                <!-- Airplane SVG Icon -->
+                                <svg class="w-5 h-5 text-indigo-500 transform rotate-45 translate-x-[2px] -translate-y-[2px]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Milestones / Nodes -->
+                        <!-- Bronze -->
+                        <div class="absolute top-1/2 -translate-y-1/2 left-[0%] flex flex-col items-center">
+                            <div class="w-5 h-5 rounded-full bg-white border-[4px] border-indigo-500 shadow-md z-10" id="node-bronze"></div>
+                            <span class="absolute top-8 text-[10px] font-extrabold tracking-widest uppercase text-indigo-900">Bronze</span>
+                        </div>
+                        
+                        <!-- Silver -->
+                        <div class="absolute top-1/2 -translate-y-1/2 left-[20%] flex flex-col items-center">
+                            <div class="w-5 h-5 rounded-full bg-white border-[4px] border-slate-200 z-10 transition-colors duration-1000" id="node-silver"></div>
+                            <span class="absolute top-8 text-[10px] font-extrabold tracking-widest uppercase text-slate-400 transition-colors duration-1000" id="label-silver">Silver</span>
+                            <span class="absolute -top-7 text-[9px] font-bold text-slate-300">5k</span>
+                        </div>
+                        
+                        <!-- Gold -->
+                        <div class="absolute top-1/2 -translate-y-1/2 left-[40%] flex flex-col items-center">
+                            <div class="w-5 h-5 rounded-full bg-white border-[4px] border-slate-200 z-10 transition-colors duration-1000" id="node-gold"></div>
+                            <span class="absolute top-8 text-[10px] font-extrabold tracking-widest uppercase text-slate-400 transition-colors duration-1000" id="label-gold">Gold</span>
+                            <span class="absolute -top-7 text-[9px] font-bold text-slate-300">10k</span>
+                        </div>
+                        
+                        <!-- Platinum -->
+                        <div class="absolute top-1/2 -translate-y-1/2 left-[100%] flex flex-col items-center">
+                            <div class="w-5 h-5 rounded-full bg-white border-[4px] border-slate-200 z-10 transition-colors duration-1000 -translate-x-1/2" id="node-plat"></div>
+                            <span class="absolute top-8 text-[10px] font-extrabold tracking-widest uppercase text-slate-400 transition-colors duration-1000 -translate-x-1/2" id="label-plat">Platinum</span>
+                            <span class="absolute -top-7 text-[9px] font-bold text-slate-300 -translate-x-1/2">25k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Points to Next Tier Badge -->
+                <div class="mt-14 text-center">
+                    <span class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 rounded-full text-xs font-bold tracking-widest uppercase border border-indigo-100/50 shadow-sm" id="pointsToNextBadge">
+                        -- points to upgrade
+                    </span>
+                </div>
+
+            </div>
         </div>
 
         <div class="grid md:grid-cols-2 gap-8">
-            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
+            <!-- Account Details Card -->
+            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full hover:shadow-xl transition-shadow">
                 <h2 class="text-xl serif italic text-gray-900 mb-8 border-b border-gray-100 pb-4">Account Details</h2>
                 <div class="grid grid-cols-1 gap-6 text-sm flex-grow">
                     <div>
@@ -70,10 +137,11 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full">
+            <!-- Recent Bookings Card -->
+            <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full hover:shadow-xl transition-shadow">
                 <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
                     <h2 class="text-xl serif italic text-gray-900">Recent Bookings</h2>
-                    <a href="/review_bookings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-black transition-colors" style="text-decoration: none;">View All &rarr;</a>
+                    <a href="/review_bookings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-indigo-600 transition-colors" style="text-decoration: none;">View All &rarr;</a>
                 </div>
 
                 <div class="flex-grow flex flex-col gap-4">
@@ -81,11 +149,11 @@
                         <div class="flex-grow flex flex-col items-center justify-center text-center py-8">
                             <span class="text-3xl mb-3 opacity-30">✈️</span>
                             <p class="text-sm text-gray-500 font-medium">No recent trips found.</p>
-                            <a href="/" class="mt-4 text-xs font-bold text-white bg-black px-6 py-2 rounded-full uppercase tracking-widest hover:bg-[--sky-blue] transition-colors" style="text-decoration: none;">Book a Flight</a>
+                            <a href="/" class="mt-4 text-xs font-bold text-white bg-gray-900 px-6 py-3 rounded-full uppercase tracking-widest hover:bg-indigo-600 shadow-lg hover:shadow-indigo-500/30 transition-all" style="text-decoration: none;">Book a Flight</a>
                         </div>
                     {% else %}
                         {% for booking in recentBookings %}
-                            <a href="/review_bookings" class="block bg-gray-50 rounded-2xl p-5 hover:bg-blue-50 transition-colors border border-gray-100 hover:border-blue-100" style="text-decoration: none;">
+                            <a href="/review_bookings" class="block bg-gray-50 rounded-2xl p-5 hover:bg-indigo-50/50 transition-all border border-gray-100 hover:border-indigo-100 hover:shadow-sm" style="text-decoration: none;">
                                 <div class="flex justify-between items-center mb-3">
                                     <span class="text-[10px] font-bold tracking-widest uppercase text-gray-400">Ref: {{ booking.bookingReference }}</span>
                                     <span class="text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-full 
@@ -96,10 +164,10 @@
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between text-[--charcoal]">
-    <span class="font-bold text-sm truncate max-w-[120px]">{{ booking.departureAirportNameCode }}</span>
-    <span class="text-gray-300 px-2">✈️</span>
-    <span class="font-bold text-sm truncate max-w-[120px] text-right">{{ booking.arrivalAirportNameCode }}</span>
-</div>
+                                    <span class="font-bold text-sm truncate max-w-[120px]">{{ booking.departureAirportNameCode }}</span>
+                                    <span class="text-gray-300 px-2">✈️</span>
+                                    <span class="font-bold text-sm truncate max-w-[120px] text-right">{{ booking.arrivalAirportNameCode }}</span>
+                                </div>
                                 <p class="text-xs text-gray-500 mt-2">{{ booking.departureTime | date("dd MMM yyyy") }}</p>
                             </a>
                         {% endfor %}
@@ -110,4 +178,71 @@
 
     </div>
 </section>
+
+<!-- Visual Logic (No Backend Needed) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const points = {{ user.loyaltyPoints | default(0) }};
+        
+        // Milestones
+        const SILVER = 5000;
+        const GOLD = 10000;
+        const PLATINUM = 25000;
+
+        let currentTier = "Bronze";
+        let nextTierName = "";
+        let pointsToNext = 0;
+
+        // Calculate Tiers
+        if (points < SILVER) {
+            currentTier = "Bronze";
+            nextTierName = "Silver";
+            pointsToNext = SILVER - points;
+        } else if (points < GOLD) {
+            currentTier = "Silver";
+            nextTierName = "Gold";
+            pointsToNext = GOLD - points;
+        } else if (points < PLATINUM) {
+            currentTier = "Gold";
+            nextTierName = "Platinum";
+            pointsToNext = PLATINUM - points;
+        } else {
+            currentTier = "Platinum";
+            nextTierName = "Max Tier";
+            pointsToNext = 0;
+        }
+
+        // Apply dynamic text
+        document.getElementById('currentTierDisplay').innerText = currentTier;
+        
+        if (points >= PLATINUM) {
+            document.getElementById('pointsToNextBadge').innerText = "✨ MAXIMUM STATUS ACHIEVED ✨";
+        } else {
+            document.getElementById('pointsToNextBadge').innerHTML = `<span class="text-indigo-400">✈️</span> ${pointsToNext.toLocaleString()} points to ${nextTierName}`;
+        }
+
+        // Calculate progress percentage mapping to visual layout
+        const percentage = Math.min((points / PLATINUM) * 100, 100);
+        
+        // Delay animation slightly for dramatic effect
+        setTimeout(() => {
+            // Animate width
+            document.getElementById('loyaltyProgressBar').style.width = percentage + '%';
+            
+            // Highlight nodes based on points achieved (changing from gray borders to solid colored borders)
+            if (points >= SILVER) {
+                document.getElementById('node-silver').classList.replace('border-slate-200', 'border-indigo-500');
+                document.getElementById('label-silver').classList.replace('text-slate-400', 'text-indigo-900');
+            }
+            if (points >= GOLD) {
+                document.getElementById('node-gold').classList.replace('border-slate-200', 'border-indigo-500');
+                document.getElementById('label-gold').classList.replace('text-slate-400', 'text-indigo-900');
+            }
+            if (points >= PLATINUM) {
+                document.getElementById('node-plat').classList.replace('border-slate-200', 'border-indigo-500');
+                document.getElementById('label-plat').classList.replace('text-slate-400', 'text-indigo-900');
+            }
+        }, 300);
+    });
+</script>
 {% endblock %}

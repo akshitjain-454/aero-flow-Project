@@ -120,11 +120,38 @@ fun Route.userRoutes() {
         
         // Grab just the first 2 bookings for the dashboard preview
         val recentBookings = allBookings.take(2)
+        val points = user.loyaltyPoints
+
+        val currentTier = when {
+            points >= 25000 -> "Platinum"
+            points >= 10000 -> "Gold"
+            points >= 5000  -> "Silver"
+            else            -> "Bronze"
+        }
+
+        val nextTierName = when {
+            points >= 25000 -> "Max Tier"
+            points >= 10000 -> "Platinum"
+            points >= 5000  -> "Gold"
+            else            -> "Silver"
+        }
+
+        val nextMilestone = when {
+            points >= 25000 -> points // Maxed out
+            points >= 10000 -> 25000
+            points >= 5000  -> 10000
+            else            -> 5000
+        }
+
+        val pointsToNext = if (nextMilestone > points) nextMilestone - points else 0
 
         call.respondPebble("overview.peb", mapOf(
             "user" to user,
             "recentBookings" to recentBookings,
-            "totalBookings" to allBookings.size
+            "totalBookings" to allBookings.size,
+            "currentTier" to currentTier,
+            "nextTierName" to nextTierName,
+            "pointsToNext" to pointsToNext
         ))
     }
     
