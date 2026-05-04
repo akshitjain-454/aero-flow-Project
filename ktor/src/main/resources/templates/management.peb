@@ -57,6 +57,16 @@
         color: #1d4ed8;
     }
 
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-approved {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
     .admin-airport-dropdown {
         position: absolute;
         left: 0;
@@ -222,6 +232,12 @@
                     <a id="nav-complaints" href="javascript:void(0)" onclick="loadComplaints()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
                         Complaints
+                    </a>
+                </li>
+                <li>
+                    <a id="nav-flight-info-requests" href="javascript:void(0)" onclick="loadFlightInfoRequests()"
+                    class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Booking Update Requests
                     </a>
                 </li>
             </ul>
@@ -876,6 +892,101 @@
         if (currentSection === "popularRoutes") return loadPopularRoutes(false);
         if (currentSection === "peakBookingTimes") return loadPeakBookingTimes(false);
         if (currentSection === "complaints") return loadComplaints(false);
+        if (currentSection === "flightInfoRequests") return loadFlightInfoRequests(false);
+    }
+
+    async function loadFlightInfoRequests(shouldScroll = true) {
+        setActiveNav("nav-flight-info-requests");
+
+        setSection(
+            "flightInfoRequests",
+            "Flight Information Update Requests",
+            "Review customer requests for passenger information updates and flight changes."
+        );
+
+        if (shouldScroll) scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/flight-info-requests");
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50 align-top">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">${escapeHtml(item.bookingReference)}</div>
+                        <div class="text-xs text-gray-400">${escapeHtml(item.customerName)}</div>
+                        <div class="text-xs text-gray-400 mt-1">${escapeHtml(item.email)}</div>
+                        <div class="text-xs text-gray-400 mt-1">User #${escapeHtml(item.userId)}</div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            Current: ${escapeHtml(item.currentFlightCode)}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">
+                            Requested: ${escapeHtml(item.requestedFlightCode)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-72">
+                        <div class="font-bold">${escapeHtml(item.requestType)}</div>
+                        <div class="text-xs text-gray-400 mt-2">
+                            Passenger ID: ${escapeHtml(item.passengerId)}
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2">
+                            ${escapeHtml(item.newFirstname)} ${escapeHtml(item.newLastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Passport: ${escapeHtml(item.newPassportCode)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-80">
+                        ${escapeHtml(item.message)}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        ${statusBadge(item.status)}
+                        <div class="text-xs text-gray-400 mt-2">
+                            Created: ${formatDateTime(item.createdAt)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Handled: ${formatDateTime(item.handledAt)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-80">
+                        <textarea id="flight-request-reply-${Number(item.id)}"
+                                rows="3"
+                                placeholder="Write admin reply..."
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">${item.adminReply ? escapeHtml(item.adminReply) : ""}</textarea>
+
+                        <select id="flight-request-status-${Number(item.id)}"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mt-3">
+                            <option value="PENDING" ${item.status === "PENDING" ? "selected" : ""}>Pending</option>
+                            <option value="APPROVED" ${item.status === "APPROVED" ? "selected" : ""}>Approve</option>
+                            <option value="REJECTED" ${item.status === "REJECTED" ? "selected" : ""}>Reject</option>
+                        </select>
+
+                        <button onclick="handleFlightInfoRequest(${Number(item.id)})"
+                                class="w-full mt-3 px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                            Save Decision
+                        </button>
+                    </td>
+                </tr>
+            `);
+
+            setSummary(`Flight information requests shown: ${results.length}`);
+
+            renderTable(
+                ["ID", "Booking", "Flight", "Requested Changes", "Message", "Status", "Handle"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
     }
 
     async function refreshAllDashboardData() {
@@ -1365,6 +1476,38 @@
             }
 
             await loadComplaints(false);
+            await refreshAllDashboardData();
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function handleFlightInfoRequest(requestId) {
+        const statusSelect = document.getElementById("flight-request-status-" + requestId);
+        const replyBox = document.getElementById("flight-request-reply-" + requestId);
+
+        if (!statusSelect || !replyBox) return;
+
+        const formData = new URLSearchParams();
+        formData.append("status", statusSelect.value);
+        formData.append("reply", replyBox.value.trim());
+
+        try {
+            const response = await fetch("/admin/flight-info-requests/" + requestId + "/handle", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: formData.toString()
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Failed to handle flight information request: " + response.status);
+            }
+
+            await loadFlightInfoRequests(false);
             await refreshAllDashboardData();
         } catch (error) {
             showError(error);

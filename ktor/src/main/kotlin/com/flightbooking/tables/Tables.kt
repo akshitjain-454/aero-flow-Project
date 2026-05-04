@@ -156,3 +156,23 @@ object FlightChangeLogTable : Table("FlightChangeLog") {
 
   override val primaryKey = PrimaryKey(id)
 }
+
+object FlightInfoRequestTable : Table("FlightInfoRequest") {
+  val id = integer("flight_info_request_id").autoIncrement()
+  val userId = integer("user_id").references(UserTable.id)
+  val bookingId = integer("booking_id").references(BookingTable.id)
+  val requestType = enumerationByName("request_type", 30, FlightInfoRequestType::class)
+  val status = enumerationByName("status", 30, FlightInfoRequestStatus::class)
+  val passengerId = integer("passenger_id").references(PassengerTable.id).nullable()
+  val newFirstname = varchar("new_firstname", 100).nullable()
+  val newLastname = varchar("new_lastname", 100).nullable()
+  val newPassportCode = varchar("new_passport_code", 100).nullable()
+  val requestedFlightCode = varchar("requested_flight_code", 100).nullable()
+  val message = varchar("message", 1000).nullable()
+  val adminReply = varchar("admin_reply", 1000).nullable()
+  val createdAt = datetime("created_at")
+  val handledAt = datetime("handled_at").nullable()
+  val handledByUserId = integer("handled_by_user_id").references(UserTable.id).nullable()
+
+  override val primaryKey = PrimaryKey(id)
+}

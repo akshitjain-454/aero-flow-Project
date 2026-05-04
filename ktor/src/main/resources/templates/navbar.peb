@@ -225,7 +225,17 @@
           <div class="bg-gray-900 text-white p-8 rounded-2xl flex flex-col justify-center items-center text-center">
             <p class="text-[8px] tracking-[0.3em] mb-2 opacity-60">CONCIERGE</p>
             <h3 class="font-serif text-lg mb-4">How can we assist?</h3>
-            <a href="/complaints" class="border border-white/30 px-6 py-2 rounded-full text-[9px] hover:bg-white hover:text-black transition-all">GET HELP</a>
+            <div class="flex flex-col gap-3">
+                <a href="/complaints"
+                  class="border border-white/30 px-6 py-2 rounded-full text-[9px] hover:bg-white hover:text-black transition-all">
+                    COMPLAINTS
+                </a>
+
+                <a href="/flight-info-requests"
+                  class="border border-white/30 px-6 py-2 rounded-full text-[9px] hover:bg-white hover:text-black transition-all">
+                    FLIGHT UPDATES
+                </a>
+            </div>
           </div>
         </div>
       </div>

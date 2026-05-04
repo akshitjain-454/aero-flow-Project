@@ -8,14 +8,7 @@ import com.flightbooking.models.FlightAvailabilitySummary
 import com.flightbooking.models.FlightChangeLogInfo
 import com.flightbooking.models.Flight
 import com.flightbooking.models.CancelledFlightSummary
-import com.flightbooking.tables.BookingTable
-import com.flightbooking.tables.FlightTable
-import com.flightbooking.tables.FlightSeatTable
-import com.flightbooking.tables.TicketAssignmentTable
-import com.flightbooking.tables.FlightChangeLogTable
-import com.flightbooking.tables.AirportTable
-import com.flightbooking.tables.UserTable
-import com.flightbooking.tables.AircraftTable
+import com.flightbooking.tables.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -29,6 +22,10 @@ import com.flightbooking.models.PeakBookingTimeReport
 import org.jetbrains.exposed.sql.TextColumnType
 import com.flightbooking.models.ReservationSummary
 import com.flightbooking.tables.PaymentTable
+import com.flightbooking.enums.FlightInfoRequestStatus
+import com.flightbooking.enums.FlightInfoRequestType
+import com.flightbooking.models.FlightInfoRequestSummary
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 
 class AdminRepository {
 
@@ -632,4 +629,203 @@ class AdminRepository {
             .singleOrNull()
     }
 
+    fun getAllFlightInfoRequests(): List<FlightInfoRequestSummary> = transaction {
+        FlightInfoRequestTable
+            .join(
+                BookingTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.bookingId,
+                BookingTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.userId,
+                UserTable.id
+            )
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .selectAll()
+            .orderBy(FlightInfoRequestTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                FlightInfoRequestSummary(
+                    id = row[FlightInfoRequestTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[FlightInfoRequestTable.userId],
+                    customerName = listOfNotNull(
+                        row[UserTable.firstname],
+                        row[UserTable.lastname]
+                    ).joinToString(" "),
+                    email = row[UserTable.email],
+                    currentFlightCode = row[FlightTable.flightCode],
+                    requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                    requestType = row[FlightInfoRequestTable.requestType],
+                    status = row[FlightInfoRequestTable.status],
+                    passengerId = row[FlightInfoRequestTable.passengerId],
+                    newFirstname = row[FlightInfoRequestTable.newFirstname],
+                    newLastname = row[FlightInfoRequestTable.newLastname],
+                    newPassportCode = row[FlightInfoRequestTable.newPassportCode],
+                    message = row[FlightInfoRequestTable.message],
+                    adminReply = row[FlightInfoRequestTable.adminReply],
+                    createdAt = row[FlightInfoRequestTable.createdAt],
+                    handledAt = row[FlightInfoRequestTable.handledAt]
+                )
+            }
+    }
+
+    fun handleFlightInfoRequest(requestId: Int,newStatus: FlightInfoRequestStatus,adminReply: String?,adminUserId: Int): Boolean = transaction {
+        val request = FlightInfoRequestTable
+            .select { FlightInfoRequestTable.id eq requestId }
+            .singleOrNull() ?: return@transaction false
+
+        if (newStatus == FlightInfoRequestStatus.APPROVED) {
+            val requestType = request[FlightInfoRequestTable.requestType]
+
+            if (requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH) {
+                val passengerId = request[FlightInfoRequestTable.passengerId]
+
+                if (passengerId != null) {
+                    PassengerTable.update({ PassengerTable.id eq passengerId }) {
+                        request[FlightInfoRequestTable.newFirstname]?.let { value ->
+                            if (value.isNotBlank()) {
+                                it[PassengerTable.firstname] = value
+                            }
+                        }
+                        request[FlightInfoRequestTable.newLastname]?.let { value ->
+                            if (value.isNotBlank()) {
+                                it[PassengerTable.lastname] = value
+                            }
+                        }
+                        request[FlightInfoRequestTable.newPassportCode]?.let { value ->
+                            if (value.isNotBlank()) {
+                                it[PassengerTable.passportCode] = value
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
+                val requestedFlightCode = request[FlightInfoRequestTable.requestedFlightCode]
+
+                if (!requestedFlightCode.isNullOrBlank()) {
+                    applyFlightChangeToBooking(
+                        bookingId = request[FlightInfoRequestTable.bookingId],
+                        requestedFlightCode = requestedFlightCode
+                    )
+                }
+            }
+        }
+        FlightInfoRequestTable.update({ FlightInfoRequestTable.id eq requestId }) {
+            it[FlightInfoRequestTable.status] = newStatus
+            it[FlightInfoRequestTable.adminReply] = adminReply
+            it[FlightInfoRequestTable.handledAt] = LocalDateTime.now()
+            it[FlightInfoRequestTable.handledByUserId] = adminUserId
+        }
+        true
+    }
+
+    private fun applyFlightChangeToBooking(bookingId: Int, requestedFlightCode: String) {
+        val bookingRow = BookingTable
+            .select { BookingTable.id eq bookingId }
+            .singleOrNull() ?: throw IllegalStateException("Booking not found")
+
+        val oldFlightId = bookingRow[BookingTable.flightId]
+
+        val newFlightRow = FlightTable
+            .select { FlightTable.flightCode eq requestedFlightCode.uppercase() }
+            .singleOrNull() ?: throw IllegalStateException("Requested flight not found")
+
+        val newFlightId = newFlightRow[FlightTable.id]
+
+        if (newFlightId == oldFlightId) {
+            return
+        }
+
+        val passengerIds = PassengerTable
+            .select { PassengerTable.bookingId eq bookingId }
+            .map { it[PassengerTable.id] }
+
+        if (passengerIds.isEmpty()) {
+            throw IllegalStateException("No passengers found for this booking")
+        }
+
+        val bookedNewFlightSeatIds = TicketAssignmentTable
+            .join(
+                FlightSeatTable,
+                JoinType.INNER,
+                TicketAssignmentTable.flightSeatId,
+                FlightSeatTable.id
+            )
+            .select { FlightSeatTable.flightId eq newFlightId }
+            .map { it[TicketAssignmentTable.flightSeatId] }
+
+        val availableSeatCondition =
+            if (bookedNewFlightSeatIds.isEmpty()) {
+                FlightSeatTable.flightId eq newFlightId
+            } else {
+                (FlightSeatTable.flightId eq newFlightId) and (FlightSeatTable.id notInList bookedNewFlightSeatIds)
+            }
+
+        val availableSeats = FlightSeatTable
+            .join(
+                SeatTable,
+                JoinType.INNER,
+                FlightSeatTable.seatId,
+                SeatTable.id
+            )
+            .select { availableSeatCondition }
+            .limit(passengerIds.size)
+            .map { row ->
+                row[FlightSeatTable.id] to row[SeatTable.seatNumber]
+            }
+
+        if (availableSeats.size < passengerIds.size) {
+            throw IllegalStateException("Not enough available seats on requested flight")
+        }
+
+        BookingTable.update({ BookingTable.id eq bookingId }) {
+            it[BookingTable.flightId] = newFlightId
+        }
+
+        passengerIds.zip(availableSeats).forEach { pair ->
+            val passengerId = pair.first
+            val newFlightSeatId = pair.second.first
+            val newSeatNumber = pair.second.second
+
+            val existingOutboundAssignmentId = TicketAssignmentTable
+                .join(
+                    FlightSeatTable,
+                    JoinType.INNER,
+                    TicketAssignmentTable.flightSeatId,
+                    FlightSeatTable.id
+                )
+                .select {
+                    (TicketAssignmentTable.passengerId eq passengerId) and (FlightSeatTable.flightId eq oldFlightId)
+                }
+                .map { it[TicketAssignmentTable.id] }
+                .singleOrNull()
+
+            if (existingOutboundAssignmentId != null) {
+                TicketAssignmentTable.update({
+                    TicketAssignmentTable.id eq existingOutboundAssignmentId
+                }) {
+                    it[TicketAssignmentTable.flightSeatId] = newFlightSeatId
+                    it[TicketAssignmentTable.seatNumber] = newSeatNumber
+                    it[TicketAssignmentTable.ticketPrice] = newFlightRow[FlightTable.minPrice]
+                }
+            } else {
+                TicketAssignmentTable.insert {
+                    it[TicketAssignmentTable.passengerId] = passengerId
+                    it[TicketAssignmentTable.flightSeatId] = newFlightSeatId
+                    it[TicketAssignmentTable.seatNumber] = newSeatNumber
+                    it[TicketAssignmentTable.ticketPrice] = newFlightRow[FlightTable.minPrice]
+                }
+            }
+        }
+    }
 }

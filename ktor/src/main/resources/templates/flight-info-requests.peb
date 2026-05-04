@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Flight Information Updates | Aetheria{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+    }
+
+    .page-wrap {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 8rem 1.5rem 4rem;
+    }
+
+    .hero {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+        font-weight: 300;
+        color: var(--charcoal);
+    }
+
+    .hero p {
+        color: #6b7280;
+        margin-top: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .hero-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .top-link {
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        transition: all 0.2s ease;
+    }
+
+    .top-link-light {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+    }
+
+    .top-link-light:hover {
+        background: #f9fafb;
+    }
+
+    .top-link-dark {
+        background: var(--charcoal);
+        color: white;
+    }
+
+    .top-link-dark:hover {
+        opacity: 0.9;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .grid-layout {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--charcoal);
+    }
+
+    .label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--sky-blue);
+    }
+
+    .input {
+        width: 100%;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 0.9rem;
+        outline: none;
+        background: white;
+    }
+
+    .input:focus {
+        border-color: var(--sky-blue);
+    }
+
+    .field {
+        margin-bottom: 1.2rem;
+    }
+
+    .hint {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.4rem;
+        line-height: 1.5;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 9999px;
+        background: var(--charcoal);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.9;
+    }
+
+    .request-item {
+        border: 1px solid #f1f5f9;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8fafc;
+    }
+
+    .request-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .request-ref {
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .request-sub {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    .request-text {
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin-top: 0.5rem;
+        line-height: 1.5;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .status-PENDING {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .status-APPROVED {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-REJECTED {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .admin-reply {
+        margin-top: 0.85rem;
+        padding: 0.9rem;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 0.9rem;
+        font-size: 0.85rem;
+        color: #374151;
+    }
+
+    .date-line {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.85rem;
+    }
+
+    .empty-state {
+        color: #6b7280;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+    <div class="hero">
+        <h1 class="serif">Flight Information Updates</h1>
+        <p>Request passenger information changes or ask the airline to move your booking to another flight.</p>
+
+        <div class="hero-actions">
+            <a href="/" class="top-link top-link-light">Back to Home</a>
+            <a href="/review_bookings" class="top-link top-link-dark">Back to My Trips</a>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+
+        <section class="card">
+            <h2 class="serif card-title">Submit a Request</h2>
+
+            <form action="/flight-info-requests/submit" method="POST">
+
+                <div class="field">
+                    <label class="label">Booking</label>
+                    <select name="bookingReference" class="input" required>
+                        <option value="">Select your booking</option>
+
+                        {% for item in bookingOptions %}
+                            <option value="{{ item.booking.bookingReference }}"
+                                {% if item.booking.bookingReference == selectedReference %}selected{% endif %}>
+                                {{ item.booking.bookingReference }} —
+                                {{ item.info.flightCode }}
+                                {{ item.info.departureAirportNameCode }} to {{ item.info.arrivalAirportNameCode }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label class="label">Request Type</label>
+                    <select name="requestType" class="input" required>
+                        <option value="PASSENGER_INFO">Passenger information only</option>
+                        <option value="FLIGHT_CHANGE">Flight change only</option>
+                        <option value="BOTH">Passenger information and flight change</option>
+                    </select>
+                    <p class="hint">
+                        For flight changes, enter an existing flight code. The admin will review and approve it.
+                    </p>
+                </div>
+
+                <div class="field">
+                    <label class="label">Passenger</label>
+                    <select name="passengerId" class="input">
+                        <option value="">No passenger information change</option>
+
+                        {% for item in bookingOptions %}
+                            {% for passenger in item.passengers %}
+                                <option value="{{ passenger.id }}">
+                                    {{ item.booking.bookingReference }} —
+                                    {{ passenger.firstname }} {{ passenger.lastname }}
+                                    {% if passenger.passportCode != null %}
+                                        — {{ passenger.passportCode }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                    <p class="hint">
+                        Choose a passenger only if you want to change passenger name or passport information.
+                    </p>
+                </div>
+
+                <div class="field">
+                    <label class="label">New First Name</label>
+                    <input name="newFirstname" class="input" placeholder="Leave blank if unchanged">
+                </div>
+
+                <div class="field">
+                    <label class="label">New Last Name</label>
+                    <input name="newLastname" class="input" placeholder="Leave blank if unchanged">
+                </div>
+
+                <div class="field">
+                    <label class="label">New Passport Code</label>
+                    <input name="newPassportCode" class="input" placeholder="Leave blank if unchanged">
+                </div>
+
+                <div class="field">
+                    <label class="label">Requested Flight Code</label>
+                    <input name="requestedFlightCode" class="input" placeholder="Example: AE102">
+                    <p class="hint">
+                        This should be another existing flight code in the system.
+                    </p>
+                </div>
+
+                <div class="field">
+                    <label class="label">Message to Admin</label>
+                    <textarea name="message" class="input" rows="5" placeholder="Explain what you want to change..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Submit Request
+                </button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 class="serif card-title">My Requests</h2>
+
+            {% if requests is empty %}
+                <p class="empty-state">
+                    You have not submitted any flight information update requests yet.
+                </p>
+            {% else %}
+                {% for request in requests %}
+                    <div class="request-item">
+                        <div class="request-head">
+                            <div>
+                                <div class="request-ref">{{ request.bookingReference }}</div>
+
+                                <div class="request-sub">
+                                    Current flight: {{ request.currentFlightCode }}
+                                    {% if request.requestedFlightCode != null and request.requestedFlightCode != "" %}
+                                        → Requested: {{ request.requestedFlightCode }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <span class="status status-{{ request.status }}">
+                                {{ request.status }}
+                            </span>
+                        </div>
+
+                        <div class="request-text">
+                            <strong>Type:</strong> {{ request.requestType }}
+                        </div>
+
+                        {% if request.newFirstname != null or request.newLastname != null or request.newPassportCode != null %}
+                            <div class="request-text">
+                                <strong>New passenger info:</strong>
+                                {{ request.newFirstname }} {{ request.newLastname }}
+                                {% if request.newPassportCode != null and request.newPassportCode != "" %}
+                                    — {{ request.newPassportCode }}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        {% if request.message != null and request.message != "" %}
+                            <div class="request-text">
+                                <strong>Message:</strong> {{ request.message }}
+                            </div>
+                        {% endif %}
+
+                        {% if request.adminReply != null and request.adminReply != "" %}
+                            <div class="admin-reply">
+                                <strong>Admin Reply:</strong>
+                                <div>{{ request.adminReply }}</div>
+                            </div>
+                        {% endif %}
+
+                        <div class="date-line">
+                            Created: {{ request.createdAt | date("dd MMM yyyy, HH:mm") }}
+                            {% if request.handledAt != null %}
+                                · Handled: {{ request.handledAt | date("dd MMM yyyy, HH:mm") }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </section>
+
+    </div>
+</div>
+{% endblock %}

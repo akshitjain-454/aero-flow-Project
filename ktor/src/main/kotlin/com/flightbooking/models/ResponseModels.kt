@@ -6,6 +6,8 @@ import com.flightbooking.enums.FlightStatus
 import com.flightbooking.enums.ComplaintStatus
 import java.time.LocalDateTime
 import java.math.BigDecimal
+import com.flightbooking.enums.FlightInfoRequestType
+import com.flightbooking.enums.FlightInfoRequestStatus
 
 data class SeatAvailability(
     val flightSeatId: Int,
@@ -181,4 +183,24 @@ data class ComplaintSummary(
     val repliedAt: LocalDateTime?,
     val repliedByUserId: Int?,
     val repliedByName: String?
+)
+
+data class FlightInfoRequestSummary(
+    val id: Int,
+    val bookingReference: String,
+    val userId: Int,
+    val customerName: String,
+    val email: String,
+    val currentFlightCode: String,
+    val requestedFlightCode: String?,
+    val requestType: FlightInfoRequestType,
+    val status: FlightInfoRequestStatus,
+    val passengerId: Int?,
+    val newFirstname: String?,
+    val newLastname: String?,
+    val newPassportCode: String?,
+    val message: String?,
+    val adminReply: String?,
+    val createdAt: LocalDateTime,
+    val handledAt: LocalDateTime?
 )
