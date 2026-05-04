@@ -254,7 +254,6 @@ fun Route.userRoutes() {
             call.sessions.set(UserSession(userId = user.id, role = user.role, initials = initials))
             if (user.role == UserRole.ADMIN) {
                 call.respondRedirect("/admin")
-                NotificationService.send(NotificationEvent("You have logged in", "info"))
             } else {
                 call.respondRedirect("/")
             }

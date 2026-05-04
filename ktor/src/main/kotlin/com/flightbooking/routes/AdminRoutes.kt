@@ -258,6 +258,7 @@ fun Route.adminRoutes() {
                     mapOf("error" to "Complaint not found")
                 )
             } else {
+                NotificationService.send(NotificationEvent("You have an update to your complaint(s)", "info"))
                 call.respond(
                     HttpStatusCode.OK,
                     mapOf(
