@@ -1,5 +1,7 @@
 package com.flightbooking.routes 
 
+import com.flightbooking.services.NotificationService
+import com.flightbooking.services.NotificationEvent
 import com.flightbooking.models.User
 import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.*
@@ -251,7 +253,8 @@ fun Route.userRoutes() {
             val initials = userRepository.getInitialsByUser(user)
             call.sessions.set(UserSession(userId = user.id, role = user.role, initials = initials))
             if (user.role == UserRole.ADMIN) {
-                call.respondRedirect("/admin") 
+                call.respondRedirect("/admin")
+                NotificationService.send(NotificationEvent("You have logged in", "info"))
             } else {
                 call.respondRedirect("/")
             }
