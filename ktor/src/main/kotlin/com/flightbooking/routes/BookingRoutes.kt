@@ -393,7 +393,7 @@ fun Route.bookingRoutes() {
 
     } // END of route("/booking")
     
-    //user information change
+    //flight information change route
     route("/flight-info-requests") {
         get {
             val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
@@ -422,31 +422,52 @@ fun Route.bookingRoutes() {
             val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
             val params = call.receiveParameters()
             val bookingReference = params["bookingReference"]?.trim()?: return@post call.respond(HttpStatusCode.BadRequest, "Booking reference is required")
+            
             val requestType = try {
                 FlightInfoRequestType.valueOf(params["requestType"] ?: "BOTH")
             } catch (error: IllegalArgumentException) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Invalid request type")
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Invalid request type"
+                )
             }
+            val passengerId = params["passengerId"]?.toIntOrNull()
+            val newFirstname = params["newFirstname"]?.trim()
+            val newLastname = params["newLastname"]?.trim()
+            val newPassportCode = params["newPassportCode"]?.trim()
             val requestedFlightCode = params["requestedFlightCode"]?.trim()?.uppercase()
+            val message = params["message"]?.trim()
 
-            if (
-                (requestType == FlightInfoRequestType.FLIGHT_CHANGE ||
-                requestType == FlightInfoRequestType.BOTH) &&
-                requestedFlightCode.isNullOrBlank()
-            ) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Requested flight code is required")
+            val needsPassengerInfo = requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH
+            val needsFlightChange = requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH
+            val hasPassengerInfoChange = !newFirstname.isNullOrBlank() || !newLastname.isNullOrBlank() || !newPassportCode.isNullOrBlank()
+
+            if (needsPassengerInfo && passengerId == null) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Please select a passenger for passenger information changes"
+                )
             }
 
+            if (needsPassengerInfo && !hasPassengerInfoChange) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Please enter at least one passenger information change"
+                )
+            }
+
+            if (needsFlightChange && requestedFlightCode.isNullOrBlank()) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Requested flight code is required"
+                )
+            }
             val success = bookingRepository.createFlightInfoRequest(
                 userId = session.userId,
                 bookingReference = bookingReference,
                 requestType = requestType,
-                passengerId = params["passengerId"]?.toIntOrNull(),
-                newFirstname = params["newFirstname"]?.trim(),
-                newLastname = params["newLastname"]?.trim(),
-                newPassportCode = params["newPassportCode"]?.trim(),
+                passengerId = passengerId,
+                newFirstname = newFirstname,
+                newLastname = newLastname,
+                newPassportCode = newPassportCode,
                 requestedFlightCode = requestedFlightCode,
-                message = params["message"]?.trim()
+                message = message
             )
 
             if (!success) {
