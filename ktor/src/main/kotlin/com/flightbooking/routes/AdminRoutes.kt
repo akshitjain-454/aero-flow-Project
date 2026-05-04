@@ -1,5 +1,6 @@
 package com.flightbooking.routes
-
+import com.flightbooking.services.NotificationService
+import com.flightbooking.services.NotificationEvent
 import io.ktor.server.pebble.PebbleContent
 import com.flightbooking.enums.ComplaintStatus
 import com.flightbooking.enums.UserRole
@@ -201,6 +202,8 @@ fun Route.adminRoutes() {
                 return@post call.respond(HttpStatusCode.InternalServerError,
                     mapOf("error" to "Failed to update complaint status")
                 )
+            }else{
+                NotificationService.send(NotificationEvent("Your complaint status has been updated", "info"))
             }
             call.respond(HttpStatusCode.OK,
                 mapOf(
