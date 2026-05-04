@@ -21,6 +21,7 @@ import java.time.LocalDate
 import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.FlightStatus
+import com.flightbooking.models.ReservationSummary
 
 fun Route.adminRoutes() {
 
@@ -143,6 +144,39 @@ fun Route.adminRoutes() {
                     "reportType" to "cancelled_flights",
                     "totalCancelledFlights" to cancelledFlights.size,
                     "results" to cancelledFlights
+                )
+            )
+        }
+
+        get("/customer-search") {
+            val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val query = call.request.queryParameters["q"]?.trim()
+
+            if (query.isNullOrBlank()) {
+                return@get call.respond(
+                    mapOf(
+                        "requestType" to "customer_search",
+                        "query" to "",
+                        "totalResults" to 0,
+                        "results" to emptyList<ReservationSummary>()
+                    )
+                )
+            }
+            val results = adminRepository.searchReservationsByCustomer(query)
+
+            call.respond(
+                mapOf(
+                    "requestType" to "customer_search",
+                    "query" to query,
+                    "totalResults" to results.size,
+                    "results" to results
                 )
             )
         }

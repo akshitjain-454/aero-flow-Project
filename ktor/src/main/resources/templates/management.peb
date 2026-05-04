@@ -208,6 +208,13 @@
                 </li>
 
                 <li>
+                    <a id="nav-customer-search" href="javascript:void(0)" onclick="loadCustomerSearch()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Customer Search
+                    </a>
+                </li>
+
+                <li>
                     <a id="nav-flights" href="javascript:void(0)" onclick="loadFlightAvailability()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
                         Flights and Available
@@ -893,6 +900,7 @@
         if (currentSection === "peakBookingTimes") return loadPeakBookingTimes(false);
         if (currentSection === "complaints") return loadComplaints(false);
         if (currentSection === "flightInfoRequests") return loadFlightInfoRequests(false);
+        if (currentSection === "customerSearch") return runCustomerSearch(false);
     }
 
     async function loadFlightInfoRequests(shouldScroll = true) {
@@ -1066,6 +1074,147 @@
             renderTable(
                 ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created", "Paid"],
                 rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    function loadCustomerSearch(shouldScroll = true) {
+        setActiveNav("nav-customer-search");
+
+        setSection(
+            "customerSearch",
+            "Customer Search",
+            "Search customer names, emails, or booking references to find their bookings."
+        );
+
+        if (shouldScroll) scrollToPanel();
+
+        document.getElementById("filterBox").classList.add("hidden");
+        document.getElementById("reportSwitcher").classList.add("hidden");
+        document.getElementById("changesSwitcher").classList.add("hidden");
+
+        setSummary("Enter a customer name, email, or booking reference to search.");
+
+        document.getElementById("tableHead").innerHTML = "";
+        document.getElementById("tableBody").innerHTML = `
+            <tr>
+                <td class="px-6 py-8" colspan="11">
+                    <div class="max-w-3xl">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-[--sky-blue] tracking-widest block mb-2">
+                                    Customer Search
+                                </label>
+                                <p class="text-sm text-gray-400">
+                                    Search by full name, first name, last name, email, or booking reference.
+                                </p>
+                            </div>
+
+                            <button onclick="showDashboardOverview()"
+                                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                                Back to Dashboard
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <input id="customerSearchInput"
+                                type="text"
+                                placeholder="Example: Normal User, user@demo.com, or 56OCF112"
+                                class="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
+
+                            <button onclick="runCustomerSearch()"
+                                    class="px-5 py-3 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        setTimeout(() => {
+            const input = document.getElementById("customerSearchInput");
+
+            if (input) {
+                input.focus();
+
+                input.addEventListener("keydown", event => {
+                    if (event.key === "Enter") {
+                        runCustomerSearch();
+                    }
+                });
+            }
+        }, 50);
+    }
+
+    async function runCustomerSearch(shouldScroll = false) {
+        setActiveNav("nav-customer-search");
+
+        const input = document.getElementById("customerSearchInput");
+        const query = input ? input.value.trim() : "";
+
+        if (!query) {
+            setSummary("Please enter a customer name, email, or booking reference.");
+            return;
+        }
+
+        try {
+            showLoading();
+
+            const data = await fetchData("/admin/customer-search?q=" + encodeURIComponent(query));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">User #${escapeHtml(item.userId)}</div>
+                    </td>
+
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                    <td class="px-6 py-4 font-bold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                    <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
+                </tr>
+            `);
+
+            document.getElementById("summaryBox").innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <span>Search results for "${escapeHtml(query)}": ${results.length}</span>
+
+                    <div class="flex gap-2">
+                        <button onclick="loadCustomerSearch(false)"
+                                class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50">
+                            Back to Search
+                        </button>
+
+                        <button onclick="showDashboardOverview()"
+                                class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-xs font-bold hover:opacity-90">
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            renderTable(
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created", "Paid"],
+                rows
+            );
+
+            document.getElementById("summaryBox").insertAdjacentHTML(
+                "afterend",
+                ""
             );
         } catch (error) {
             showError(error);

@@ -25,6 +25,7 @@ import com.flightbooking.tables.PaymentTable
 import com.flightbooking.enums.FlightInfoRequestStatus
 import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.models.FlightInfoRequestSummary
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 
 class AdminRepository {
@@ -727,6 +728,81 @@ class AdminRepository {
             it[FlightInfoRequestTable.handledByUserId] = adminUserId
         }
         true
+    }
+
+    fun searchReservationsByCustomer(query: String): List<ReservationSummary> = transaction {
+        val keyword = query.trim()
+
+        if (keyword.isBlank()) {
+            return@transaction emptyList()
+        }
+
+        val likeKeyword = "%${keyword}%"
+        val parts = keyword.split(Regex("\\s+")).filter { it.isNotBlank() }
+
+        var searchCondition: Op<Boolean> =
+            (UserTable.firstname like likeKeyword) or
+            (UserTable.lastname like likeKeyword) or
+            (UserTable.email like likeKeyword) or
+            (BookingTable.bookingReference like likeKeyword)
+
+        if (parts.size >= 2) {
+            val first = "%${parts[0]}%"
+            val second = "%${parts[1]}%"
+
+            searchCondition = searchCondition or
+                (
+                    ((UserTable.firstname like first) and (UserTable.lastname like second)) or
+                    ((UserTable.firstname like second) and (UserTable.lastname like first))
+                )
+        }
+
+        BookingTable
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                BookingTable.userId,
+                UserTable.id
+            )
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id
+            )
+            .join(
+                PaymentTable,
+                JoinType.LEFT,
+                BookingTable.id,
+                PaymentTable.bookingId
+            )
+            .select { searchCondition }
+            .orderBy(BookingTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                ReservationSummary(
+                    bookingId = row[BookingTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[BookingTable.userId],
+                    firstname = row[UserTable.firstname],
+                    lastname = row[UserTable.lastname],
+                    email = row[UserTable.email],
+                    flightId = row[BookingTable.flightId],
+                    flightCode = row[FlightTable.flightCode],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
+                    departureTime = row[FlightTable.departureTime],
+                    bookingStatus = row[BookingTable.status],
+                    createdAt = row[BookingTable.createdAt],
+                    amountPaid = row.getOrNull(PaymentTable.amount),
+                    aircraftType = row[AircraftTable.type]
+                )
+            }
     }
 
     private fun applyFlightChangeToBooking(bookingId: Int, requestedFlightCode: String) {
