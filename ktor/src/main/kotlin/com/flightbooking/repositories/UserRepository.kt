@@ -78,11 +78,11 @@ class UserRepository {
         }
 
         val emailsession = Session.getInstance(props, object : Authenticator() {
-            override fun getPasswordAuthentication() = PasswordAuthentication("aeroflow.noreplys@gmail.com", "hgenhbdcynhmbmuz")
+            override fun getPasswordAuthentication() = PasswordAuthentication("aetheria.noreply@gmail.com", "qmffvxkwyleernfl")
         })
 
         MimeMessage(emailsession).apply {
-            setFrom(InternetAddress("aeroflow.noreplys@gmail.com"))
+            setFrom(InternetAddress("aetheria.noreply@gmail.com"))
             setRecipients(Message.RecipientType.TO, InternetAddress.parse(email))
             setSubject(subject)
             setText(body)
