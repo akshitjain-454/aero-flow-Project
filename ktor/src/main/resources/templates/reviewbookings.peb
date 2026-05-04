@@ -349,6 +349,11 @@
                                     <a href="/booking/{{ booking.bookingReference }}/tickets" class="bg-[--sky-blue] text-white px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-black transition-colors flex items-center shadow-sm" style="text-decoration: none;">
                                         View Tickets
                                     </a>
+                                    <a href="/flight-info-requests?bookingReference={{ booking.bookingReference }}"
+                                    class="bg-white border border-[--sky-blue] text-[--sky-blue] px-5 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.1em] hover:bg-[--sky-blue] hover:text-white transition-colors flex items-center shadow-sm"
+                                    style="text-decoration: none;">
+                                        Request Change
+                                    </a>
                                     <button class="cancel-btn" id="btn-{{ booking.bookingReference }}" onclick="cancelBooking('{{ booking.bookingReference }}')">
                                         Cancel
                                     </button>

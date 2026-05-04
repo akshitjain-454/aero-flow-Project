@@ -57,6 +57,16 @@
         color: #1d4ed8;
     }
 
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-approved {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
     .admin-airport-dropdown {
         position: absolute;
         left: 0;
@@ -198,6 +208,13 @@
                 </li>
 
                 <li>
+                    <a id="nav-customer-search" href="javascript:void(0)" onclick="loadCustomerSearch()"
+                       class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Customer Search
+                    </a>
+                </li>
+
+                <li>
                     <a id="nav-flights" href="javascript:void(0)" onclick="loadFlightAvailability()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
                         Flights and Available
@@ -222,6 +239,12 @@
                     <a id="nav-complaints" href="javascript:void(0)" onclick="loadComplaints()"
                        class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
                         Complaints
+                    </a>
+                </li>
+                <li>
+                    <a id="nav-flight-info-requests" href="javascript:void(0)" onclick="loadFlightInfoRequests()"
+                    class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Booking Update Requests
                     </a>
                 </li>
             </ul>
@@ -876,6 +899,102 @@
         if (currentSection === "popularRoutes") return loadPopularRoutes(false);
         if (currentSection === "peakBookingTimes") return loadPeakBookingTimes(false);
         if (currentSection === "complaints") return loadComplaints(false);
+        if (currentSection === "flightInfoRequests") return loadFlightInfoRequests(false);
+        if (currentSection === "customerSearch") return runCustomerSearch(false);
+    }
+
+    async function loadFlightInfoRequests(shouldScroll = true) {
+        setActiveNav("nav-flight-info-requests");
+
+        setSection(
+            "flightInfoRequests",
+            "Flight Information Update Requests",
+            "Review customer requests for passenger information updates and flight changes."
+        );
+
+        if (shouldScroll) scrollToPanel();
+
+        try {
+            const data = await fetchData("/admin/flight-info-requests");
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50 align-top">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">${escapeHtml(item.bookingReference)}</div>
+                        <div class="text-xs text-gray-400">${escapeHtml(item.customerName)}</div>
+                        <div class="text-xs text-gray-400 mt-1">${escapeHtml(item.email)}</div>
+                        <div class="text-xs text-gray-400 mt-1">User #${escapeHtml(item.userId)}</div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            Current: ${escapeHtml(item.currentFlightCode)}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">
+                            Requested: ${escapeHtml(item.requestedFlightCode)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-72">
+                        <div class="font-bold">${escapeHtml(item.requestType)}</div>
+                        <div class="text-xs text-gray-400 mt-2">
+                            Passenger ID: ${escapeHtml(item.passengerId)}
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2">
+                            ${escapeHtml(item.newFirstname)} ${escapeHtml(item.newLastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Passport: ${escapeHtml(item.newPassportCode)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-80">
+                        ${escapeHtml(item.message)}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        ${statusBadge(item.status)}
+                        <div class="text-xs text-gray-400 mt-2">
+                            Created: ${formatDateTime(item.createdAt)}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Handled: ${formatDateTime(item.handledAt)}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 min-w-80">
+                        <textarea id="flight-request-reply-${Number(item.id)}"
+                                rows="3"
+                                placeholder="Write admin reply..."
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">${item.adminReply ? escapeHtml(item.adminReply) : ""}</textarea>
+
+                        <select id="flight-request-status-${Number(item.id)}"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mt-3">
+                            <option value="PENDING" ${item.status === "PENDING" ? "selected" : ""}>Pending</option>
+                            <option value="APPROVED" ${item.status === "APPROVED" ? "selected" : ""}>Approve</option>
+                            <option value="REJECTED" ${item.status === "REJECTED" ? "selected" : ""}>Reject</option>
+                        </select>
+
+                        <button onclick="handleFlightInfoRequest(${Number(item.id)})"
+                                class="w-full mt-3 px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                            Save Decision
+                        </button>
+                    </td>
+                </tr>
+            `);
+
+            setSummary(`Flight information requests shown: ${results.length}`);
+
+            renderTable(
+                ["ID", "Booking", "Flight", "Requested Changes", "Message", "Status", "Handle"],
+                rows
+            );
+        } catch (error) {
+            showError(error);
+        }
     }
 
     async function refreshAllDashboardData() {
@@ -955,6 +1074,147 @@
             renderTable(
                 ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created", "Paid"],
                 rows
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    function loadCustomerSearch(shouldScroll = true) {
+        setActiveNav("nav-customer-search");
+
+        setSection(
+            "customerSearch",
+            "Customer Search",
+            "Search customer names, emails, or booking references to find their bookings."
+        );
+
+        if (shouldScroll) scrollToPanel();
+
+        document.getElementById("filterBox").classList.add("hidden");
+        document.getElementById("reportSwitcher").classList.add("hidden");
+        document.getElementById("changesSwitcher").classList.add("hidden");
+
+        setSummary("Enter a customer name, email, or booking reference to search.");
+
+        document.getElementById("tableHead").innerHTML = "";
+        document.getElementById("tableBody").innerHTML = `
+            <tr>
+                <td class="px-6 py-8" colspan="11">
+                    <div class="max-w-3xl">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-[--sky-blue] tracking-widest block mb-2">
+                                    Customer Search
+                                </label>
+                                <p class="text-sm text-gray-400">
+                                    Search by full name, first name, last name, email, or booking reference.
+                                </p>
+                            </div>
+
+                            <button onclick="showDashboardOverview()"
+                                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50">
+                                Back to Dashboard
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <input id="customerSearchInput"
+                                type="text"
+                                placeholder="Example: Normal User, user@demo.com, or 56OCF112"
+                                class="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">
+
+                            <button onclick="runCustomerSearch()"
+                                    class="px-5 py-3 bg-[--charcoal] text-white rounded-lg text-sm font-bold hover:opacity-90">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        setTimeout(() => {
+            const input = document.getElementById("customerSearchInput");
+
+            if (input) {
+                input.focus();
+
+                input.addEventListener("keydown", event => {
+                    if (event.key === "Enter") {
+                        runCustomerSearch();
+                    }
+                });
+            }
+        }, 50);
+    }
+
+    async function runCustomerSearch(shouldScroll = false) {
+        setActiveNav("nav-customer-search");
+
+        const input = document.getElementById("customerSearchInput");
+        const query = input ? input.value.trim() : "";
+
+        if (!query) {
+            setSummary("Please enter a customer name, email, or booking reference.");
+            return;
+        }
+
+        try {
+            showLoading();
+
+            const data = await fetchData("/admin/customer-search?q=" + encodeURIComponent(query));
+            const results = getResults(data);
+
+            const rows = results.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
+
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">
+                            ${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}
+                        </div>
+                        <div class="text-xs text-gray-400">User #${escapeHtml(item.userId)}</div>
+                    </td>
+
+                    <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                    <td class="px-6 py-4 font-bold">${escapeHtml(item.flightCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
+                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                    <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
+                </tr>
+            `);
+
+            document.getElementById("summaryBox").innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <span>Search results for "${escapeHtml(query)}": ${results.length}</span>
+
+                    <div class="flex gap-2">
+                        <button onclick="loadCustomerSearch(false)"
+                                class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50">
+                            Back to Search
+                        </button>
+
+                        <button onclick="showDashboardOverview()"
+                                class="px-4 py-2 bg-[--charcoal] text-white rounded-lg text-xs font-bold hover:opacity-90">
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            renderTable(
+                ["Reference", "Customer", "Email", "Flight", "Aircraft", "From", "To", "Departure", "Status", "Created", "Paid"],
+                rows
+            );
+
+            document.getElementById("summaryBox").insertAdjacentHTML(
+                "afterend",
+                ""
             );
         } catch (error) {
             showError(error);
@@ -1120,6 +1380,8 @@
                     <td class="px-6 py-4">${escapeHtml(item.newArrivalAirportNameCode)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldDepartureTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newDepartureTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.oldArrivalTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.newArrivalTime)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.changedAt)}</td>
                     <td class="px-6 py-4">${statusBadge(item.flightStatus)}</td>
                     <td class="px-6 py-4">${escapeHtml(item.changedByName || item.changedByUserId || "-")}</td>
@@ -1128,7 +1390,7 @@
 
             setSummary(`Flight changes shown: ${results.length}`);
             renderTable(
-                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Changed At", "Status", "Changed By"],
+                ["Flight", "Aircraft", "Old From", "New From", "Old To", "New To", "Old Departure", "New Departure", "Old Arrival", "New Arrival","Changed At", "Status", "Changed By"],
                 rows
             );
         } catch (error) {
@@ -1363,6 +1625,38 @@
             }
 
             await loadComplaints(false);
+            await refreshAllDashboardData();
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function handleFlightInfoRequest(requestId) {
+        const statusSelect = document.getElementById("flight-request-status-" + requestId);
+        const replyBox = document.getElementById("flight-request-reply-" + requestId);
+
+        if (!statusSelect || !replyBox) return;
+
+        const formData = new URLSearchParams();
+        formData.append("status", statusSelect.value);
+        formData.append("reply", replyBox.value.trim());
+
+        try {
+            const response = await fetch("/admin/flight-info-requests/" + requestId + "/handle", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json"
+                },
+                body: formData.toString()
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Failed to handle flight information request: " + response.status);
+            }
+
+            await loadFlightInfoRequests(false);
             await refreshAllDashboardData();
         } catch (error) {
             showError(error);

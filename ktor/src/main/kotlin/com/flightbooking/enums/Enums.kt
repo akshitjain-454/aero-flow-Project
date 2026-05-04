@@ -43,3 +43,15 @@ enum class ComplaintStatus {
     RESOLVED,
     CLOSED
 }
+
+enum class FlightInfoRequestStatus {
+    PENDING,
+    APPROVED,
+    REJECTED
+}
+
+enum class FlightInfoRequestType {
+    PASSENGER_INFO,
+    FLIGHT_CHANGE,
+    BOTH
+}
