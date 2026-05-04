@@ -29,7 +29,8 @@ object DatabaseFactory {
                 TicketAssignmentTable,
                 PaymentTable,
                 ComplaintTable,
-                FlightChangeLogTable
+                FlightChangeLogTable,
+                FlightInfoRequestTable
             )
             //Only for testing
             if (UserTable.selectAll().none()) {

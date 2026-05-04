@@ -9,6 +9,7 @@ import com.flightbooking.models.TicketInfo
 import com.flightbooking.models.BookingInfo
 import com.flightbooking.models.TicketAssignment
 import com.flightbooking.models.Passenger
+import com.flightbooking.models.FlightInfoRequestSummary
 import com.flightbooking.tables.BookingTable
 import com.flightbooking.tables.SeatTable
 import com.flightbooking.tables.PaymentTable
@@ -18,10 +19,13 @@ import com.flightbooking.tables.PassengerTable
 import com.flightbooking.tables.AirportTable
 import com.flightbooking.tables.UserTable
 import com.flightbooking.tables.FlightTable
+import com.flightbooking.tables.FlightInfoRequestTable
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.PaymentMethod
 import com.flightbooking.enums.PaymentStatus
 import com.flightbooking.enums.SeatClass
+import com.flightbooking.enums.FlightInfoRequestType
+import com.flightbooking.enums.FlightInfoRequestStatus
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -204,6 +208,84 @@ class BookingRepository {
             it[refundDate] = LocalDateTime.now()
         }
         booking.copy(status = BookingStatus.CANCELLED)
+    }
+
+    //change flight info(user-side request)
+    fun createFlightInfoRequest(userId: Int,bookingReference: String,requestType: FlightInfoRequestType,passengerId: Int?,newFirstname: String?,newLastname: String?,newPassportCode: String?,requestedFlightCode: String?,message: String?): Boolean = transaction {
+        val booking = BookingTable
+            .select { BookingTable.bookingReference eq bookingReference }
+            .singleOrNull() ?: return@transaction false
+        val bookingId = booking[BookingTable.id]
+
+        if (booking[BookingTable.userId] != userId) {
+            return@transaction false
+        }
+
+        FlightInfoRequestTable.insert {
+            it[FlightInfoRequestTable.userId] = userId
+            it[FlightInfoRequestTable.bookingId] = booking[BookingTable.id]
+            it[FlightInfoRequestTable.requestType] = requestType
+            it[FlightInfoRequestTable.status] = FlightInfoRequestStatus.PENDING
+            it[FlightInfoRequestTable.passengerId] = passengerId
+            it[FlightInfoRequestTable.newFirstname] = newFirstname
+            it[FlightInfoRequestTable.newLastname] = newLastname
+            it[FlightInfoRequestTable.newPassportCode] = newPassportCode
+            it[FlightInfoRequestTable.requestedFlightCode] = requestedFlightCode
+            it[FlightInfoRequestTable.message] = message
+            it[FlightInfoRequestTable.adminReply] = null
+            it[FlightInfoRequestTable.createdAt] = LocalDateTime.now()
+            it[FlightInfoRequestTable.handledAt] = null
+            it[FlightInfoRequestTable.handledByUserId] = null
+        }
+        true
+    }
+
+    fun getFlightInfoRequestsByUserId(userId: Int): List<FlightInfoRequestSummary> = transaction {
+        FlightInfoRequestTable
+            .join(
+                BookingTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.bookingId,
+                BookingTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.userId,
+                UserTable.id
+            )
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .select { FlightInfoRequestTable.userId eq userId }
+            .orderBy(FlightInfoRequestTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                FlightInfoRequestSummary(
+                    id = row[FlightInfoRequestTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[FlightInfoRequestTable.userId],
+                    customerName = listOfNotNull(
+                        row[UserTable.firstname],
+                        row[UserTable.lastname]
+                    ).joinToString(" "),
+                    email = row[UserTable.email],
+                    currentFlightCode = row[FlightTable.flightCode],
+                    requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                    requestType = row[FlightInfoRequestTable.requestType],
+                    status = row[FlightInfoRequestTable.status],
+                    passengerId = row[FlightInfoRequestTable.passengerId],
+                    newFirstname = row[FlightInfoRequestTable.newFirstname],
+                    newLastname = row[FlightInfoRequestTable.newLastname],
+                    newPassportCode = row[FlightInfoRequestTable.newPassportCode],
+                    message = row[FlightInfoRequestTable.message],
+                    adminReply = row[FlightInfoRequestTable.adminReply],
+                    createdAt = row[FlightInfoRequestTable.createdAt],
+                    handledAt = row[FlightInfoRequestTable.handledAt]
+                )
+            }
     }
 
     fun confirmBooking(booking: Booking): Int = transaction {

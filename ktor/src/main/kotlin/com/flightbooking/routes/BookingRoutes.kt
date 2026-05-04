@@ -7,6 +7,7 @@ import com.flightbooking.sessions.UserSession
 import com.flightbooking.enums.PaymentMethod
 import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.BookingStatus
+import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.respondPebble
 import io.ktor.server.sessions.*
 import io.ktor.http.*
@@ -391,6 +392,93 @@ fun Route.bookingRoutes() {
         }
 
     } // END of route("/booking")
+    
+    //flight information change route
+    route("/flight-info-requests") {
+        get {
+            val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
+            val bookings = bookingRepository.getBookingsByUserId(session.userId)
+            val bookingOptions = bookings.map { booking ->
+                mapOf(
+                    "booking" to booking,
+                    "info" to bookingRepository.getBookingInfoByBooking(booking),
+                    "passengers" to bookingRepository.getPassengersByBookingId(booking.id)
+                )
+            }
+            val requests = bookingRepository.getFlightInfoRequestsByUserId(session.userId)
+            val selectedReference = call.request.queryParameters["bookingReference"] ?: ""
+
+            call.respondPebble(
+                "flight-info-requests.peb",
+                mapOf(
+                    "bookingOptions" to bookingOptions,
+                    "requests" to requests,
+                    "selectedReference" to selectedReference
+                )
+            )
+        }
+
+        post("/submit") {
+            val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
+            val params = call.receiveParameters()
+            val bookingReference = params["bookingReference"]?.trim()?: return@post call.respond(HttpStatusCode.BadRequest, "Booking reference is required")
+            
+            val requestType = try {
+                FlightInfoRequestType.valueOf(params["requestType"] ?: "BOTH")
+            } catch (error: IllegalArgumentException) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Invalid request type"
+                )
+            }
+            val passengerId = params["passengerId"]?.toIntOrNull()
+            val newFirstname = params["newFirstname"]?.trim()
+            val newLastname = params["newLastname"]?.trim()
+            val newPassportCode = params["newPassportCode"]?.trim()
+            val requestedFlightCode = params["requestedFlightCode"]?.trim()?.uppercase()
+            val message = params["message"]?.trim()
+
+            val needsPassengerInfo = requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH
+            val needsFlightChange = requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH
+            val hasPassengerInfoChange = !newFirstname.isNullOrBlank() || !newLastname.isNullOrBlank() || !newPassportCode.isNullOrBlank()
+
+            if (needsPassengerInfo && passengerId == null) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Please select a passenger for passenger information changes"
+                )
+            }
+
+            if (needsPassengerInfo && !hasPassengerInfoChange) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Please enter at least one passenger information change"
+                )
+            }
+
+            if (needsFlightChange && requestedFlightCode.isNullOrBlank()) {
+                return@post call.respond(HttpStatusCode.BadRequest,
+                    "Requested flight code is required"
+                )
+            }
+            val success = bookingRepository.createFlightInfoRequest(
+                userId = session.userId,
+                bookingReference = bookingReference,
+                requestType = requestType,
+                passengerId = passengerId,
+                newFirstname = newFirstname,
+                newLastname = newLastname,
+                newPassportCode = newPassportCode,
+                requestedFlightCode = requestedFlightCode,
+                message = message
+            )
+
+            if (!success) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Booking not found, passenger not found, or booking does not belong to you"
+                )
+            }
+            call.respondRedirect("/flight-info-requests")
+        }
+    }
 
     get("/review_bookings") {
         val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")

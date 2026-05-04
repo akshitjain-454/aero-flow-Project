@@ -4,6 +4,8 @@ import com.flightbooking.services.NotificationEvent
 import io.ktor.server.pebble.PebbleContent
 import com.flightbooking.enums.ComplaintStatus
 import com.flightbooking.enums.UserRole
+import com.flightbooking.enums.FlightInfoRequestStatus
+import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.repositories.ComplaintRepository
 import com.flightbooking.repositories.AdminRepository
 import com.flightbooking.sessions.UserSession
@@ -19,6 +21,7 @@ import java.time.LocalDate
 import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.FlightStatus
+import com.flightbooking.models.ReservationSummary
 
 fun Route.adminRoutes() {
 
@@ -56,6 +59,24 @@ fun Route.adminRoutes() {
             }
             val complaints = complaintRepository.getAllComplaints()
             call.respond(complaints)
+        }
+
+        get("/flight-info-requests") {
+            val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            val requests = adminRepository.getAllFlightInfoRequests()
+            call.respond(
+                mapOf(
+                    "requestType" to "flight_info_requests",
+                    "totalRequests" to requests.size,
+                    "results" to requests
+                )
+            )
         }
 
         get("/flights/availability") {
@@ -123,6 +144,39 @@ fun Route.adminRoutes() {
                     "reportType" to "cancelled_flights",
                     "totalCancelledFlights" to cancelledFlights.size,
                     "results" to cancelledFlights
+                )
+            )
+        }
+
+        get("/customer-search") {
+            val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+
+            val query = call.request.queryParameters["q"]?.trim()
+
+            if (query.isNullOrBlank()) {
+                return@get call.respond(
+                    mapOf(
+                        "requestType" to "customer_search",
+                        "query" to "",
+                        "totalResults" to 0,
+                        "results" to emptyList<ReservationSummary>()
+                    )
+                )
+            }
+            val results = adminRepository.searchReservationsByCustomer(query)
+
+            call.respond(
+                mapOf(
+                    "requestType" to "customer_search",
+                    "query" to query,
+                    "totalResults" to results.size,
+                    "results" to results
                 )
             )
         }
@@ -264,6 +318,48 @@ fun Route.adminRoutes() {
                         "message" to "Complaint handled successfully",
                         "complaint" to updatedComplaint
                     )
+                )
+            }
+        }
+
+        post("/flight-info-requests/{id}/handle") {
+            val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@post call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            val requestId = call.parameters["id"]?.toIntOrNull()?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid request id")
+            val params = call.receiveParameters()
+            val status = try {
+                FlightInfoRequestStatus.valueOf(
+                    params["status"] ?: return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        "Missing status"
+                    )
+                )
+            } catch (error: IllegalArgumentException) {
+                return@post call.respond(HttpStatusCode.BadRequest, "Invalid request status")
+            }
+            val reply = params["reply"]?.trim()
+            try {
+                val success = adminRepository.handleFlightInfoRequest(
+                    requestId = requestId,
+                    newStatus = status,
+                    adminReply = reply,
+                    adminUserId = session.userId
+                )
+                if (!success) {
+                    return@post call.respond(HttpStatusCode.NotFound, "Request not found")
+                }
+                call.respond(
+                    mapOf("message" to "Flight information request handled successfully")
+                )
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to (e.message ?: "Could not handle request"))
                 )
             }
         }
