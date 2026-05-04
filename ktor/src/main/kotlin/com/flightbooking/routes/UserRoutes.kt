@@ -1,5 +1,6 @@
 package com.flightbooking.routes 
-
+import com.flightbooking.services.NotificationService
+import com.flightbooking.services.NotificationEvent
 import com.flightbooking.models.User
 import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.*
@@ -165,6 +166,7 @@ fun Route.userRoutes() {
 
     get("/login") {
         call.respondPebble("login.peb")
+        NotificationService.send(NotificationEvent("You have been logged in", "info"))
     }
     
     post("/logout") {

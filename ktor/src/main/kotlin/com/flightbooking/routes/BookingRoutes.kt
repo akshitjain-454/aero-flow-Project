@@ -1,5 +1,6 @@
 package com.flightbooking.routes 
-
+import com.flightbooking.services.NotificationService
+import com.flightbooking.services.NotificationEvent
 import com.flightbooking.repositories.BookingRepository
 import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.repositories.UserRepository
@@ -35,6 +36,7 @@ fun Route.bookingRoutes() {
             val flight = flightRepository.getFlightByFlightCode(flightCode) ?: return@post call.respond(HttpStatusCode.NotFound, "Flight not found")
             val flightId = flight.id
             val returnFlightId = if(returnFlightCode != null) {
+
                 val returnFlight = flightRepository.getFlightByFlightCode(returnFlightCode) ?: return@post call.respond(HttpStatusCode.NotFound, "Return Flight not found")
                 returnFlight.id
             }
