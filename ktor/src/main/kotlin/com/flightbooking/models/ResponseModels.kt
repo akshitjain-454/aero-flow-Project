@@ -92,8 +92,8 @@ data class CancelledBookingSummary(
     val bookingId: Int,
     val bookingReference: String,
     val userId: Int,
-    val firstname: String,
-    val lastname: String,
+    val firstname: String?,
+    val lastname: String?,
     val email: String,
     val flightId: Int,
     val flightCode: String,
@@ -153,8 +153,8 @@ data class ReservationSummary(
     val bookingId: Int,
     val bookingReference: String,
     val userId: Int,
-    val firstname: String,
-    val lastname: String,
+    val firstname: String?,
+    val lastname: String?,
     val email: String,
     val flightId: Int,
     val flightCode: String,
@@ -170,10 +170,15 @@ data class ReservationSummary(
 data class ComplaintSummary(
     val id: Int,
     val userId: Int,
-    val firstname: String,
-    val lastname: String,
+    val firstname: String?,
+    val lastname: String?,
     val email: String,
     val message: String,
     val status: ComplaintStatus,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    //Admin handling part
+    val adminReply: String?,
+    val repliedAt: LocalDateTime?,
+    val repliedByUserId: Int?,
+    val repliedByName: String?
 )

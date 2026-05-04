@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Flight Route | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--charcoal) !important;
+        color: var(--pearl);
+        overflow: hidden; /* Prevent scrolling, full screen map */
+    }
+    
+    #map {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+    }
+
+    /* 🚨 CRITICAL FIX: Stops Tailwind from squishing the map tiles */
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+
+    /* Styling the floating info card over the map */
+    .map-overlay {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: rgba(26, 26, 26, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        animation: fadeUp 0.6s ease both;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+        background: var(--sky-blue);
+        border-color: var(--sky-blue);
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translate(-50%, 30px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: var(--charcoal);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--sky-blue);
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-style: italic;
+        transition: opacity 0.5s;
+    }
+{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <div id="loading" class="loading-overlay">Calculating coordinates...</div>
+
+    <a href="/review_bookings" class="back-btn">&larr; Back to Dashboard</a>
+
+    <div id="map"></div>
+
+    <div class="map-overlay">
+        <div class="flex justify-between items-center mb-6">
+            <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Flight Route</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-[--sky-blue]">Ref: {{ booking.bookingReference }}</span>
+        </div>
+        
+        <div class="flex items-center justify-between text-white">
+            <div class="text-left w-2/5 overflow-hidden">
+                <h3 class="text-xl font-bold mb-1 truncate" title="{{ booking.departureAirportNameCode }}">{{ booking.departureAirportNameCode }}</h3>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Departure</p>
+            </div>
+            
+            <div class="w-1/5 flex flex-col items-center px-2">
+                <span class="text-2xl text-[--sky-blue]">✈️</span>
+                <div class="w-full h-px bg-gray-600 mt-2"></div>
+            </div>
+            
+            <div class="text-right w-2/5 overflow-hidden">
+                <h3 class="text-xl font-bold mb-1 truncate" title="{{ booking.arrivalAirportNameCode }}">{{ booking.arrivalAirportNameCode }}</h3>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Arrival</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script>
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: false // Hide default zoom for a cleaner look
+        }).setView([20, 0], 2);
+
+        // Add a sleek Dark Matter tile layer (perfect for airline dashboards)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Custom Aetheria Marker Icon
+        const aetheriaIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div style="background-color: #0066FF; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,102,255,0.8);"></div>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+
+        // Geocoding Function (Uses Free OpenStreetMap Nominatim API)
+        async function geocodeAirport(airportString) {
+            // Strip the 3-letter IATA code at the end to improve search results
+            const searchQuery = airportString.replace(/\b[A-Z]{3}\b/g, '').trim() + ' Airport';
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                }
+            } catch (e) {
+                console.error("Geocoding failed for", airportString);
+            }
+            return null; // Fallback
+        }
+
+        async function initFlightMap() {
+            const departureString = "{{ booking.departureAirportNameCode }}";
+            const arrivalString = "{{ booking.arrivalAirportNameCode }}";
+
+            const depCoords = await geocodeAirport(departureString);
+            const arrCoords = await geocodeAirport(arrivalString);
+
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading').remove(), 500);
+
+            if (depCoords && arrCoords) {
+                // Add Markers
+                L.marker(depCoords, {icon: aetheriaIcon}).addTo(map)
+                    .bindPopup("<b>Departure</b><br>" + departureString);
+                
+                L.marker(arrCoords, {icon: aetheriaIcon}).addTo(map)
+                    .bindPopup("<b>Arrival</b><br>" + arrivalString);
+
+                // Draw Flight Line
+                const flightPath = L.polyline([depCoords, arrCoords], {
+                    color: '#0066FF',
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '10, 10' // Dashed line effect
+                }).addTo(map);
+
+                // --- NEW: ADD THE AIRPLANE ICON ---
+                // Calculate midpoint
+                const midLat = (depCoords[0] + arrCoords[0]) / 2;
+                const midLon = (depCoords[1] + arrCoords[1]) / 2;
+
+                // Calculate bearing (angle) so the plane points towards the destination
+                const toRad = (degree) => degree * Math.PI / 180;
+                const toDeg = (rad) => rad * 180 / Math.PI;
+                const dLon = toRad(arrCoords[1] - depCoords[1]);
+                const lat1 = toRad(depCoords[0]);
+                const lat2 = toRad(arrCoords[0]);
+                const y = Math.sin(dLon) * Math.cos(lat2);
+                const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+                const bearing = toDeg(Math.atan2(y, x));
+
+                // Create the plane marker rotated to the bearing angle
+                // (The default airplane emoji points ~45 degrees up and right, so we subtract 45 to align it to the path)
+                const planeIcon = L.divIcon({
+                    className: 'plane-icon-div',
+                    html: `<div style="transform: rotate(${bearing - 45}deg); font-size: 28px; line-height: 1; text-shadow: 0 0 15px rgba(0,102,255,1);">✈️</div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                // Drop the plane right in the middle of the flight path
+                L.marker([midLat, midLon], {icon: planeIcon}).addTo(map);
+                // ----------------------------------
+
+                // Auto-zoom map to fit both airports with padding
+                map.fitBounds(flightPath.getBounds(), {
+                    paddingTopLeft: [50, 100], 
+                    paddingBottomRight: [50, 200]
+                });
+            } else {
+                // Fallback if geocoding fails
+                console.log("Could not resolve coordinates.");
+                map.setView([51.505, -0.09], 3); // Default view
+            }
+        }
+
+        initFlightMap();
+    </script>
+{% endblock %}

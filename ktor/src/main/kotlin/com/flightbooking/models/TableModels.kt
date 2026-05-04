@@ -7,8 +7,8 @@ import java.math.BigDecimal
 data class User(
 
     val id: Int,
-    val firstname: String,
-    val lastname: String,
+    val firstname: String?,
+    val lastname: String?,
     val email: String,
     val passwordHash: String,
     val role: UserRole,
@@ -85,7 +85,11 @@ data class Complaint (
   val userId: Int,
   val message: String,
   val status: ComplaintStatus,
-  val createdAt : LocalDateTime
+  val createdAt : LocalDateTime,
+  //Admin handling part
+  val adminReply: String? = null,
+  val repliedAt: LocalDateTime? = null,
+  val repliedByUserId: Int? = null
 )
 
 data class Seat (

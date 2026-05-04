@@ -6,8 +6,8 @@ import org.jetbrains.exposed.sql.javatime.datetime
 
 object UserTable : Table("User") {
     val id = integer("user_id").autoIncrement()
-    val firstname = varchar("firstname", 100)
-    val lastname = varchar("lastname", 100)
+    val firstname = varchar("firstname", 100).nullable()
+    val lastname = varchar("lastname", 100).nullable()
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 255)
     val role = enumerationByName("role", 30, UserRole::class)
@@ -99,6 +99,11 @@ object ComplaintTable : Table("Complaint") {
   val message = varchar("message", 300)
   val status = enumerationByName("status", 30, ComplaintStatus::class)
   val createdAt = datetime("created_at")
+
+  //Admin handling part
+  val adminReply = varchar("admin_reply", 1000).nullable()
+  val repliedAt = datetime("replied_at").nullable()
+  val repliedByUserId = integer("replied_by_user_id").references(UserTable.id).nullable()
 
   override val primaryKey = PrimaryKey(id)
 }

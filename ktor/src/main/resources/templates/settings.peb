@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+
+{% block extra_css %}
+        body { 
+            background: radial-gradient(circle at center, #0B1930 0%, #050B18 100%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+        }
+
+        @keyframes subtlePan {
+            0% { transform: scale(1.1) translateY(0); }
+            100% { transform: scale(1.2) translateY(-20px); }
+        }
+        
+        .animate-bg {
+            animation: subtlePan 30s infinite alternate ease-in-out;
+        }
+
+        .danger-zone {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.03) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+{% endblock %}
+
+{% block body_classes %}min-h-screen relative flex items-center justify-center overflow-y-auto py-12 md:py-20{% endblock %}
+
+{% block content %}
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <img src="https://images.pexels.com/photos/46148/aircraft-jet-landing-cloud-46148.jpeg?auto=compress&cs=tinysrgb&w=1920" 
+             alt="Aetheria flight path" 
+             class="w-full h-full object-cover animate-bg opacity-50">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050B18] via-transparent to-black/40"></div>
+    </div>
+
+    <main id="settings-page" class="relative z-10 w-full max-w-3xl px-6">
+        
+        <div class="glass-card rounded-[40px] overflow-hidden">
+            <div class="p-8 md:p-14">
+                
+                <div class="text-center mb-12">
+                    <div class="inline-block text-2xl font-bold tracking-tighter serif text-[--sky-blue] mb-3">
+                        AETHERIA
+                    </div>
+                    <h1 class="text-3xl font-bold text-[--charcoal] tracking-tight mb-2">Account Settings</h1>
+                    <p class="text-sm text-gray-500 font-light">Manage your personal details and preferences</p>
+
+                    {% if error %}
+                    <div class="mt-6 flex items-start gap-3 bg-red-50 border border-red-100 text-red-500 px-5 py-4 rounded-2xl text-left">
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">There was a problem!</p>
+                            <p class="text-xs font-light">{{ error }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if success %}
+                    <div class="mt-6 flex items-start gap-3 bg-green-50 border border-green-100 text-green-600 px-5 py-4 rounded-2xl text-left">
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">Success!</p>
+                            <p class="text-xs font-light">{{ success }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Personal Information Section -->
+                <div class="mb-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-lg font-bold text-[--charcoal] uppercase tracking-wider text-[11px]">Personal Information</h2>
+                    </div>
+
+                    <form action="/settings/update_name" method="POST" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label for="first-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">
+                                    First Name <span class="text-gray-300 font-light">(Optional)</span>
+                                </label>
+                                <input type="text" id="first-name" name="firstname" placeholder="Alexander" value="{{ user.firstname }}"
+                                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                            </div>
+                            <div class="group">
+                                <label for="last-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">
+                                    Last Name <span class="text-gray-300 font-light">(Optional)</span>
+                                </label>
+                                <input type="text" id="last-name" name="lastname" placeholder="Vance" value="{{ user.lastname }}"
+                                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                            </div>
+                        </div>
+
+                        <div class="group">
+                            <label class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest">
+                                Email Address
+                            </label>
+                            <div class="w-full border-b border-gray-200 pb-2 text-lg font-medium text-gray-400">
+                                {{ user.email }}
+                            </div>
+                            <p class="text-[9px] text-gray-400 mt-2 font-light">Email cannot be changed</p>
+                        </div>
+
+                        <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <div class="border-t border-gray-200 my-10"></div>
+
+                <!-- Security Section -->
+                <div class="mb-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-lg font-bold text-[--charcoal] uppercase tracking-wider text-[11px]">Security</h2>
+                    </div>
+
+                    <form action="/settings/change_password" method="POST" class="space-y-6">
+                        <div class="group">
+                            <label for="current-password" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">
+                                Current Password
+                            </label>
+                            <input type="password" id="current-password" name="password" required placeholder="••••••••" 
+                                   class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                        </div>
+
+                        <div class="group">
+                            <label for="new-password" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">
+                                New Password
+                            </label>
+                            <input type="password" id="new-password" name="new_password" required placeholder="••••••••" 
+                                   class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                        </div>
+
+                        <div class="group">
+                            <label for="confirm-password" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">
+                                Confirm New Password
+                            </label>
+                            <input type="password" id="confirm-password" name="confirm_new_password" required placeholder="••••••••" 
+                                   class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                        </div>
+
+                        <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <div class="border-t border-gray-200 my-10"></div>
+
+                <!-- Danger Zone -->
+                <div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-lg font-bold text-red-600 uppercase tracking-wider text-[11px]">Danger Zone</h2>
+                    </div>
+
+                    <div class="danger-zone rounded-2xl p-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-[--charcoal] mb-1">Delete Account</h3>
+                                <p class="text-xs text-gray-500 font-light">Permanently remove your account and all associated data. This action cannot be undone.</p>
+                            </div>
+                            <form action="/settings/delete_account" method="POST" onsubmit="return confirmDelete()" class="flex-shrink-0">
+                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white py-4 px-8 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] transition-all duration-300 active:scale-95 shadow-lg whitespace-nowrap">
+                                    Delete Account
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50/50 border-t border-gray-100 p-8 text-center text-sm">
+                <p class="text-gray-500 font-light">
+                    Need help? 
+                    <a href="/complaints" class="text-[--sky-blue] font-bold hover:underline ml-1 font-extrabold uppercase tracking-wider text-[10px]">Contact Support</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="/overview" class="text-[10px] uppercase tracking-widest font-extrabold text-white/60 hover:text-white transition-colors inline-flex items-center">
+                Back to Dashboard
+            </a>
+        </div>
+    </main>
+
+    <div class="absolute bottom-8 left-0 right-0 text-center text-[9px] uppercase tracking-widest text-white/30 font-bold hidden md:block">
+        &copy; 2026 Aetheria Aviation &bull; The Art of Arrival
+    </div>
+
+    <script>
+        function confirmDelete() {
+            return confirm('Are you absolutely sure you want to delete your account?\n\nThis will permanently delete:\n• All your personal information\n• Booking history\n• Loyalty points\n\nThis action cannot be undone.') && 
+                   confirm('Last chance! Click OK to permanently delete your account.');
+        }
+    </script>
+{% endblock %}
