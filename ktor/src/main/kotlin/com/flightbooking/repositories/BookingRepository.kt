@@ -33,6 +33,7 @@ import java.time.LocalDateTime
 import java.time.LocalDate
 import java.util.UUID
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class BookingRepository {
 
@@ -94,6 +95,15 @@ class BookingRepository {
             return@transaction currentPoints
     }
 
+    fun getRedeemedLoyaltyPointsByUserId(userId: Int): Int = transaction {
+         val currentRedeemedPoints = UserTable
+            .select { UserTable.id eq userId }
+            .map { it[UserTable.redeemedLoyaltyPoints] }
+            .singleOrNull() ?: throw IllegalStateException("User points not found")
+        
+            return@transaction currentRedeemedPoints
+    }
+
     fun addLoyaltyPointsByUserIdAndBookingAmount(userId: Int, amount: BigDecimal): Int = transaction {
         val points = amount.toInt()
         val currentPoints = getLoyaltyPointsByUserId(userId)
@@ -107,10 +117,16 @@ class BookingRepository {
 
     fun useUsersLoyaltyPoints(userId: Int, price: BigDecimal): BigDecimal = transaction {
         val loyaltyPoints = getLoyaltyPointsByUserId(userId)
+        val redeemedLoyaltyPoints = getRedeemedLoyaltyPointsByUserId(userId)
 
         val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
         val discountedPrice = (price - discount).max(BigDecimal.ZERO)
 
+        //Set redeemed to current
+        UserTable.update({ UserTable.id eq userId }) {
+            it[UserTable.redeemedLoyaltyPoints] = redeemedLoyaltyPoints + loyaltyPoints 
+        }
+        //set current to 0
         UserTable.update({ UserTable.id eq userId }) {
             it[UserTable.loyaltyPoints] = 0
         }
@@ -175,6 +191,8 @@ class BookingRepository {
         val booking = BookingTable.select { BookingTable.bookingReference eq bookingReference }
             .map { resultRowToBooking(it) }
             .singleOrNull() ?: return@transaction null
+        
+        val userId = booking.userId
 
         if (booking.status == BookingStatus.CANCELLED) {
             return@transaction booking
@@ -196,15 +214,39 @@ class BookingRepository {
         BookingTable.update({ BookingTable.bookingReference eq bookingReference }) {
             it[status] = BookingStatus.CANCELLED
         }
+        
+        if (booking.status == BookingStatus.CREATED) {
+            return@transaction booking
+        }
+
         //3.Find original payment amount
         val paidAmount = PaymentTable
             .select { PaymentTable.bookingId eq booking.id }
             .map { row -> row[PaymentTable.amount] }
-            .singleOrNull()
+            .singleOrNull() ?: return@transaction null     
+        
+        //Reduce Loyalty Points gained and refund less if necessary
+        val usersLoyaltyPoints = getLoyaltyPointsByUserId(userId)
+        val changedPoints = usersLoyaltyPoints - paidAmount.toInt()
+        val refundAmount = if (changedPoints <= 0) {
+            val deficitPoints = -changedPoints
+            
+            val penalty = BigDecimal(deficitPoints)
+                .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+
+            paidAmount - penalty
+        }
+        else {
+            UserTable.update({ UserTable.id eq userId }) {
+                it[loyaltyPoints] = changedPoints
+            }
+            paidAmount
+        }
+
         //4.Mark payment as refunded
         PaymentTable.update({ PaymentTable.bookingId eq booking.id }) {
             it[paymentStatus] = PaymentStatus.REFUNDED
-            it[refundAmount] = paidAmount
+            it[PaymentTable.refundAmount] = refundAmount
             it[refundDate] = LocalDateTime.now()
         }
         booking.copy(status = BookingStatus.CANCELLED)
