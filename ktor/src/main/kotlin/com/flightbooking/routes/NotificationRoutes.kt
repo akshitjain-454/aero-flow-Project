@@ -26,7 +26,7 @@ fun Route.notificationRoutes() {
                 NotificationService.events
                 .filter{it.userId ==  session.userId}
                 .collect { event ->
-                    write("data: {\"message\":\"${event.message}\",\"type\":\"${event.type}\"}\n\n")
+                    write("data: {\"message\":\"${event.message}\",\"type\":\"${event.type}\",\"sentAt\":${event.sentAt}}\n\n")
                     flush()
                 }
             }

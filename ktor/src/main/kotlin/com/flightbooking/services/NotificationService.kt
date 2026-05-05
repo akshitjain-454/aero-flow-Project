@@ -7,7 +7,7 @@ data class NotificationEvent(
     val  userId: Int,
     val message: String,
     val type: String = "info",
-    val timestamp: Long = System.currentTimeMillis()
+    val sentAt: Long = System.currentTimeMillis()
 )
 
 object NotificationService {

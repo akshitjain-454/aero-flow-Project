@@ -77,10 +77,10 @@
         eventSource.onmessage = (e) => {
             const data = JSON.parse(e.data);
 
-            const now = Date.now();
-            const age = now - data.timestamp;
-
-            if (age <  3000) return;
+            const lastSeen = parseInt(sessionStorage.getItem("lastNotificationSeen") || "0");
+    
+            if (data.sentAt <= lastSeen) return;
+            
             showNotification(data.message, data.type);
         };
 
@@ -93,8 +93,9 @@
         }
 
         function closeNotification() {
-            document.getElementById("global-notification")
-                .className = "notification hidden";
+            const lastSeen = parseInt(sessionStorage.getItem("lastNotificationSeen") || "0");
+            sessionStorage.setItem("lastNotificationSeen", Date.now().toString());
+            document.getElementById("global-notification").className = "notification hidden";
         }
     </script>
 </body>
