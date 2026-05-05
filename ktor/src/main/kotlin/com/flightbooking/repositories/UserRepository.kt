@@ -20,6 +20,7 @@ class UserRepository {
                 it[passwordHash] = user.passwordHash
                 it[role] = user.role
                 it[loyaltyPoints] = user.loyaltyPoints
+                it[redeemedLoyaltyPoints] = user.redeemedLoyaltyPoints
                 it[createdAt] = LocalDateTime.now()
             }
         }
@@ -100,6 +101,7 @@ class UserRepository {
             passwordHash = row[UserTable.passwordHash],
             role = row[UserTable.role],
             loyaltyPoints = row[UserTable.loyaltyPoints],
+            redeemedLoyaltyPoints = row[UserTable.redeemedLoyaltyPoints],
             createdAt = row[UserTable.createdAt]
         )
     }

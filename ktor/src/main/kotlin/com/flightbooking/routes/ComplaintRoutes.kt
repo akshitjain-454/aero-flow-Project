@@ -10,7 +10,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.pebble.PebbleContent
-
+/**
+ * Registers customer complaint routes.
+ *
+ * These routes allow users to view their submitted complaints and submit new
+ * complaint messages. Complaint submission requires an active user session,
+ * while the main complaints page can still render for unauthenticated users with an empty complaint list.
+ */
 fun Route.complaintRoutes() {
 
     val complaintRepository = ComplaintRepository()

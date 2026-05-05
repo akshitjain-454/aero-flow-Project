@@ -390,7 +390,7 @@
 
 <script>
     function cancelBooking(reference) {
-        if(!confirm("Are you absolutely sure you want to cancel booking " + reference + "? This action cannot be undone.")) {
+        if(!confirm("Are you absolutely sure you want to cancel booking " + reference + "? This action cannot be undone. You may lose any loyalty points gained from this booking!")) {
             return;
         }
 
