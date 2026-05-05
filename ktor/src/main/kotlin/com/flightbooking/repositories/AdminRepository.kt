@@ -8,6 +8,7 @@ import com.flightbooking.models.FlightAvailabilitySummary
 import com.flightbooking.models.FlightChangeLogInfo
 import com.flightbooking.models.Flight
 import com.flightbooking.models.CancelledFlightSummary
+import com.flightbooking.models.User
 import com.flightbooking.tables.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -992,6 +993,21 @@ class AdminRepository {
                     aircraftType = row[AircraftTable.type]
                 )
             }
+    }
+
+    fun createAdmin(admin: User) { 
+        transaction {
+            UserTable.insert{
+                it[firstname] = admin.firstname
+                it[lastname] = admin.lastname
+                it[email] = admin.email
+                it[passwordHash] = admin.passwordHash
+                it[role] = admin.role
+                it[loyaltyPoints] = admin.loyaltyPoints
+                it[redeemedLoyaltyPoints] = admin.redeemedLoyaltyPoints
+                it[createdAt] = LocalDateTime.now()
+            }
+        }
     }
 
     /**

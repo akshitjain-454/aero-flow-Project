@@ -247,6 +247,12 @@
                         Booking Update Requests
                     </a>
                 </li>
+                <li>
+                    <a id="Add-Admin" href="/admin/create_admin"
+                    class="admin-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-lg text-sm font-medium transition-colors">
+                        Add New Admin Page
+                    </a>
+                </li>
             </ul>
         </nav>
 
