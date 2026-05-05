@@ -8,6 +8,7 @@ import com.flightbooking.enums.FlightInfoRequestStatus
 import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.repositories.ComplaintRepository
 import com.flightbooking.repositories.AdminRepository
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.respondPebble
 import io.ktor.http.*
@@ -22,6 +23,8 @@ import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.FlightStatus
 import com.flightbooking.models.ReservationSummary
+import com.flightbooking.models.User
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Registers administrator-only routes for the management dashboard.
@@ -664,6 +667,62 @@ fun Route.adminRoutes() {
             call.respond(mapOf("message" to "Flight status updated successfully","flight" to updatedFlight)
 
             )
+        }
+        get("/create_admin") {
+            val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@get call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            call.respondPebble("addAdmin.peb")
+        }
+
+        post("/create_admin") {
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
+
+            if (session.role != UserRole.ADMIN) {
+                return@post call.respond(HttpStatusCode.Forbidden,
+                    mapOf("error" to "Admin only")
+                )
+            }
+            val params = call.receiveParameters()
+
+            val firstname = params["firstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val lastname  = params["lastname"]?.trim()?.takeIf { it.isNotBlank() }
+            val email     = params["email"] ?: return@post call.respondPebble("management.peb", mapOf("error" to "Missing email for admin member"))
+            val password  = params["password"]?.trim()
+            val confirmedPassword = params["confirmed_password"]?.trim()
+
+            if (UserRepository().getUserByEmail(email) != null) {
+                return@post call.respondPebble("addAdmin.peb", mapOf("error" to "Email already Registered. Please Sign in instead!"))
+            }
+            if (password == null || confirmedPassword == null) {
+                //return@post call.respond(HttpStatusCode.BadRequest, "Missing required field")
+                return@post call.respondPebble("addAdmin.peb", mapOf("error" to "Missing required fields")) //shouldnt happen unless frontend is bypassed
+            }
+            if (password != confirmedPassword) {    
+                return@post call.respondPebble("addAdmin.peb", mapOf("error" to "Passwords do not match")) //shouldnt happen unless frontend is bypassed
+            }
+
+            val passwordHash = BCrypt.hashpw(password, BCrypt.gensalt())
+
+            val admin = User(
+                id = 0,
+                firstname = firstname,
+                lastname  = lastname,
+                email     = email,
+                passwordHash = passwordHash,
+                role      = UserRole.ADMIN,
+                loyaltyPoints = 0,
+                redeemedLoyaltyPoints = 0,
+                createdAt = LocalDateTime.now()
+            )
+
+            adminRepository.createAdmin(admin)
+
+            call.respondRedirect("/admin")
         }
     }
 }
