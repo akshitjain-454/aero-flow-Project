@@ -23,6 +23,15 @@ import com.flightbooking.enums.BookingStatus
 import com.flightbooking.enums.FlightStatus
 import com.flightbooking.models.ReservationSummary
 
+/**
+ * Registers administrator-only routes for the management dashboard.
+ *
+ * These routes allow administrators to view operational reports, manage complaints, handle customer flight information requests, search reservations,
+ * update flight schedules, and update flight statuses.
+ *
+ * Most routes require an active user session with the ADMIN role. Unauthenticated users are redirected to the login page,
+ * while non-admin users receive a forbidden response.
+ */
 fun Route.adminRoutes() {
 
     val complaintRepository = ComplaintRepository()
@@ -31,6 +40,7 @@ fun Route.adminRoutes() {
 
     route("/admin") {
 
+        // Renders the main administrator management dashboard.
         get {
             val session = call.sessions.get<UserSession>()
 
@@ -45,7 +55,7 @@ fun Route.adminRoutes() {
             
             call.respondPebble("management.peb")
         }
-
+        // Returns all customer complaints for administrator review.
         get("/complaints") {
             val session = call.sessions.get<UserSession>()
 
@@ -60,7 +70,7 @@ fun Route.adminRoutes() {
             val complaints = complaintRepository.getAllComplaints()
             call.respond(complaints)
         }
-
+        // Returns all customer flight information change requests.
         get("/flight-info-requests") {
             val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
 
@@ -78,7 +88,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns flight availability information with optional route and date filters.
         get("/flights/availability") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
 
@@ -102,7 +112,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns cancelled bookings with optional route and date filters.
         get("/bookings/cancelled") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
             
@@ -124,7 +134,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns cancelled flights with optional route and date filters.
         get("/flights/cancelled") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
         
@@ -147,7 +157,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Searches reservations by customer name, email, or booking reference.
         get("/customer-search") {
             val session = call.sessions.get<UserSession>()?: return@get call.respondRedirect("/login")
 
@@ -180,7 +190,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Updates the status of a customer complaint.
         post("/complaints/{id}/status") {
             val session = call.sessions.get<UserSession>()
 
@@ -248,7 +258,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Handles a complaint by applying a status and optional admin reply.
         post("/complaints/{id}/handle") {
             val session = call.sessions.get<UserSession>()
 
@@ -321,7 +331,7 @@ fun Route.adminRoutes() {
                 )
             }
         }
-
+        // Approves or rejects a customer flight information change request.
         post("/flight-info-requests/{id}/handle") {
             val session = call.sessions.get<UserSession>()?: return@post call.respondRedirect("/login")
 
@@ -363,7 +373,7 @@ fun Route.adminRoutes() {
                 )
             }
         }
-
+        // Returns the number of active bookings grouped by flight.
         get("/reports/bookings-per-flight") {
             val session = call.sessions.get<UserSession>()
 
@@ -386,7 +396,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns the booking report for one specific flight code.
         get("/reports/bookings-per-flight/{flightCode}") {
             val session = call.sessions.get<UserSession>()
 
@@ -419,7 +429,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns the most popular routes based on booking count.
         get("/reports/most-popular-routes") {
             val session = call.sessions.get<UserSession>()
             if (session == null) {
@@ -440,7 +450,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns the peak booking hours.
         get("/reports/peak-booking-times") {
             val session = call.sessions.get<UserSession>()
             if (session == null) {
@@ -461,7 +471,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns all recorded flight schedule changes.
         get("/flights/changes") {
             val session = call.sessions.get<UserSession>()
             if (session == null) {
@@ -486,7 +496,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns the schedule change history for a single flight.
         get("/flights/{id}/changes") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
             if (session.role != UserRole.ADMIN) {
@@ -507,7 +517,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-
+        // Returns reservation summaries with optional filters.
         get("/reservations") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/login")
 
@@ -558,7 +568,7 @@ fun Route.adminRoutes() {
                 )
             )
         }
-        
+        // Updates the route and departure/arrival times of a flight.
         post("/flights/{id}/update-schedule") {
             val session = call.sessions.get<UserSession>()
 
@@ -628,7 +638,7 @@ fun Route.adminRoutes() {
                 )
             }
         }
-
+        // Updates the operational status of a flight.
         post("/flights/{id}/status") {
             val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
 
