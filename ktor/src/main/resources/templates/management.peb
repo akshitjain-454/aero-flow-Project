@@ -472,7 +472,7 @@
                         <button id="changesTabCancelledFlights"
                                 onclick="loadCancelledFlights()"
                                 class="px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm font-bold">
-                            Cancelled Flights
+                            Cancelled Flights (Flight Changes)
                         </button>
                     </div>
                 </div>
