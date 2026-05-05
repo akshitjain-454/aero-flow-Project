@@ -440,13 +440,17 @@ class BookingRepository {
                 (TicketAssignmentTable.passengerId eq passenger.id) and 
                 (FlightSeatTable.flightId eq booking.flightId)
             }
-            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Outbound seat number found")
+            .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Outbound seat number not found")
         
         val flightSeatId = TicketAssignmentTable
-            .select { TicketAssignmentTable.passengerId eq passenger.id }
-            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Outbound flight seat id found")
+            .join(FlightSeatTable, JoinType.INNER, TicketAssignmentTable.flightSeatId, FlightSeatTable.id)
+            .select { 
+                (TicketAssignmentTable.passengerId eq passenger.id) and 
+                (FlightSeatTable.flightId eq booking.flightId)
+            }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Outbound flight seat id not found")
 
-        val seatClass = getSeatClassByFlightSeatId(flightSeatId) ?: throw IllegalStateException("Outbound seat class found")
+        val seatClass = getSeatClassByFlightSeatId(flightSeatId) ?: throw IllegalStateException("Outbound seat class not found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq flight[FlightTable.departureAirportId] }
@@ -487,10 +491,14 @@ class BookingRepository {
             .map { it[TicketAssignmentTable.seatNumber] }.singleOrNull() ?: throw IllegalStateException("Return seat not found")
 
         val returnFlightSeatId = TicketAssignmentTable
-            .select { TicketAssignmentTable.passengerId eq passenger.id }
-            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Return flight seat id found")
+            .join(FlightSeatTable, JoinType.INNER, TicketAssignmentTable.flightSeatId, FlightSeatTable.id)
+            .select { 
+                (TicketAssignmentTable.passengerId eq passenger.id) and 
+                (FlightSeatTable.flightId eq booking.returnFlightId)
+            }
+            .map { it[TicketAssignmentTable.flightSeatId] }.singleOrNull() ?: throw IllegalStateException("Return flight seat id not found")
 
-        val returnSeatClass = getSeatClassByFlightSeatId(returnFlightSeatId) ?: throw IllegalStateException("Return seat class found")
+        val returnSeatClass = getSeatClassByFlightSeatId(returnFlightSeatId) ?: throw IllegalStateException("Return seat class not found")
         
         val departureAirportNameCode = AirportTable
             .select { AirportTable.id eq returnFlight[FlightTable.departureAirportId] }
