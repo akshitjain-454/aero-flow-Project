@@ -19,19 +19,35 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import com.flightbooking.models.MostPopularRouteReport
 import com.flightbooking.models.PeakBookingTimeReport
-import org.jetbrains.exposed.sql.TextColumnType
 import com.flightbooking.models.ReservationSummary
-import com.flightbooking.tables.PaymentTable
 import com.flightbooking.enums.FlightInfoRequestStatus
 import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.models.FlightInfoRequestSummary
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.TextColumnType
+import com.flightbooking.tables.PaymentTable
+
+/**
+ * This Adminrepository is responsible for generating management reports, retrieving reservation and flight information, updating flight schedules
+ * and statuses, and handling customer flight information change requests.
+ * 
+ * Provides data access and business logic for administrator functions.
+ * Database operations are performed using Exposed transactions.
+ */
 
 class AdminRepository {
 
     private val flightRepository = FlightRepository()
 
+    /**
+     * Generates a report showing the number of confirmed bookings for each flight.
+     *
+     * The result includes flight details, airport information, aircraft type, flight status, and the total number of bookings for each flight.
+     * Cancelled bookings are excluded from the booking count. 
+     *
+     * Return a list of booking count summaries grouped by flight.
+     */
     fun getBookingsPerFlightReport(): List<BookingsPerFlightReport> = transaction {
         val bookingCountExpr = BookingTable.id.count()
 
@@ -42,7 +58,7 @@ class AdminRepository {
                 BookingTable.flightId,
                 FlightTable.id
             )
-                .join(
+            .join(
                 AircraftTable,
                 JoinType.INNER,
                 FlightTable.aircraftId,
@@ -88,6 +104,13 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Generates a report of the most popular routes based on the booking count.
+     *
+     * The most popular Routes are grouped by departure and arrival airports. Cancelled bookings are excluded.
+     *
+     * Return a list of routes ordered by booking count in descending order.
+     */
     fun getMostPopularRoutesReport(): List<MostPopularRouteReport> = transaction {
 
         val bookingCountExpr = BookingTable.id.count()
@@ -121,10 +144,17 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Generates a report showing the peak booking times.
+     *
+     * Bookings are grouped by the hour in which they were created. Cancelled bookings are excluded.
+     *
+     * Return a list of booking time slots ordered by booking count.
+     */
     fun getPeakBookingTimesReport(): List<PeakBookingTimeReport> = transaction {
 
         val bookingCountExpr = BookingTable.id.count()
-        //This is the SQLite time formatting function strftime  change 2026-03-25 14:37:22 in 14:00
+        //This is the SQLite time formatting function strftime change, for example:2026-03-25 14:37:22 in 14:00
         val bookingHourExpr = CustomFunction<String>(
             "strftime",
             TextColumnType(),
@@ -148,6 +178,14 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Retrieves the booking count report for a single flight code.
+     *
+     * The flight code is normalised to uppercase before lookup.Cancelled bookings are excluded.
+     *
+     * Param flightCode: The flight code used to search for the flight.
+     * Return a booking summary for the matching flight, or null if no flight exists.
+     */
     fun getBookingsPerFlightByFlightCode(flightCode: String): BookingsPerFlightReport? {
         val flight = flightRepository.getFlightByFlightCode(flightCode.uppercase()) ?: return null
 
@@ -175,23 +213,29 @@ class AdminRepository {
         )
     }
 
+    /**
+     * Generates a flight availability report with optional filtering.
+     *
+     * The report compares total seats against booked seats for each matching flight and calculates the number of available seats.
+     *
+     * Param fromCodes: Optional list of departure airport codes to filter by.
+     * Param toCodes: Optional list of arrival airport codes to filter by.
+     * Param date: Optional departure date to filter by.
+     * Return a list of flight availability summaries matching the filters.
+     */
     fun getFlightAvailabilityReport(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightAvailabilitySummary> = transaction {
         val totalSeatsExpr = FlightSeatTable.id.count()
         val bookedSeatsExpr = TicketAssignmentTable.id.count()
         var selectCondition: Op<Boolean> = Op.TRUE
 
         if (fromCodes != null) {
-            val fromIds = AirportTable
-                .select { AirportTable.code inList fromCodes }
-                .map { it[AirportTable.id] }
+            val fromIds = AirportTable.select { AirportTable.code inList fromCodes }.map { it[AirportTable.id] }
 
             selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
         }
 
         if (toCodes != null) {
-            val toIds = AirportTable
-                .select { AirportTable.code inList toCodes }
-                .map { it[AirportTable.id] }
+            val toIds = AirportTable.select { AirportTable.code inList toCodes }.map { it[AirportTable.id] }
 
             selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
         }
@@ -264,19 +308,26 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Retrieves cancelled bookings using optional route and date filters.
+     *
+     * The result includes customer details, booking reference, flight information,
+     * aircraft type, and cancellation status.
+     *
+     * Param fromCodes: Optional list of departure airport codes to filter by.
+     * Param toCodes: Optional list of arrival airport codes to filter by.
+     * Param date: Optional departure date to filter by.
+     * Return a list of cancelled booking summaries.
+     */
     fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
         var selectCondition: Op<Boolean> = (BookingTable.status eq BookingStatus.CANCELLED)
 
         if (fromCodes != null) {
-            val fromIds = AirportTable
-                .select { AirportTable.code inList fromCodes }
-                .map { it[AirportTable.id] }
+            val fromIds = AirportTable.select { AirportTable.code inList fromCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
         }
         if (toCodes != null) {
-            val toIds = AirportTable
-                .select { AirportTable.code inList toCodes }
-                .map { it[AirportTable.id] }
+            val toIds = AirportTable.select { AirportTable.code inList toCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
         }
         if (date != null) {
@@ -337,19 +388,26 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Retrieves cancelled flights using optional route and date filters.
+     *
+     * The result includes flight code, airport information, departure and arrival
+     * times, aircraft type, and flight status.
+     *
+     * Param fromCodes: Optional list of departure airport codes to filter by.
+     * Param toCodes: Optional list of arrival airport codes to filter by.
+     * Param date: Optional departure date to filter by.
+     * Return a list of cancelled flight summaries.
+     */
     fun getCancelledFlights(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledFlightSummary> = transaction {
         var selectCondition: Op<Boolean> = (FlightTable.status eq FlightStatus.CANCELLED)
 
         if (fromCodes != null) {
-            val fromIds = AirportTable
-                .select { AirportTable.code inList fromCodes }
-                .map { it[AirportTable.id] }
+            val fromIds = AirportTable.select { AirportTable.code inList fromCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
         }
         if (toCodes != null) {
-            val toIds = AirportTable
-                .select { AirportTable.code inList toCodes }
-                .map { it[AirportTable.id] }
+            val toIds = AirportTable.select { AirportTable.code inList toCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
         }
         if (date != null) {
@@ -383,11 +441,22 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Updates the route and schedule information for an existing flight.
+     *
+     * Before updating the flight, the current departure airport, arrival airport,departure time, and arrival time are stored.
+     * A change log record is record,then created so that administrators can review the history of schedule changes.
+     *
+     * Param flightId: The ID of the flight to update.
+     * Param newDepartureAirportId: The new departure airport ID.
+     * Param newArrivalAirportId: The new arrival airport ID.
+     * Param newDepartureTime: The new departure date and time.
+     * Param newArrivalTime: The new arrival date and time.
+     * Param changedByUserId: The ID of the administrator making the change, if available.
+     * Return the updated flight, or null if the flight does not exist.
+     */
     fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime, changedByUserId: Int?): Flight? = transaction {
-        val existingFlight = FlightTable
-            .select { FlightTable.id eq flightId }
-            .singleOrNull()?: return@transaction null
-        
+        val existingFlight = FlightTable.select { FlightTable.id eq flightId }.singleOrNull()?: return@transaction null
         val oldDepartureAirportId = existingFlight[FlightTable.departureAirportId]
         val oldArrivalAirportId = existingFlight[FlightTable.arrivalAirportId]
         val oldDepartureTime = existingFlight[FlightTable.departureTime]
@@ -418,6 +487,12 @@ class AdminRepository {
             .singleOrNull()
     }
 
+    /**
+     * Retrieves the full name of a user by ID.
+     *
+     * Param userId: The user ID to look up, or null.
+     * Return the user's full name, or null if the ID is null or no user is found.
+     */
     private fun getUserNameById(userId: Int?): String? {
         if (userId == null) return null
 
@@ -427,6 +502,13 @@ class AdminRepository {
             .singleOrNull()
     }
 
+    /**
+     * Updates the operational status of a flight.
+     *
+     * Param flightId: The ID of the flight to update.
+     * Param newStatus: The new status to apply to the flight.
+     * Return the updated flight, or null if the flight does not exist.
+     */
     fun updateFlightStatus(flightId: Int, newStatus: FlightStatus): Flight? = transaction {
         val existingFlight = FlightTable
             .select { FlightTable.id eq flightId }
@@ -442,19 +524,24 @@ class AdminRepository {
             .singleOrNull()
     }
 
+    /**
+     * Retrieves all recorded flight schedule changes using optional filters.
+     *
+     * The result includes the old and new route information, old and new schedule times, aircraft type, flight status, and the administrator who made the change.
+     *
+     * Param fromCodes: Optional list of departure airport codes to filter by.
+     * Param date: Optional departure date to filter by.
+     * Return a list of flight change log summaries.
+     */
     fun getAllFlightChanges(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightChangeLogInfo> = transaction {
         var selectCondition: Op<Boolean> = Op.TRUE
 
         if (fromCodes != null) {
-            val fromIds = AirportTable
-                .select { AirportTable.code inList fromCodes }
-                .map { it[AirportTable.id] }
+            val fromIds = AirportTable.select { AirportTable.code inList fromCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
         }
         if (toCodes != null) {
-            val toIds = AirportTable
-                .select { AirportTable.code inList toCodes }
-                .map { it[AirportTable.id] }
+            val toIds = AirportTable.select { AirportTable.code inList toCodes }.map { it[AirportTable.id] }
             selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
         }
         if (date != null) {
@@ -495,6 +582,12 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Retrieves the schedule change history for a single flight.
+     *
+     * Param flightId: The ID of the flight whose change history should be retrieved.
+     * Return a list of change log entries for the selected flight.
+     */
     fun getFlightChangesByFlightId(flightId: Int): List<FlightChangeLogInfo> = transaction {
         (FlightChangeLogTable innerJoin FlightTable)
             .join(
@@ -527,6 +620,13 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Formats an airport as a combined name and code string.
+     *
+     * Param airportId: The airport ID to look up.
+     * Return a string containing the airport name and code.
+     * Throws illegalStateException If the airport cannot be found.
+     */
     private fun getAirportNameCodeById(airportId: Int): String {
         return AirportTable
             .select { AirportTable.id eq airportId }
@@ -534,6 +634,13 @@ class AdminRepository {
             .singleOrNull() ?: throw IllegalStateException("Airport not found")
     }
 
+    /**
+     * Retrieves the aircraft type for a given aircraft ID.
+     *
+     * Param aircraftId: The aircraft ID to look up.
+     * Return the aircraft type.
+     * Throws illegalStateException If the aircraft cannot be found.
+     */
     private fun getAircraftTypeById(aircraftId: Int): String {
         return AircraftTable
             .select { AircraftTable.id eq aircraftId }
@@ -541,23 +648,28 @@ class AdminRepository {
             .singleOrNull() ?: throw IllegalStateException("Aircraft not found")
     }
 
+    /**
+     * Each result contains booking details, customer information, flight information,payment amount where available, and aircraft type.
+     *
+     * Param fromCodes: Optional list of departure airport codes to filter by.
+     * Param toCodes: Optional list of arrival airport codes to filter by.
+     * Param date: Optional departure date to filter by.
+     * Param status: Optional booking status to filter by.
+     * Return a list of reservation summaries matching the filters.
+     */
     fun getAllReservations(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?,status: BookingStatus?
     ): List<ReservationSummary> = transaction {
 
         var selectCondition: Op<Boolean> = Op.TRUE
 
         if (fromCodes != null) {
-            val fromIds = AirportTable
-                .select { AirportTable.code inList fromCodes }
-                .map { it[AirportTable.id] }
+            val fromIds = AirportTable.select { AirportTable.code inList fromCodes }.map { it[AirportTable.id] }
 
             selectCondition = selectCondition and (FlightTable.departureAirportId inList fromIds)
         }
 
         if (toCodes != null) {
-            val toIds = AirportTable
-                .select { AirportTable.code inList toCodes }
-                .map { it[AirportTable.id] }
+            val toIds = AirportTable.select { AirportTable.code inList toCodes }.map { it[AirportTable.id] }
 
             selectCondition = selectCondition and (FlightTable.arrivalAirportId inList toIds)
         }
@@ -623,6 +735,13 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Finds an airport ID by its airport code.
+     * The supplied airport code is normalised to uppercase before lookup.
+     *
+     * Param code: The airport code to search for.
+     * Return the matching airport ID, or null if the airport code is not found.
+     */
     fun getAirportIdByCode(code: String): Int? = transaction {
         AirportTable
             .select { AirportTable.code eq code.uppercase() }
@@ -630,6 +749,14 @@ class AdminRepository {
             .singleOrNull()
     }
 
+    /**
+     * Retrieves all customer flight information change requests.
+     *
+     * The result includes the customer, booking reference, current flight, requested flight, request type, request status, passenger changes,
+     * message, admin reply,and handling timestamps.
+     *
+     * Return a list of flight information request summaries ordered by creation time.
+     */
     fun getAllFlightInfoRequests(): List<FlightInfoRequestSummary> = transaction {
         FlightInfoRequestTable
             .join(
@@ -678,10 +805,23 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Handles a customer flight information change request.
+     *
+     * If the request is approved, passenger information and/or flight assignment
+     * may be updated depending on the request type. The request status, admin reply,
+     * handling time, and handling administrator are then recorded.
+     *
+     * Param requestId: The ID of the request to handle.
+     * Param newStatus: The new status to apply to the request.
+     * Param adminReply: Optional response message from the administrator.
+     * Param adminUserId: The ID of the administrator handling the request.
+     * Return True if the request was found and handled, false otherwise.
+     *
+     * Throws illegalStateException If an approved flight change cannot be applied.
+     */
     fun handleFlightInfoRequest(requestId: Int,newStatus: FlightInfoRequestStatus,adminReply: String?,adminUserId: Int): Boolean = transaction {
-        val request = FlightInfoRequestTable
-            .select { FlightInfoRequestTable.id eq requestId }
-            .singleOrNull() ?: return@transaction false
+        val request = FlightInfoRequestTable.select { FlightInfoRequestTable.id eq requestId }.singleOrNull() ?: return@transaction false
 
         if (newStatus == FlightInfoRequestStatus.APPROVED) {
             val requestType = request[FlightInfoRequestTable.requestType]
@@ -730,13 +870,22 @@ class AdminRepository {
         true
     }
 
+    /**
+     * Searches reservations by customer details or booking reference.
+     *
+     * The search checks customer first name, last name, email address, and booking reference. If the search contains multiple words,
+     * the method also attempts to match first-name and last-name combinations in either order.
+     *
+     * Param query: The search keyword entered by the administrator.
+     * Return a list of matching reservation summaries, or an empty list if the query is blank.
+     */
     fun searchReservationsByCustomer(query: String): List<ReservationSummary> = transaction {
         val keyword = query.trim()
 
         if (keyword.isBlank()) {
             return@transaction emptyList()
         }
-
+        // Split the keyword by one or more spaces, so a full name like "John Wick" can be separated into ["John", "Wick"]
         val likeKeyword = "%${keyword}%"
         val parts = keyword.split(Regex("\\s+")).filter { it.isNotBlank() }
 
@@ -805,26 +954,29 @@ class AdminRepository {
             }
     }
 
+    /**
+     * Applies an approved flight change request to an existing booking.
+     *
+     * The booking is moved to the requested flight and passenger ticket assignments
+     * are updated to available seats on the new flight. If there are not enough
+     * available seats, the change is rejected by throwing an exception.
+     *
+     * Param bookingId: The booking to update.
+     * Param requestedFlightCode: The new flight code requested by the customer.
+     *
+     * Throws IllegalStateException If the booking, requested flight, passengers,or sufficient available seats cannot be found.
+     */
     private fun applyFlightChangeToBooking(bookingId: Int, requestedFlightCode: String) {
-        val bookingRow = BookingTable
-            .select { BookingTable.id eq bookingId }
-            .singleOrNull() ?: throw IllegalStateException("Booking not found")
-
+        val bookingRow = BookingTable.select { BookingTable.id eq bookingId }.singleOrNull() ?: throw IllegalStateException("Booking not found")
         val oldFlightId = bookingRow[BookingTable.flightId]
-
-        val newFlightRow = FlightTable
-            .select { FlightTable.flightCode eq requestedFlightCode.uppercase() }
-            .singleOrNull() ?: throw IllegalStateException("Requested flight not found")
-
+        val newFlightRow = FlightTable.select { FlightTable.flightCode eq requestedFlightCode.uppercase() }.singleOrNull() ?: throw IllegalStateException("Requested flight not found")
         val newFlightId = newFlightRow[FlightTable.id]
 
         if (newFlightId == oldFlightId) {
             return
         }
 
-        val passengerIds = PassengerTable
-            .select { PassengerTable.bookingId eq bookingId }
-            .map { it[PassengerTable.id] }
+        val passengerIds = PassengerTable.select { PassengerTable.bookingId eq bookingId }.map { it[PassengerTable.id] }
 
         if (passengerIds.isEmpty()) {
             throw IllegalStateException("No passengers found for this booking")
@@ -867,7 +1019,7 @@ class AdminRepository {
         BookingTable.update({ BookingTable.id eq bookingId }) {
             it[BookingTable.flightId] = newFlightId
         }
-
+        //Pair the passenger list (passengerIds) with the available seat list (availableSeats) one by one, and then process each pair individually.
         passengerIds.zip(availableSeats).forEach { pair ->
             val passengerId = pair.first
             val newFlightSeatId = pair.second.first
