@@ -734,7 +734,7 @@ class AdminRepository {
                 )
             }
     }
-
+    
     /**
      * Finds an airport ID by its airport code.
      * The supplied airport code is normalised to uppercase before lookup.
@@ -804,22 +804,62 @@ class AdminRepository {
                 )
             }
     }
-
     /**
-     * Handles a customer flight information change request.
+     * Retrieves customer flight information change requests byt request Id.
      *
-     * If the request is approved, passenger information and/or flight assignment
-     * may be updated depending on the request type. The request status, admin reply,
-     * handling time, and handling administrator are then recorded.
+     * The result includes the customer, booking reference, current flight, requested flight, request type, request status, passenger changes,
+     * message, admin reply,and handling timestamps.
      *
-     * Param requestId: The ID of the request to handle.
-     * Param newStatus: The new status to apply to the request.
-     * Param adminReply: Optional response message from the administrator.
-     * Param adminUserId: The ID of the administrator handling the request.
-     * Return True if the request was found and handled, false otherwise.
-     *
-     * Throws illegalStateException If an approved flight change cannot be applied.
+     * Return flight information request summaries ordered by creation time.
      */
+    fun getFlightInfoRequestsByRequestID(requestId: Int): FlightInfoRequestSummary? = transaction {
+        FlightInfoRequestTable
+            .join(
+                BookingTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.bookingId,
+                BookingTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.userId,
+                UserTable.id
+            )
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .select{FlightInfoRequestTable.id eq requestId}
+            .orderBy(FlightInfoRequestTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                FlightInfoRequestSummary(
+                    id = row[FlightInfoRequestTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[FlightInfoRequestTable.userId],
+                    customerName = listOfNotNull(
+                        row[UserTable.firstname],
+                        row[UserTable.lastname]
+                    ).joinToString(" "),
+                    email = row[UserTable.email],
+                    currentFlightCode = row[FlightTable.flightCode],
+                    requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                    requestType = row[FlightInfoRequestTable.requestType],
+                    status = row[FlightInfoRequestTable.status],
+                    passengerId = row[FlightInfoRequestTable.passengerId],
+                    newFirstname = row[FlightInfoRequestTable.newFirstname],
+                    newLastname = row[FlightInfoRequestTable.newLastname],
+                    newPassportCode = row[FlightInfoRequestTable.newPassportCode],
+                    message = row[FlightInfoRequestTable.message],
+                    adminReply = row[FlightInfoRequestTable.adminReply],
+                    createdAt = row[FlightInfoRequestTable.createdAt],
+                    handledAt = row[FlightInfoRequestTable.handledAt]
+                )
+            }
+            .singleOrNull()
+    }
     fun handleFlightInfoRequest(requestId: Int,newStatus: FlightInfoRequestStatus,adminReply: String?,adminUserId: Int): Boolean = transaction {
         val request = FlightInfoRequestTable.select { FlightInfoRequestTable.id eq requestId }.singleOrNull() ?: return@transaction false
 
@@ -1056,4 +1096,5 @@ class AdminRepository {
             }
         }
     }
+   
 }
