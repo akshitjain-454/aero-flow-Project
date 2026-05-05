@@ -804,6 +804,14 @@ class AdminRepository {
                 )
             }
     }
+    /**
+     * Retrieves customer flight information change requests byt request Id.
+     *
+     * The result includes the customer, booking reference, current flight, requested flight, request type, request status, passenger changes,
+     * message, admin reply,and handling timestamps.
+     *
+     * Return flight information request summaries ordered by creation time.
+     */
     fun getFlightInfoRequestsByRequestID(requestId: Int): FlightInfoRequestSummary? = transaction {
         FlightInfoRequestTable
             .join(
