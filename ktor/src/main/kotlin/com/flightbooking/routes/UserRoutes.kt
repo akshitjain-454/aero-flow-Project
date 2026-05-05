@@ -252,7 +252,7 @@ fun Route.userRoutes() {
             val initials = userRepository.getInitialsByUser(user)
             call.sessions.set(UserSession(userId = user.id, role = user.role, initials = initials))
             if (user.role == UserRole.ADMIN) {
-                call.respondRedirect("/admin") 
+                call.respondRedirect("/admin")
             } else {
                 call.respondRedirect("/")
             }
