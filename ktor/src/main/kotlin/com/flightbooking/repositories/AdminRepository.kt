@@ -677,7 +677,54 @@ class AdminRepository {
                 )
             }
     }
-
+    fun getFlightInfoRequestsByRequestID(requestId: Int): FlightInfoRequestSummary? = transaction {
+        FlightInfoRequestTable
+            .join(
+                BookingTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.bookingId,
+                BookingTable.id
+            )
+            .join(
+                UserTable,
+                JoinType.INNER,
+                FlightInfoRequestTable.userId,
+                UserTable.id
+            )
+            .join(
+                FlightTable,
+                JoinType.INNER,
+                BookingTable.flightId,
+                FlightTable.id
+            )
+            .select { FlightInfoRequestTable.id eq requestId }
+            .orderBy(FlightInfoRequestTable.createdAt, SortOrder.DESC)
+            .map { row ->
+                FlightInfoRequestSummary(
+                    id = row[FlightInfoRequestTable.id],
+                    bookingReference = row[BookingTable.bookingReference],
+                    userId = row[FlightInfoRequestTable.userId],
+                    customerName = listOfNotNull(
+                        row[UserTable.firstname],
+                        row[UserTable.lastname]
+                    ).joinToString(" "),
+                    email = row[UserTable.email],
+                    currentFlightCode = row[FlightTable.flightCode],
+                    requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                    requestType = row[FlightInfoRequestTable.requestType],
+                    status = row[FlightInfoRequestTable.status],
+                    passengerId = row[FlightInfoRequestTable.passengerId],
+                    newFirstname = row[FlightInfoRequestTable.newFirstname],
+                    newLastname = row[FlightInfoRequestTable.newLastname],
+                    newPassportCode = row[FlightInfoRequestTable.newPassportCode],
+                    message = row[FlightInfoRequestTable.message],
+                    adminReply = row[FlightInfoRequestTable.adminReply],
+                    createdAt = row[FlightInfoRequestTable.createdAt],
+                    handledAt = row[FlightInfoRequestTable.handledAt]
+                )
+            }
+            .singleOrNull()
+    }
     fun handleFlightInfoRequest(requestId: Int,newStatus: FlightInfoRequestStatus,adminReply: String?,adminUserId: Int): Boolean = transaction {
         val request = FlightInfoRequestTable
             .select { FlightInfoRequestTable.id eq requestId }
@@ -904,4 +951,5 @@ class AdminRepository {
             }
         }
     }
+   
 }

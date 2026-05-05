@@ -76,6 +76,11 @@
 
         eventSource.onmessage = (e) => {
             const data = JSON.parse(e.data);
+
+            const now = Date.now();
+            const age = now - data.timestamp;
+
+            if (age <  3000) return;
             showNotification(data.message, data.type);
         };
 

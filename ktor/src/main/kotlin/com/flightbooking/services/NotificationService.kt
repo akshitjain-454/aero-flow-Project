@@ -4,8 +4,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.channels.BufferOverflow
 
 data class NotificationEvent(
+    val  userId: Int,
     val message: String,
-    val type: String = "info"
+    val type: String = "info",
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 object NotificationService {

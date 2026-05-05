@@ -8,6 +8,7 @@ import com.flightbooking.enums.FlightInfoRequestStatus
 import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.repositories.ComplaintRepository
 import com.flightbooking.repositories.AdminRepository
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.sessions.UserSession
 import com.flightbooking.respondPebble
 import io.ktor.http.*
@@ -28,6 +29,7 @@ fun Route.adminRoutes() {
     val complaintRepository = ComplaintRepository()
     val adminRepository = AdminRepository()
     val flightRepository = FlightRepository()
+    val userRepository = UserRepository()
 
     route("/admin") {
 
@@ -204,6 +206,7 @@ fun Route.adminRoutes() {
 
             val params = call.receiveParameters()
             val statusText = params["status"]?.trim()?.uppercase()
+            val reply = params["reply"]?.trim()
 
             if (statusText.isNullOrBlank()) {
                 return@post call.respond(HttpStatusCode.BadRequest,
@@ -237,7 +240,15 @@ fun Route.adminRoutes() {
                     mapOf("error" to "Failed to update complaint status")
                 )
             }else{
-                NotificationService.send(NotificationEvent("Your complaint status has been updated", "info"))
+                val complainer = userRepository.getUserById(complaint.userId)
+                if (complainer != null) {
+                    if(complainer.role != UserRole.ADMIN){
+                       NotificationService.send(NotificationEvent(complaint.userId, "You have an update to your complaint(s)", "info"))
+                    }
+                    else{
+                        NotificationService.send(NotificationEvent(complaint.userId, "You have an update to your admin complaint(s)", "info"))
+                    }
+                }
             }
             call.respond(HttpStatusCode.OK,
                 mapOf(
@@ -263,13 +274,20 @@ fun Route.adminRoutes() {
             }
 
             val complaintId = call.parameters["id"]?.toIntOrNull()
-
             if (complaintId == null) {
                 return@post call.respond(HttpStatusCode.BadRequest,
                     mapOf("error" to "Invalid complaint id")
                 )
             }
 
+            val complaint = complaintRepository.getComplaintById(complaintId)
+            if (complaint == null) {
+                return@post call.respond(HttpStatusCode.NotFound,
+                    mapOf("error" to "Complaint not found")
+                )
+            }
+
+            val complainer = userRepository.getUserById(complaint.userId)
             val params = call.receiveParameters()
             val statusText = params["status"]?.trim()?.uppercase()
             val reply = params["reply"]?.trim()
@@ -312,7 +330,15 @@ fun Route.adminRoutes() {
                     mapOf("error" to "Complaint not found")
                 )
             } else {
-                NotificationService.send(NotificationEvent("You have an update to your complaint(s)", "info"))
+                if (complainer != null) {
+                    if(complainer.role != UserRole.ADMIN){
+                        NotificationService.send(NotificationEvent(complaint.userId, "You have an update to your complaint(s)", "info"))
+                    }
+                    else{
+                        NotificationService.send(NotificationEvent(complaint.userId, "You have an update to your admin complaint(s)", "info"))
+                    }
+                }
+                
                 call.respond(
                     HttpStatusCode.OK,
                     mapOf(
@@ -332,6 +358,14 @@ fun Route.adminRoutes() {
                 )
             }
             val requestId = call.parameters["id"]?.toIntOrNull()?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid request id")
+            val customerRequest =  adminRepository.getFlightInfoRequestsByRequestID(requestId)
+            if (customerRequest == null){
+                return@post call.respond(
+                    HttpStatusCode.NotFound,
+                    mapOf("error" to "Request not found")
+                )
+            }
+            val user = userRepository.getUserById(customerRequest.userId)
             val params = call.receiveParameters()
             val status = try {
                 FlightInfoRequestStatus.valueOf(
@@ -354,9 +388,20 @@ fun Route.adminRoutes() {
                 if (!success) {
                     return@post call.respond(HttpStatusCode.NotFound, "Request not found")
                 }
-                call.respond(
-                    mapOf("message" to "Flight information request handled successfully")
-                )
+                else{
+
+                    if (user != null) {
+                        if(user.role != UserRole.ADMIN){
+                            NotificationService.send(NotificationEvent(user.id, "You have an update to your request(s)", "info"))
+                        }
+                        else{
+                            NotificationService.send(NotificationEvent(user.id, "You have an update to your admin request(s)", "info"))
+                        }
+                    }
+                    call.respond(
+                        mapOf("message" to "Flight information request handled successfully")
+                    )
+                }
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -479,6 +524,7 @@ fun Route.adminRoutes() {
             val toCodes = params.getAll("to")
             val date = params["date"]?.let { LocalDate.parse(it) }
             val changes = adminRepository.getAllFlightChanges(fromCodes, toCodes, date)
+
             call.respond(
                 mapOf(
                     "reportType" to "flight_changes",
@@ -614,6 +660,7 @@ fun Route.adminRoutes() {
                 if (updatedFlight == null) {
                     call.respond(HttpStatusCode.NotFound, mapOf("error" to "Flight not found"))
                 } else {
+                    //NotificationService.send(NotificationEvent("You have an update to your booking(s)", "info"))
                     call.respond(
                         HttpStatusCode.OK,
                         mapOf(
@@ -652,9 +699,11 @@ fun Route.adminRoutes() {
             if (updatedFlight == null) {
                 return@post call.respond(HttpStatusCode.NotFound,mapOf("error" to "Flight not found"))
             }
+            //NotificationService.send(NotificationEvent("You have an update to your booking(s)", "info"))
             call.respond(mapOf("message" to "Flight status updated successfully","flight" to updatedFlight)
 
             )
         }
     }
 }
+
