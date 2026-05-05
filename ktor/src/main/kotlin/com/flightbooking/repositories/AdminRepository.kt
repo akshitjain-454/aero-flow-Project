@@ -25,6 +25,8 @@ import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.models.FlightInfoRequestSummary
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.TextColumnType
+import com.flightbooking.tables.PaymentTable
 
 /**
  * This Adminrepository is responsible for generating management reports, retrieving reservation and flight information, updating flight schedules
