@@ -19,6 +19,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.contentType
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -34,7 +35,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
-import io.ktor.server.application.install
 
 class ComplaintRoutesTest : StringSpec({
 
@@ -45,7 +45,7 @@ class ComplaintRoutesTest : StringSpec({
 
         Database.connect(
             url = "jdbc:sqlite:${databaseFile.toAbsolutePath()}",
-            driver = "org.sqlite.JDBC"
+            driver = "org.sqlite.JDBC",
         )
 
         transaction {
@@ -65,19 +65,20 @@ class ComplaintRoutesTest : StringSpec({
         email: String,
         role: UserRole = UserRole.USER,
         firstname: String = "Test",
-        lastname: String = "User"
-    ): Int = transaction {
-        UserTable.insert {
-            it[UserTable.firstname] = firstname
-            it[UserTable.lastname] = lastname
-            it[UserTable.email] = email
-            it[UserTable.passwordHash] = "hashed-password"
-            it[UserTable.role] = role
-            it[UserTable.loyaltyPoints] = 0
-            it[UserTable.redeemedLoyaltyPoints] = 0
-            it[UserTable.createdAt] = LocalDateTime.now()
-        } get UserTable.id
-    }
+        lastname: String = "User",
+    ): Int =
+        transaction {
+            UserTable.insert {
+                it[UserTable.firstname] = firstname
+                it[UserTable.lastname] = lastname
+                it[UserTable.email] = email
+                it[UserTable.passwordHash] = "hashed-password"
+                it[UserTable.role] = role
+                it[UserTable.loyaltyPoints] = 0
+                it[UserTable.redeemedLoyaltyPoints] = 0
+                it[UserTable.createdAt] = LocalDateTime.now()
+            } get UserTable.id
+        }
 
     fun Application.testComplaintApplication() {
         install(Sessions) {
@@ -98,8 +99,8 @@ class ComplaintRoutesTest : StringSpec({
                     UserSession(
                         userId = userId,
                         role = UserRole.USER,
-                        initials = "TU"
-                    )
+                        initials = "TU",
+                    ),
                 )
 
                 call.respondText("Test session created")
@@ -115,20 +116,22 @@ class ComplaintRoutesTest : StringSpec({
                 testComplaintApplication()
             }
 
-            val client = createClient {
-                followRedirects = false
-            }
+            val client =
+                createClient {
+                    followRedirects = false
+                }
 
-            val response = client.post("/complaints/submit") {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("message", "My flight was delayed")
-                        }
+            val response =
+                client.post("/complaints/submit") {
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("message", "My flight was delayed")
+                            },
+                        ),
                     )
-                )
-            }
+                }
 
             response.status shouldBe HttpStatusCode.Found
             response.headers[HttpHeaders.Location] shouldBe "/login"
@@ -143,23 +146,25 @@ class ComplaintRoutesTest : StringSpec({
                 testComplaintApplication()
             }
 
-            val client = createClient {
-                install(HttpCookies)
-                followRedirects = false
-            }
+            val client =
+                createClient {
+                    install(HttpCookies)
+                    followRedirects = false
+                }
 
             client.get("/set-test-user-session/$userId")
 
-            val response = client.post("/complaints/submit") {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("message", "   ")
-                        }
+            val response =
+                client.post("/complaints/submit") {
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("message", "   ")
+                            },
+                        ),
                     )
-                )
-            }
+                }
 
             response.status shouldBe HttpStatusCode.BadRequest
             response.bodyAsText() shouldBe "Complaint message is required"
@@ -174,23 +179,25 @@ class ComplaintRoutesTest : StringSpec({
                 testComplaintApplication()
             }
 
-            val client = createClient {
-                install(HttpCookies)
-                followRedirects = false
-            }
+            val client =
+                createClient {
+                    install(HttpCookies)
+                    followRedirects = false
+                }
 
             client.get("/set-test-user-session/$userId")
 
-            val response = client.post("/complaints/submit") {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("message", "The booking page crashed")
-                        }
+            val response =
+                client.post("/complaints/submit") {
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("message", "The booking page crashed")
+                            },
+                        ),
                     )
-                )
-            }
+                }
 
             response.status shouldBe HttpStatusCode.Found
             response.headers[HttpHeaders.Location] shouldBe "/complaints"
@@ -202,5 +209,4 @@ class ComplaintRoutesTest : StringSpec({
             complaints[0].status shouldBe ComplaintStatus.OPEN
         }
     }
-
 })

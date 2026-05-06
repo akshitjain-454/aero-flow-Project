@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     kotlin("plugin.serialization") version "1.9.22"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
 group = "com.flightbooking"
@@ -33,7 +34,7 @@ dependencies {
     // Auth & Sessions
     implementation("io.ktor:ktor-server-auth:2.3.4")
     implementation("io.ktor:ktor-server-sessions:2.3.4")
-    //Java mail
+    // Java mail
     implementation("com.sun.mail:jakarta.mail:2.0.1")
 
     // Content Negotiation + Jackson
@@ -54,8 +55,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.45.0")
 
-    //Notifications
+    // Notifications
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-
 }
