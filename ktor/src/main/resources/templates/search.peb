@@ -753,12 +753,12 @@
         params.append('departure_date',        depDateVal);
         params.append('num_of_passengers',     paxInput.value);
         params.append('departure_flexibility', depFlexInput.value);
-        params.append('trip_type',             tripTypeInput.value);
+        
 
         const retDateVal = document.getElementById('return-date').value;
         if (retDateVal) {
             params.append('return_date',        retDateVal);
-            params.append('return_flexibility', retFlexInput.value);
+            
         }
 
         window.location.href = '/search?' + params.toString();
