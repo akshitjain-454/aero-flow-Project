@@ -1,26 +1,26 @@
 package com.flightbooking.models
 
-import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.BookingStatus
-import com.flightbooking.enums.FlightStatus
 import com.flightbooking.enums.ComplaintStatus
-import java.time.LocalDateTime
-import java.math.BigDecimal
-import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.enums.FlightInfoRequestStatus
+import com.flightbooking.enums.FlightInfoRequestType
+import com.flightbooking.enums.FlightStatus
+import com.flightbooking.enums.SeatClass
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 data class SeatAvailability(
     val flightSeatId: Int,
     val seatNumber: String,
     val seatClass: SeatClass,
-    val available: Boolean
+    val available: Boolean,
 )
 
 data class SelectedSeat(
     val flightSeatId: Int,
     val seatNumber: String,
     val seatClass: SeatClass,
-    val passenger: Passenger
+    val passenger: Passenger,
 )
 
 data class TicketInfo(
@@ -30,7 +30,7 @@ data class TicketInfo(
     val seatClass: SeatClass,
     val departureAirportNameCode: String,
     val arrivalAirportNameCode: String,
-    val dateTime: LocalDateTime
+    val dateTime: LocalDateTime,
 )
 
 data class FlightInfo(
@@ -40,7 +40,7 @@ data class FlightInfo(
     val arrivalAirport: String,
     val arrivalAirportCode: String,
     val departureTime: LocalDateTime,
-    val priceFrom: BigDecimal
+    val priceFrom: BigDecimal,
 )
 
 data class BookingInfo(
@@ -55,9 +55,9 @@ data class BookingInfo(
     val returnArrivalAirportNameCode: String?,
     val departureTime: LocalDateTime,
     val returnDepartureTime: LocalDateTime?,
-    //management ui combine
+    // management ui combine
     val flightStatus: FlightStatus,
-    val amountPaid: BigDecimal?
+    val amountPaid: BigDecimal?,
 )
 
 data class BookingsPerFlightReport(
@@ -71,7 +71,7 @@ data class BookingsPerFlightReport(
     val arrivalTime: LocalDateTime,
     val flightStatus: FlightStatus,
     val bookingCount: Long,
-    val aircraftType: String
+    val aircraftType: String,
 )
 
 data class FlightAvailabilitySummary(
@@ -87,7 +87,7 @@ data class FlightAvailabilitySummary(
     val totalSeats: Long,
     val bookedSeats: Long,
     val availableSeats: Long,
-    val aircraftType: String
+    val aircraftType: String,
 )
 
 data class CancelledBookingSummary(
@@ -105,7 +105,7 @@ data class CancelledBookingSummary(
     val arrivalTime: LocalDateTime,
     val status: BookingStatus,
     val createdAt: LocalDateTime,
-    val aircraftType: String
+    val aircraftType: String,
 )
 
 data class CancelledFlightSummary(
@@ -116,7 +116,7 @@ data class CancelledFlightSummary(
     val departureTime: LocalDateTime,
     val arrivalTime: LocalDateTime,
     val status: FlightStatus,
-    val aircraftType: String
+    val aircraftType: String,
 )
 
 data class FlightChangeLogInfo(
@@ -135,7 +135,7 @@ data class FlightChangeLogInfo(
     val flightStatus: FlightStatus,
     val aircraftType: String,
     val changedByUserId: Int?,
-    val changedByName: String?
+    val changedByName: String?,
 )
 
 data class MostPopularRouteReport(
@@ -143,12 +143,12 @@ data class MostPopularRouteReport(
     val arrivalAirportId: Int,
     val departureAirportNameCode: String,
     val arrivalAirportNameCode: String,
-    val bookingCount: Long
+    val bookingCount: Long,
 )
 
 data class PeakBookingTimeReport(
     val bookingHour: String,
-    val bookingCount: Long
+    val bookingCount: Long,
 )
 
 data class ReservationSummary(
@@ -166,7 +166,7 @@ data class ReservationSummary(
     val bookingStatus: BookingStatus,
     val createdAt: LocalDateTime,
     val amountPaid: BigDecimal?,
-    val aircraftType: String
+    val aircraftType: String,
 )
 
 data class ComplaintSummary(
@@ -178,11 +178,11 @@ data class ComplaintSummary(
     val message: String,
     val status: ComplaintStatus,
     val createdAt: LocalDateTime,
-    //Admin handling part
+    // Admin handling part
     val adminReply: String?,
     val repliedAt: LocalDateTime?,
     val repliedByUserId: Int?,
-    val repliedByName: String?
+    val repliedByName: String?,
 )
 
 data class FlightInfoRequestSummary(
@@ -202,5 +202,5 @@ data class FlightInfoRequestSummary(
     val message: String?,
     val adminReply: String?,
     val createdAt: LocalDateTime,
-    val handledAt: LocalDateTime?
+    val handledAt: LocalDateTime?,
 )

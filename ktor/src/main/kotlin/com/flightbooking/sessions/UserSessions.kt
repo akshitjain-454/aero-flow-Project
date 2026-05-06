@@ -1,11 +1,11 @@
 package com.flightbooking.sessions
 
-import kotlinx.serialization.Serializable
 import com.flightbooking.enums.UserRole
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserSession(
     val userId: Int,
     val role: UserRole,
-    val initials: String
+    val initials: String,
 )
