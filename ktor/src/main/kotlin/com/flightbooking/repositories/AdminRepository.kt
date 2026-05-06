@@ -184,7 +184,7 @@ class AdminRepository {
      *
      * The flight code is normalised to uppercase before lookup.Cancelled bookings are excluded.
      *
-     * Param flightCode: The flight code used to search for the flight.
+     * @param flightCode: The flight code used to search for the flight.
      * Return a booking summary for the matching flight, or null if no flight exists.
      */
     fun getBookingsPerFlightByFlightCode(flightCode: String): BookingsPerFlightReport? {
@@ -219,9 +219,9 @@ class AdminRepository {
      *
      * The report compares total seats against booked seats for each matching flight and calculates the number of available seats.
      *
-     * Param fromCodes: Optional list of departure airport codes to filter by.
-     * Param toCodes: Optional list of arrival airport codes to filter by.
-     * Param date: Optional departure date to filter by.
+     * @param fromCodes: Optional list of departure airport codes to filter by.
+     * @param toCodes: Optional list of arrival airport codes to filter by.
+     * @param date: Optional departure date to filter by.
      * Return a list of flight availability summaries matching the filters.
      */
     fun getFlightAvailabilityReport(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightAvailabilitySummary> = transaction {
@@ -315,9 +315,9 @@ class AdminRepository {
      * The result includes customer details, booking reference, flight information,
      * aircraft type, and cancellation status.
      *
-     * Param fromCodes: Optional list of departure airport codes to filter by.
-     * Param toCodes: Optional list of arrival airport codes to filter by.
-     * Param date: Optional departure date to filter by.
+     * @param fromCodes: Optional list of departure airport codes to filter by.
+     * @param toCodes: Optional list of arrival airport codes to filter by.
+     * @param date: Optional departure date to filter by.
      * Return a list of cancelled booking summaries.
      */
     fun getCancelledBookings(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledBookingSummary> = transaction {
@@ -395,9 +395,9 @@ class AdminRepository {
      * The result includes flight code, airport information, departure and arrival
      * times, aircraft type, and flight status.
      *
-     * Param fromCodes: Optional list of departure airport codes to filter by.
-     * Param toCodes: Optional list of arrival airport codes to filter by.
-     * Param date: Optional departure date to filter by.
+     * @param fromCodes: Optional list of departure airport codes to filter by.
+     * @param toCodes: Optional list of arrival airport codes to filter by.
+     * @param date: Optional departure date to filter by.
      * Return a list of cancelled flight summaries.
      */
     fun getCancelledFlights(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<CancelledFlightSummary> = transaction {
@@ -448,12 +448,12 @@ class AdminRepository {
      * Before updating the flight, the current departure airport, arrival airport,departure time, and arrival time are stored.
      * A change log record is record,then created so that administrators can review the history of schedule changes.
      *
-     * Param flightId: The ID of the flight to update.
-     * Param newDepartureAirportId: The new departure airport ID.
-     * Param newArrivalAirportId: The new arrival airport ID.
-     * Param newDepartureTime: The new departure date and time.
-     * Param newArrivalTime: The new arrival date and time.
-     * Param changedByUserId: The ID of the administrator making the change, if available.
+     * @param flightId: The ID of the flight to update.
+     * @param newDepartureAirportId: The new departure airport ID.
+     * @param newArrivalAirportId: The new arrival airport ID.
+     * @param newDepartureTime: The new departure date and time.
+     * @param newArrivalTime: The new arrival date and time.
+     * @param changedByUserId: The ID of the administrator making the change, if available.
      * Return the updated flight, or null if the flight does not exist.
      */
     fun updateFlightSchedule(flightId: Int,newDepartureAirportId: Int,newArrivalAirportId: Int,newDepartureTime: LocalDateTime,newArrivalTime: LocalDateTime, changedByUserId: Int?): Flight? = transaction {
@@ -491,7 +491,7 @@ class AdminRepository {
     /**
      * Retrieves the full name of a user by ID.
      *
-     * Param userId: The user ID to look up, or null.
+     * @param userId: The user ID to look up, or null.
      * Return the user's full name, or null if the ID is null or no user is found.
      */
     private fun getUserNameById(userId: Int?): String? {
@@ -506,8 +506,8 @@ class AdminRepository {
     /**
      * Updates the operational status of a flight.
      *
-     * Param flightId: The ID of the flight to update.
-     * Param newStatus: The new status to apply to the flight.
+     * @param flightId: The ID of the flight to update.
+     * @param newStatus: The new status to apply to the flight.
      * Return the updated flight, or null if the flight does not exist.
      */
     fun updateFlightStatus(flightId: Int, newStatus: FlightStatus): Flight? = transaction {
@@ -530,8 +530,8 @@ class AdminRepository {
      *
      * The result includes the old and new route information, old and new schedule times, aircraft type, flight status, and the administrator who made the change.
      *
-     * Param fromCodes: Optional list of departure airport codes to filter by.
-     * Param date: Optional departure date to filter by.
+     * @param fromCodes: Optional list of departure airport codes to filter by.
+     * @param date: Optional departure date to filter by.
      * Return a list of flight change log summaries.
      */
     fun getAllFlightChanges(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?): List<FlightChangeLogInfo> = transaction {
@@ -586,7 +586,7 @@ class AdminRepository {
     /**
      * Retrieves the schedule change history for a single flight.
      *
-     * Param flightId: The ID of the flight whose change history should be retrieved.
+     * @param flightId: The ID of the flight whose change history should be retrieved.
      * Return a list of change log entries for the selected flight.
      */
     fun getFlightChangesByFlightId(flightId: Int): List<FlightChangeLogInfo> = transaction {
@@ -624,7 +624,7 @@ class AdminRepository {
     /**
      * Formats an airport as a combined name and code string.
      *
-     * Param airportId: The airport ID to look up.
+     * @param airportId: The airport ID to look up.
      * Return a string containing the airport name and code.
      * Throws illegalStateException If the airport cannot be found.
      */
@@ -638,7 +638,7 @@ class AdminRepository {
     /**
      * Retrieves the aircraft type for a given aircraft ID.
      *
-     * Param aircraftId: The aircraft ID to look up.
+     * @param aircraftId: The aircraft ID to look up.
      * Return the aircraft type.
      * Throws illegalStateException If the aircraft cannot be found.
      */
@@ -652,10 +652,10 @@ class AdminRepository {
     /**
      * Each result contains booking details, customer information, flight information,payment amount where available, and aircraft type.
      *
-     * Param fromCodes: Optional list of departure airport codes to filter by.
-     * Param toCodes: Optional list of arrival airport codes to filter by.
-     * Param date: Optional departure date to filter by.
-     * Param status: Optional booking status to filter by.
+     * @param fromCodes: Optional list of departure airport codes to filter by.
+     * @param toCodes: Optional list of arrival airport codes to filter by.
+     * @param date: Optional departure date to filter by.
+     * @param status: Optional booking status to filter by.
      * Return a list of reservation summaries matching the filters.
      */
     fun getAllReservations(fromCodes: List<String>?,toCodes: List<String>?,date: LocalDate?,status: BookingStatus?
@@ -740,7 +740,7 @@ class AdminRepository {
      * Finds an airport ID by its airport code.
      * The supplied airport code is normalised to uppercase before lookup.
      *
-     * Param code: The airport code to search for.
+     * @param code: The airport code to search for.
      * Return the matching airport ID, or null if the airport code is not found.
      */
     fun getAirportIdByCode(code: String): Int? = transaction {
@@ -861,6 +861,21 @@ class AdminRepository {
             }
             .singleOrNull()
     }
+    /**
+     * Handles a customer flight information change request.
+     *
+     * If the request is approved, passenger information and/or flight assignment
+     * may be updated depending on the request type. The request status, admin reply,
+     * handling time, and handling administrator are then recorded.
+     *
+     * @param requestId: The ID of the request to handle.
+     * @param newStatus: The new status to apply to the request.
+     * @param adminReply: Optional response message from the administrator.
+     * @param adminUserId: The ID of the administrator handling the request.
+     * Return True if the request was found and handled, false otherwise.
+     *
+     * Throws illegalStateException If an approved flight change cannot be applied.
+     */
     fun handleFlightInfoRequest(requestId: Int,newStatus: FlightInfoRequestStatus,adminReply: String?,adminUserId: Int): Boolean = transaction {
         val request = FlightInfoRequestTable.select { FlightInfoRequestTable.id eq requestId }.singleOrNull() ?: return@transaction false
 
@@ -917,7 +932,7 @@ class AdminRepository {
      * The search checks customer first name, last name, email address, and booking reference. If the search contains multiple words,
      * the method also attempts to match first-name and last-name combinations in either order.
      *
-     * Param query: The search keyword entered by the administrator.
+     * @param query: The search keyword entered by the administrator.
      * Return a list of matching reservation summaries, or an empty list if the query is blank.
      */
     fun searchReservationsByCustomer(query: String): List<ReservationSummary> = transaction {
@@ -1017,8 +1032,8 @@ class AdminRepository {
      * are updated to available seats on the new flight. If there are not enough
      * available seats, the change is rejected by throwing an exception.
      *
-     * Param bookingId: The booking to update.
-     * Param requestedFlightCode: The new flight code requested by the customer.
+     * @param bookingId: The booking to update.
+     * @param requestedFlightCode: The new flight code requested by the customer.
      *
      * Throws IllegalStateException If the booking, requested flight, passengers,or sufficient available seats cannot be found.
      */

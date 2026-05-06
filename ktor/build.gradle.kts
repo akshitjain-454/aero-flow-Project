@@ -6,6 +6,7 @@ plugins {
 
 group = "com.flightbooking"
 version = "0.0.1"
+val kotestVersion = "5.9.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -14,6 +15,10 @@ application {
 kotlin {
     jvmToolchain(21)
 }
+// Unit Test
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
 
 dependencies {
     implementation(libs.ktor.server.core)
@@ -21,6 +26,9 @@ dependencies {
     implementation(libs.logback.classic)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
+    // Unit Test
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
     // Auth & Sessions
     implementation("io.ktor:ktor-server-auth:2.3.4")
@@ -49,4 +57,5 @@ dependencies {
     //Notifications
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
 }
