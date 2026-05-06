@@ -154,7 +154,7 @@ class BookingRepository {
             val redeemedLoyaltyPoints = getRedeemedLoyaltyPointsByUserId(userId)
 
             val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
-            val discountedPrice = (price - discount).max(BigDecimal.ZERO)
+            val discountedPrice = (price - discount).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP)
 
             // Set redeemed to current
             UserTable.update({ UserTable.id eq userId }) {
@@ -270,7 +270,7 @@ class BookingRepository {
             }
 
             if (booking.status == BookingStatus.CREATED) {
-                return@transaction booking
+                return@transaction booking.copy(status = BookingStatus.CANCELLED)
             }
 
             // 3.Find original payment amount
@@ -431,7 +431,11 @@ class BookingRepository {
                     date <= now.plusWeeks(4) -> BigDecimal("1.1")
                     else -> BigDecimal("1.0")
                 }
-            val ticketPrice = flightPrice.multiply(seatClassMultiplier).multiply(dateMultiplier)
+            val ticketPrice =
+                flightPrice
+                    .multiply(seatClassMultiplier)
+                    .multiply(dateMultiplier)
+                    .setScale(2, RoundingMode.HALF_UP)
 
             return@transaction ticketPrice
         }

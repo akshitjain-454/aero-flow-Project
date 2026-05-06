@@ -1,0 +1,84 @@
+ --- READ ME ---
+
+During this project we have done lots of manual testing, this was primarily done in the frontend once that was working. 
+When we got our frontend working at least 1 or 2 of us tested through different routes a user might follow to find 
+any problems - we found this to be a very effective method.
+Finally, before we got working front-end all manual testing was done with curl commands in the terminal, I have listed 
+a few of these below as examples but many more can be found in the comments of pull requests and commits.
+
+ --- READ ME ---
+
+
+ Response for new booking after the changes, as you can see its CONFIRMED.
+curl.exe http://localhost:8080/review_bookings -b cookies.txt -s
+{
+"bookingReference" : "D3757564",
+"flightCode" : "AE101",
+"bookingStatus" : "CONFIRMED",
+"numOfPassengers" : 1,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : 344.99
+}
+
+- - - - - - - - - - - - - - - - - - 
+
+Respond with booking info to front-end when review_bookings route is called rather than just booking table - Tested with curl as shown below.
+BOOKING ROUTE WITH COOKIES
+PS E:\2850 Project Repo\aero-flow-Project\ktor> curl.exe http://localhost:8080/review_bookings -b cookies.txt -s
+[ {
+"bookingReference" : "47D756AF",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 0,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : null
+}, {
+"bookingReference" : "096314AA",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 0,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : null
+}, {
+"bookingReference" : "365FCD01",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 0,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : null
+}, {
+"bookingReference" : "FEBF32F3",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 0,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : null
+}, {
+"bookingReference" : "D2E8B447",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 1,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : 299.99
+}, {
+"bookingReference" : "648EAA11",
+"flightCode" : "AE101",
+"bookingStatus" : "CREATED",
+"numOfPassengers" : 2,
+"departureAirportNameCode" : "Leeds Bradford Airport LBA",
+"arrivalAirportNameCode" : "Dubai International Airport DXB",
+"departureTime" : "2026-04-01T10:00:00",
+"amountPaid" : null
+} ]
