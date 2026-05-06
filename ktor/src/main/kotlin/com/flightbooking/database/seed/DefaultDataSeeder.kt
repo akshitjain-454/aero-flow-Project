@@ -1,19 +1,18 @@
-//Only for testing
+// Only for testing
 package com.flightbooking.database.seed
 
 import com.flightbooking.enums.UserRole
-import com.flightbooking.tables.UserTable
+import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.tables.SeatTable
-import com.flightbooking.tables.FlightSeatTable
+import com.flightbooking.tables.UserTable
+import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDateTime
-import org.jetbrains.exposed.sql.batchInsert
 
 object DefaultDataSeeder {
-
     fun seed() {
         val now = LocalDateTime.now()
 
@@ -25,7 +24,7 @@ object DefaultDataSeeder {
             role = UserRole.USER,
             loyaltyPoints = 0,
             redeemedLoyaltyPoints = 0,
-            createdAt = now
+            createdAt = now,
         )
 
         createUserIfMissing(
@@ -36,7 +35,7 @@ object DefaultDataSeeder {
             role = UserRole.ADMIN,
             loyaltyPoints = 0,
             redeemedLoyaltyPoints = 0,
-            createdAt = now
+            createdAt = now,
         )
         seedFlightSeats()
     }
@@ -49,11 +48,12 @@ object DefaultDataSeeder {
         role: UserRole,
         loyaltyPoints: Int,
         redeemedLoyaltyPoints: Int,
-        createdAt: LocalDateTime
+        createdAt: LocalDateTime,
     ) {
-        val exists = UserTable
-            .selectAll()
-            .any { row -> row[UserTable.email] == email }
+        val exists =
+            UserTable
+                .selectAll()
+                .any { row -> row[UserTable.email] == email }
 
         if (exists) return
 
@@ -69,25 +69,27 @@ object DefaultDataSeeder {
         }
     }
 
-   data class FlightSeatData(val flightId: Int, val seatId: Int)
+    data class FlightSeatData(val flightId: Int, val seatId: Int)
 
     fun seedFlightSeats() {
         if (FlightSeatTable.selectAll().limit(1).count() > 0) return
 
         // Get flights with their aircraft_id
-        val flights = FlightTable.selectAll().map { flight ->
-            flight[FlightTable.id] to flight[FlightTable.aircraftId]
-        }
-        
+        val flights =
+            FlightTable.selectAll().map { flight ->
+                flight[FlightTable.id] to flight[FlightTable.aircraftId]
+            }
+
         // Get seats grouped by aircraft_id
-        val seatsByAircraft = SeatTable.selectAll().groupBy { seat ->
-            seat[SeatTable.aircraftId]
-        }.mapValues { (_, seats) ->
-            seats.map { it[SeatTable.id] }
-        }
+        val seatsByAircraft =
+            SeatTable.selectAll().groupBy { seat ->
+                seat[SeatTable.aircraftId]
+            }.mapValues { (_, seats) ->
+                seats.map { it[SeatTable.id] }
+            }
 
         val data = mutableListOf<FlightSeatData>()
-        
+
         for ((flightId, aircraftId) in flights) {
             seatsByAircraft[aircraftId]?.forEach { seatId ->
                 data.add(FlightSeatData(flightId, seatId))
