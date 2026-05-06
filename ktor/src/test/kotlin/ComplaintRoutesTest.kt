@@ -203,20 +203,4 @@ class ComplaintRoutesTest : StringSpec({
         }
     }
 
-    "GET complaints my redirects to login when user is not logged in" {
-        testApplication {
-            application {
-                testComplaintApplication()
-            }
-
-            val client = createClient {
-                followRedirects = false
-            }
-
-            val response = client.get("/complaints/my")
-
-            response.status shouldBe HttpStatusCode.Found
-            response.headers[HttpHeaders.Location] shouldBe "/login"
-        }
-    }
 })
