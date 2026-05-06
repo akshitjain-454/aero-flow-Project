@@ -1,0 +1,802 @@
+{% extends "base.html" %}
+
+{% block title %}Select Seats | Aetheria{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        transition: background-color 0.2s, transform 0.2s; text-decoration: none;
+    }
+    .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+
+    /* ── Hero ── */
+    .seats-hero {
+        background: var(--charcoal);
+        padding: 7rem 2rem 3rem;
+    }
+
+    /* ── Stepper ── */
+    .stepper { display: flex; align-items: center; gap: 0; margin-bottom: 2rem; }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+    .step-circle {
+        width: 2rem; height: 2rem; border-radius: 9999px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.65rem; font-weight: 800;
+    }
+    .step-circle.active   { background: var(--sky-blue); color: #fff; }
+    .step-circle.done     { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    .step-circle.upcoming {
+        background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .step-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; }
+    .step-label.active   { color: var(--sky-blue); }
+    .step-label.done     { color: rgba(255,255,255,0.4); }
+    .step-label.upcoming { color: rgba(255,255,255,0.2); }
+    .step-connector {
+        flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+        margin-bottom: 1.2rem; min-width: 2.5rem;
+    }
+
+    /* ── Passenger tabs ── */
+    .pax-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .pax-tab {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.6rem 1.2rem; border-radius: 9999px;
+        font-size: 0.65rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.15em;
+        cursor: pointer; border: none;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .pax-tab.inactive {
+        background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .pax-tab.active {
+        background: var(--sky-blue); color: #fff;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        border: 1px solid transparent;
+    }
+    .pax-tab.done {
+        background: rgba(255,255,255,0.15); color: #fff;
+        border: 1px solid rgba(255,255,255,0.25);
+    }
+    .pax-tab .check-icon { font-size: 0.75rem; }
+
+    /* ── Side-by-side flight panels ── */
+    .flights-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        width: 100%;
+    }
+    @media (max-width: 1200px) {
+        .flights-wrapper { grid-template-columns: 1fr; }
+    }
+
+    .flight-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: fadeUp 0.4s ease both;
+    }
+    .flight-panel:nth-child(2) { animation-delay: 0.1s; }
+
+    /* ── Flight label pill ── */
+    .flight-label-bar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+    .flight-direction-pill {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.5rem 1.2rem; border-radius: 9999px;
+        font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;
+        white-space: nowrap;
+    }
+    .flight-direction-pill.outbound {
+        background: rgba(0,102,255,0.1); color: var(--sky-blue);
+        border: 1px solid rgba(0,102,255,0.2);
+    }
+    .flight-direction-pill.return {
+        background: rgba(139,92,246,0.1); color: #7c3aed;
+        border: 1px solid rgba(139,92,246,0.2);
+    }
+    .flight-route-label {
+        font-size: 0.65rem; font-weight: 700; color: #9ca3af;
+        letter-spacing: 0.05em;
+    }
+    .flight-route-label strong { color: var(--charcoal); font-weight: 800; }
+
+    /* ── Divider between panels ── */
+    .flight-divider {
+        display: none;
+    }
+    @media (min-width: 1201px) {
+        .flight-divider {
+            display: block;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+            align-self: stretch;
+        }
+    }
+
+    /* ── Elegant Airplane Fuselage ── */
+    .seat-map-container {
+        display: flex; justify-content: center; width: 100%;
+        overflow-x: auto; padding: 0.5rem 0 2rem;
+    }
+    .airplane-body {
+        background: #ffffff;
+        border: 2px solid #e5e7eb;
+        border-radius: 180px 180px 80px 80px;
+        padding: 7rem 3.5rem 5rem;
+        position: relative;
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08), inset 0 0 30px rgba(0, 0, 0, 0.02);
+        z-index: 1;
+        min-width: max-content;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .airplane-body::before {
+        content: ''; position: absolute;
+        top: 2.5rem; left: 50%; transform: translateX(-50%);
+        width: 70px; height: 40px;
+        background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+        border-radius: 40px 40px 12px 12px; border: 2px solid #cbd5e1;
+        box-shadow: inset 0 4px 10px rgba(255,255,255,0.6);
+    }
+    /* Return flight cockpit tint */
+    .airplane-body.return-plane::before {
+        background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
+        border-color: #a78bfa;
+    }
+
+    /* ── Class section headers ── */
+    .class-header {
+        display: flex; align-items: center; gap: 1rem;
+        margin-bottom: 1.5rem; margin-top: 0; width: 100%;
+    }
+    .class-header:not(:first-child) { margin-top: 3.5rem; }
+    .class-badge {
+        padding: 0.4rem 1rem; border-radius: 9999px;
+        font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;
+    }
+    .class-badge.first    { background: #fef3c7; color: #92400e; }
+    .class-badge.business { background: #dbeafe; color: #1e40af; }
+    .class-badge.economy  { background: #f3f4f6; color: #4b5563; }
+    .class-divider { flex: 1; height: 1px; background: #e5e7eb; }
+
+    /* ── Seat grid ── */
+    .seat-row {
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.45rem; margin-bottom: 0.45rem; width: 100%;
+    }
+    .row-label {
+        width: 2rem; text-align: center;
+        font-size: 0.6rem; font-weight: 800;
+        color: #9ca3af; flex-shrink: 0;
+    }
+    .aisle-spacer { width: 2.2rem; flex-shrink: 0; }
+
+    .seat-btn {
+        width: 2.4rem; height: 2.4rem;
+        border-radius: 8px 8px 4px 4px; border: 2px solid transparent;
+        font-size: 0.5rem; font-weight: 800; cursor: pointer;
+        transition: all 0.15s ease; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 1px;
+        position: relative; flex-shrink: 0; letter-spacing: 0.03em;
+    }
+    .seat-btn.first.avail     { background: #fef9ec; border-color: #fcd34d; color: #92400e; }
+    .seat-btn.business.avail  { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
+    .seat-btn.economy.avail   { background: #f9fafb; border-color: #e5e7eb; color: #374151; }
+    .seat-btn.first.avail:hover    { background: #fcd34d; border-color: #f59e0b; color: #78350f; transform: scale(1.1); }
+    .seat-btn.business.avail:hover { background: #bfdbfe; border-color: #3b82f6; color: #1e3a8a; transform: scale(1.1); }
+    .seat-btn.economy.avail:hover  { background: #e5e7eb; border-color: #9ca3af; color: #111827; transform: scale(1.1); }
+
+    .seat-btn.taken {
+        background: #f3f4f6; border-color: #e5e7eb;
+        color: #d1d5db; cursor: not-allowed; opacity: 0.5;
+    }
+    /* Outbound selected = sky blue */
+    .seat-btn.selected-current-out {
+        background: var(--sky-blue); border-color: #0052cc;
+        color: #fff; transform: scale(1.12); box-shadow: 0 4px 14px rgba(0,102,255,0.4); z-index: 2;
+    }
+    .seat-btn.selected-other-out {
+        background: #60a5fa; border-color: #2563eb; color: #fff; cursor: not-allowed;
+    }
+    /* Return selected = violet */
+    .seat-btn.selected-current-ret {
+        background: #7c3aed; border-color: #5b21b6;
+        color: #fff; transform: scale(1.12); box-shadow: 0 4px 14px rgba(124,58,237,0.4); z-index: 2;
+    }
+    .seat-btn.selected-other-ret {
+        background: #a78bfa; border-color: #7c3aed; color: #fff; cursor: not-allowed;
+    }
+    .seat-btn::before {
+        content: ''; position: absolute;
+        top: -5px; left: 50%; transform: translateX(-50%);
+        width: 50%; height: 5px; border-radius: 4px 4px 0 0;
+        background: inherit; border: inherit; border-bottom: none; transition: background 0.15s;
+    }
+
+    /* ── Column letters header ── */
+    .col-headers {
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.45rem; margin-bottom: 0.75rem; width: 100%;
+        padding-left: 2.45rem;
+    }
+    .col-header-letter {
+        width: 2.4rem; text-align: center;
+        font-size: 0.55rem; font-weight: 800; color: #9ca3af;
+        text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* ── Legend ── */
+    .legend {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+        margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f0f0f0;
+        width: 100%;
+    }
+    .legend-item {
+        display: flex; align-items: center; gap: 0.5rem; font-size: 0.6rem;
+        font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280;
+    }
+    .legend-swatch { width: 1.1rem; height: 1.1rem; border-radius: 4px; border: 2px solid transparent; }
+    .legend-swatch.avail-e  { background: #f9fafb; border-color: #e5e7eb; }
+    .legend-swatch.avail-b  { background: #eff6ff; border-color: #93c5fd; }
+    .legend-swatch.avail-f  { background: #fef9ec; border-color: #fcd34d; }
+    .legend-swatch.taken-s  { background: #f3f4f6; border-color: #e5e7eb; opacity: 0.5; }
+    .legend-swatch.mine-out { background: var(--sky-blue); }
+    .legend-swatch.mine-ret { background: #7c3aed; }
+
+    /* ── Summary panel ── */
+    .selection-summary {
+        background: #ffffff; border-radius: 20px; border: 1px solid #f0f0f0;
+        padding: 2rem; animation: fadeUp 0.45s ease both; position: sticky; top: 7rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    }
+    .summary-title {
+        font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.2em; color: #9ca3af; margin-bottom: 1.25rem;
+    }
+    .summary-flight-block { margin-bottom: 1.5rem; }
+    .summary-flight-block:last-of-type { margin-bottom: 0; }
+    .summary-flight-heading {
+        font-size: 0.55rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.2em; margin-bottom: 0.75rem;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .summary-flight-heading.out { color: var(--sky-blue); }
+    .summary-flight-heading.ret { color: #7c3aed; }
+    .summary-flight-divider { height: 1px; background: #f0f0f0; margin: 1.25rem 0; }
+    .summary-pax-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.7rem 0; border-bottom: 1px solid #f8f8f8;
+    }
+    .summary-pax-row:last-child { border-bottom: none; }
+    .summary-pax-name { font-size: 0.75rem; font-weight: 700; color: var(--charcoal); }
+    .summary-seat-chip {
+        font-size: 0.65rem; font-weight: 800; padding: 0.25rem 0.7rem;
+        border-radius: 9999px; letter-spacing: 0.1em; transition: all 0.2s;
+    }
+    .summary-seat-chip.empty { background: #f3f4f6; color: #d1d5db; }
+    .summary-seat-chip.filled-out { background: var(--sky-blue); color: #fff; }
+    .summary-seat-chip.filled-ret { background: #7c3aed; color: #fff; }
+
+    /* Instruction chip */
+    .instruction-chip {
+        background: rgba(0,102,255,0.08); border: 1px solid rgba(0,102,255,0.15);
+        border-radius: 12px; padding: 0.9rem 1.1rem; font-size: 0.7rem; font-weight: 600;
+        color: #1d4ed8; letter-spacing: 0.02em; margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 0.75rem; animation: fadeUp 0.35s ease both;
+    }
+    .instruction-chip.ret-mode {
+        background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); color: #5b21b6;
+    }
+    .instruction-chip .plane-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* Proceed / CTA */
+    .proceed-btn {
+        display: block; width: 100%; padding: 1.2rem; border-radius: 9999px; border: none;
+        background: var(--sky-blue); color: #fff; font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer;
+        text-align: center; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 24px -4px rgba(0,102,255,0.35); margin-top: 2rem;
+    }
+    .proceed-btn:hover:not(:disabled) {
+        background: var(--charcoal); transform: translateY(-2px);
+        box-shadow: 0 12px 32px -4px rgba(0,0,0,0.2);
+    }
+    .proceed-btn:disabled { background: #e5e7eb; color: #9ca3af; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    /* Progress bar under proceed btn */
+    .all-set-bar {
+        display: none; margin-top: 1rem; text-align: center;
+        font-size: 0.6rem; font-weight: 700; color: #10b981; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .all-set-bar.visible { display: block; }
+
+    .page-grid {
+        display: grid; grid-template-columns: 1fr 340px; gap: 2.5rem;
+        max-width: 90rem; margin: 0 auto; padding: 2.5rem 1.5rem; align-items: start;
+    }
+    @media (max-width: 1024px) { .page-grid { grid-template-columns: 1fr; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+{% endblock %}
+
+{% block body_classes %}relative{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors">Book</a></li>
+            <li><a href="#" class="nav-link hover:text-black transition-colors">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn">{{ userInitials }}</a>
+        {% else %}
+            <a href="/login" class="bg-black text-white px-8 py-2.5 rounded-full text-[10px] uppercase font-extrabold">Login</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="seats-hero">
+    <div class="max-w-5xl mx-auto">
+        <div class="stepper">
+            <div class="step"><div class="step-circle done">✓</div><span class="step-label done">Flight</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle done">✓</div><span class="step-label done">Passengers</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle active">3</div><span class="step-label active">Seats</span></div><div class="step-connector"></div>
+            <div class="step"><div class="step-circle upcoming">4</div><span class="step-label upcoming">Payment</span></div>
+        </div>
+        <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Choose your <span class="italic text-[--sky-blue]">seats</span></h1>
+        <p class="text-gray-500 text-xs uppercase tracking-[0.3em] font-bold mt-3">Booking ref: <span style="color: rgba(255,255,255,0.4);">{{ reference }}</span></p>
+
+        <div class="pax-tabs" style="margin-top: 2.5rem;" id="pax-tabs">
+            {% for pax in passengers %}
+            <button class="pax-tab" onclick="switchPassenger({{ pax.id }})" type="button" data-pax-id="{{ pax.id }}">
+                <span>{{ pax.firstname }} {{ pax.lastname }}</span>
+                <span class="check-icon" id="check-{{ pax.id }}" style="display:none">✓</span>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<main>
+    <div class="page-grid">
+        <div>
+            <div class="instruction-chip" id="instruction-chip">
+                <span class="plane-icon">✈</span>
+                <span id="instruction-text">
+                    {% if passengers is not empty %}
+                        Select seats for <strong>{{ passengers[0].firstname }} {{ passengers[0].lastname }}</strong> — outbound on the left, return on the right.
+                    {% else %}
+                        No passengers found for this booking.
+                    {% endif %}
+                </span>
+            </div>
+
+            <form method="post" action="/booking/{{ reference }}/ticket_assignment" id="seats-form">
+                {# Outbound hidden inputs #}
+                {% for pax in passengers %}
+                    <input type="hidden" name="passenger_{{ pax.id }}_seat_id" id="input-out-pax-{{ pax.id }}" value="">
+                {% endfor %}
+                {# Return hidden inputs #}
+                {% for pax in passengers %}
+                    <input type="hidden" name="passenger_{{ pax.id }}_return_seat_id" id="input-ret-pax-{{ pax.id }}" value="">
+                {% endfor %}
+
+                <div class="flights-wrapper">
+
+                    <!-- ── OUTBOUND FLIGHT ── -->
+                    <div class="flight-panel" id="panel-outbound">
+                        <div class="flight-label-bar">
+                            <div class="flight-direction-pill outbound">✈ Outbound</div>
+                            <span class="flight-route-label">
+                                <strong>{{ outboundFlight.origin }}</strong> → <strong>{{ outboundFlight.destination }}</strong>
+                                &nbsp;·&nbsp; {{ outboundFlight.flightCode }}
+                            </span>
+                        </div>
+                        <div class="seat-map-container">
+                            <div class="airplane-body" id="airplane-outbound">
+                                <div id="seat-map-outbound"></div>
+                            </div>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-swatch avail-f"></div>First</div>
+                            <div class="legend-item"><div class="legend-swatch avail-b"></div>Business</div>
+                            <div class="legend-item"><div class="legend-swatch avail-e"></div>Economy</div>
+                            <div class="legend-item"><div class="legend-swatch taken-s"></div>Taken</div>
+                            <div class="legend-item"><div class="legend-swatch mine-out"></div>Your Seat</div>
+                        </div>
+                    </div>
+
+                    <!-- ── RETURN FLIGHT ── -->
+                    <div class="flight-panel" id="panel-return">
+                        <div class="flight-label-bar">
+                            <div class="flight-direction-pill return">↩ Return</div>
+                            <span class="flight-route-label">
+                                <strong>{{ returnFlight.destination }}</strong> → <strong>{{ returnFlight.origin }}</strong>
+                                &nbsp;·&nbsp; {{ returnFlight.flightCode }}
+                            </span>
+                        </div>
+                        <div class="seat-map-container">
+                            <div class="airplane-body return-plane" id="airplane-return">
+                                <div id="seat-map-return"></div>
+                            </div>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-swatch avail-f"></div>First</div>
+                            <div class="legend-item"><div class="legend-swatch avail-b"></div>Business</div>
+                            <div class="legend-item"><div class="legend-swatch avail-e"></div>Economy</div>
+                            <div class="legend-item"><div class="legend-swatch taken-s"></div>Taken</div>
+                            <div class="legend-item"><div class="legend-swatch mine-ret"></div>Your Seat</div>
+                        </div>
+                    </div>
+
+                </div><!-- /.flights-wrapper -->
+
+                <button type="submit" id="real-submit" style="display:none"></button>
+            </form>
+        </div>
+
+        <!-- ── SUMMARY SIDEBAR ── -->
+        <div>
+            <div class="selection-summary">
+                <p class="summary-title">Your Selections</p>
+
+                <!-- Outbound -->
+                <div class="summary-flight-block">
+                    <div class="summary-flight-heading out">✈ Outbound · {{ outboundFlight.origin }} → {{ outboundFlight.destination }}</div>
+                    {% for pax in passengers %}
+                    <div class="summary-pax-row">
+                        <div class="summary-pax-name">{{ pax.firstname }} {{ pax.lastname }}</div>
+                        <div class="summary-seat-chip empty" id="chip-out-{{ pax.id }}">−</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="summary-flight-divider"></div>
+
+                <!-- Return -->
+                <div class="summary-flight-block">
+                    <div class="summary-flight-heading ret">↩ Return · {{ returnFlight.destination }} → {{ returnFlight.origin }}</div>
+                    {% for pax in passengers %}
+                    <div class="summary-pax-row">
+                        <div class="summary-pax-name">{{ pax.firstname }} {{ pax.lastname }}</div>
+                        <div class="summary-seat-chip empty" id="chip-ret-{{ pax.id }}">−</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button class="proceed-btn" id="proceed-btn" type="button" disabled onclick="submitSeats()">Continue to Payment →</button>
+                <div class="all-set-bar" id="all-set-bar">🎉 All seats selected!</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // ── Seat data — both flights share the same layout ──────────────────
+    const SEAT_DATA = [
+        {% for seat in seats %}
+        { flightSeatId: {{ seat.flightSeatId }}, seatNumber: "{{ seat.seatNumber }}", seatClass: "{{ seat.seatClass }}", available: {{ seat.available }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Return flight seat data (same layout, different flightSeatIds)
+    // Convention: return seat IDs are supplied via returnSeats (same structure)
+    const RETURN_SEAT_DATA = [
+        {% for seat in returnSeats %}
+        { flightSeatId: {{ seat.flightSeatId }}, seatNumber: "{{ seat.seatNumber }}", seatClass: "{{ seat.seatClass }}", available: {{ seat.available }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const PASSENGERS = [
+        {% for pax in passengers %}
+        { id: {{ pax.id }}, firstname: "{{ pax.firstname }}", lastname: "{{ pax.lastname }}" }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Pre-selected seats from backend (if any)
+    const PRE_SELECTED_OUTBOUND = [
+        {% for sel in selectedOutboundSeats %}
+        { flightSeatId: {{ sel.flightSeatId }}, seatNumber: "{{ sel.seatNumber }}", paxId: {{ sel.passenger.id }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    const PRE_SELECTED_RETURN = [
+        {% for sel in selectedReturnSeats %}
+        { flightSeatId: {{ sel.flightSeatId }}, seatNumber: "{{ sel.seatNumber }}", paxId: {{ sel.passenger.id }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // ── State ────────────────────────────────────────────────────────────
+    // selections['out'][paxId] = { flightSeatId, seatNumber }
+    // selections['ret'][paxId] = { flightSeatId, seatNumber }
+    const selections = { out: {}, ret: {} };
+
+    PRE_SELECTED_OUTBOUND.forEach(s => { selections.out[s.paxId] = { flightSeatId: s.flightSeatId, seatNumber: s.seatNumber }; });
+    PRE_SELECTED_RETURN.forEach(s  => { selections.ret[s.paxId] = { flightSeatId: s.flightSeatId, seatNumber: s.seatNumber }; });
+
+    // Smart default: first passenger missing a seat
+    let currentPaxId = null;
+    if (PASSENGERS.length > 0) {
+        const firstUnassigned = PASSENGERS.find(p => !selections.out[p.id] || !selections.ret[p.id]);
+        currentPaxId = firstUnassigned ? firstUnassigned.id : PASSENGERS[0].id;
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function parseSeatNumber(sn) {
+        const m = sn.match(/^(\d+)([A-Za-z]+)$/);
+        return m ? { row: parseInt(m[1], 10), col: m[2].toUpperCase() } : null;
+    }
+
+    function getSeatClass(cls) {
+        const c = cls.toLowerCase();
+        if (c.includes('first')) return 'first';
+        if (c.includes('business')) return 'business';
+        return 'economy';
+    }
+
+    // ── Build a seat map into a given root element ────────────────────────
+    function buildSeatMap(seatData, rootId, flightKey) {
+        const root = document.getElementById(rootId);
+        if (!root || !seatData.length) return;
+
+        const byClass = {};
+        seatData.forEach(seat => {
+            const cls = getSeatClass(seat.seatClass);
+            const parsed = parseSeatNumber(seat.seatNumber);
+            if (!parsed) return;
+            if (!byClass[cls]) byClass[cls] = {};
+            if (!byClass[cls][parsed.row]) byClass[cls][parsed.row] = [];
+            byClass[cls][parsed.row].push({ ...seat, row: parsed.row, col: parsed.col });
+        });
+
+        const classOrder = ['first', 'business', 'economy'];
+        const classLabels = { first: 'First Class', business: 'Business', economy: 'Economy' };
+        let html = '';
+
+        classOrder.forEach(cls => {
+            if (!byClass[cls]) return;
+
+            const allCols = new Set();
+            Object.values(byClass[cls]).forEach(row => row.forEach(s => allCols.add(s.col)));
+            const cols = Array.from(allCols).sort();
+
+            html += `<div class="class-header"><span class="class-badge ${cls}">${classLabels[cls]}</span><div class="class-divider"></div></div>`;
+
+            html += `<div class="col-headers">`;
+            cols.forEach((col, i) => {
+                let addAisle = (cols.length >= 6 && (i === 1 || i === 3)) || (cols.length === 4 && i === 1);
+                if (addAisle) html += `<div class="aisle-spacer"></div>`;
+                html += `<div class="col-header-letter">${col}</div>`;
+            });
+            html += `</div>`;
+
+            const rows = Object.keys(byClass[cls]).map(Number).sort((a, b) => a - b);
+            rows.forEach(rowNum => {
+                const rowSeats = byClass[cls][rowNum];
+                const seatMap = {};
+                rowSeats.forEach(s => seatMap[s.col] = s);
+
+                html += `<div class="seat-row"><div class="row-label">${rowNum}</div>`;
+                cols.forEach((col, i) => {
+                    const seat = seatMap[col];
+                    let addAisle = (cols.length >= 6 && (i === 1 || i === 3)) || (cols.length === 4 && i === 1);
+                    if (addAisle) html += `<div class="aisle-spacer"></div>`;
+
+                    if (!seat) {
+                        html += `<div style="width:2.4rem;height:2.4rem;flex-shrink:0;"></div>`;
+                    } else {
+                        html += `<button type="button" class="seat-btn ${cls} ${seat.available ? 'avail' : 'taken'}"
+                            id="seat-btn-${flightKey}-${seat.flightSeatId}"
+                            onclick="handleSeatClick('${flightKey}', ${seat.flightSeatId}, '${seat.seatNumber}', ${seat.available})"
+                            ${seat.available ? '' : 'disabled'}>${seat.seatNumber}</button>`;
+                    }
+                });
+                html += `</div>`;
+            });
+        });
+        root.innerHTML = html;
+    }
+
+    // ── Handle seat click ────────────────────────────────────────────────
+    function handleSeatClick(flightKey, flightSeatId, seatNumber, available) {
+        if (!available || !currentPaxId) return;
+
+        const sel = selections[flightKey];
+
+        // Prevent stealing another pax's seat
+        for (const [paxId, s] of Object.entries(sel)) {
+            if (s.flightSeatId === flightSeatId && parseInt(paxId) !== currentPaxId) return;
+        }
+
+        // Deselect if same seat clicked again
+        if (sel[currentPaxId] && sel[currentPaxId].flightSeatId === flightSeatId) {
+            delete sel[currentPaxId];
+            const inputId = flightKey === 'out' ? `input-out-pax-${currentPaxId}` : `input-ret-pax-${currentPaxId}`;
+            document.getElementById(inputId).value = '';
+            updateChip(currentPaxId, flightKey, null);
+            updateTabs();
+            updateSeatMap('out');
+            updateSeatMap('ret');
+            updateProceedBtn();
+            return;
+        }
+
+        // Assign seat
+        sel[currentPaxId] = { flightSeatId, seatNumber };
+        const inputId = flightKey === 'out' ? `input-out-pax-${currentPaxId}` : `input-ret-pax-${currentPaxId}`;
+        document.getElementById(inputId).value = flightSeatId;
+        updateChip(currentPaxId, flightKey, seatNumber);
+
+        updateTabs();
+        updateSeatMap('out');
+        updateSeatMap('ret');
+        updateProceedBtn();
+
+        // Auto-advance: prioritise getting BOTH seats for the same passenger
+        // (outbound first, then return, then next passenger)
+        const currentPax = PASSENGERS.find(p => p.id === currentPaxId);
+        if (currentPax) {
+            if (!selections.out[currentPaxId] || !selections.ret[currentPaxId]) {
+                // Stay on same passenger — they still need the other flight's seat
+                // No switch needed, just update instruction
+                updateInstruction(currentPaxId);
+                return;
+            }
+        }
+        // Both seats for this pax done — move to next unfinished pax
+        const nextPax = PASSENGERS.find(p => p.id !== currentPaxId && (!selections.out[p.id] || !selections.ret[p.id]));
+        if (nextPax) switchPassenger(nextPax.id);
+    }
+
+    // ── Sync seat button classes ─────────────────────────────────────────
+    function updateSeatMap(flightKey) {
+        const seatData = flightKey === 'out' ? SEAT_DATA : RETURN_SEAT_DATA;
+        const sel      = selections[flightKey];
+
+        const seatToPax = {};
+        Object.entries(sel).forEach(([paxId, s]) => seatToPax[s.flightSeatId] = parseInt(paxId));
+
+        seatData.forEach(seat => {
+            const btn = document.getElementById(`seat-btn-${flightKey}-${seat.flightSeatId}`);
+            if (!btn) return;
+
+            if (!seat.available) {
+                btn.className = `seat-btn taken`;
+            } else if (seatToPax[seat.flightSeatId] !== undefined) {
+                const owner = seatToPax[seat.flightSeatId];
+                if (owner === currentPaxId) {
+                    btn.className = `seat-btn selected-current-${flightKey}`;
+                    btn.disabled = false;
+                } else {
+                    btn.className = `seat-btn selected-other-${flightKey}`;
+                    btn.disabled = true;
+                }
+            } else {
+                const cls = getSeatClass(seat.seatClass);
+                btn.className = `seat-btn ${cls} avail`;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    function updateChip(paxId, flightKey, seatNumber) {
+        const chip = document.getElementById(`chip-${flightKey}-${paxId}`);
+        if (!chip) return;
+        if (seatNumber) {
+            chip.textContent = seatNumber;
+            chip.className = `summary-seat-chip filled-${flightKey}`;
+        } else {
+            chip.textContent = '−';
+            chip.className = 'summary-seat-chip empty';
+        }
+    }
+
+    function updateTabs() {
+        document.querySelectorAll('.pax-tab').forEach(t => {
+            const tid = parseInt(t.dataset.paxId);
+            const checkEl = document.getElementById('check-' + tid);
+            const bothDone = selections.out[tid] && selections.ret[tid];
+
+            if (tid === currentPaxId) t.className = 'pax-tab active';
+            else if (bothDone) t.className = 'pax-tab done';
+            else t.className = 'pax-tab inactive';
+
+            if (checkEl) checkEl.style.display = bothDone ? 'inline' : 'none';
+        });
+    }
+
+    function updateProceedBtn() {
+        const allDone = PASSENGERS.every(p => selections.out[p.id] && selections.ret[p.id]);
+        document.getElementById('proceed-btn').disabled = !allDone;
+        const bar = document.getElementById('all-set-bar');
+        if (bar) bar.className = allDone ? 'all-set-bar visible' : 'all-set-bar';
+    }
+
+    function updateInstruction(paxId) {
+        const pax = PASSENGERS.find(p => p.id === paxId);
+        if (!pax) return;
+        const hasOut = !!selections.out[paxId];
+        const hasRet = !!selections.ret[paxId];
+        const chip = document.getElementById('instruction-chip');
+        const text = document.getElementById('instruction-text');
+        if (!text || !chip) return;
+
+        if (!hasOut && !hasRet) {
+            chip.className = 'instruction-chip';
+            text.innerHTML = `Select seats for <strong>${pax.firstname} ${pax.lastname}</strong> — outbound on the left, return on the right.`;
+        } else if (hasOut && !hasRet) {
+            chip.className = 'instruction-chip ret-mode';
+            text.innerHTML = `Now pick a <strong>return seat</strong> for <strong>${pax.firstname} ${pax.lastname}</strong> on the right.`;
+        } else if (!hasOut && hasRet) {
+            chip.className = 'instruction-chip';
+            text.innerHTML = `Now pick an <strong>outbound seat</strong> for <strong>${pax.firstname} ${pax.lastname}</strong> on the left.`;
+        } else {
+            chip.className = 'instruction-chip';
+            text.innerHTML = `<strong>${pax.firstname} ${pax.lastname}</strong> is all set! Move to the next passenger.`;
+        }
+    }
+
+    function switchPassenger(paxId) {
+        currentPaxId = paxId;
+        updateTabs();
+        updateSeatMap('out');
+        updateSeatMap('ret');
+        updateInstruction(paxId);
+    }
+
+    function submitSeats() { document.getElementById('real-submit').click(); }
+
+    // ── Init ─────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        buildSeatMap(SEAT_DATA,        'seat-map-outbound', 'out');
+        buildSeatMap(RETURN_SEAT_DATA, 'seat-map-return',   'ret');
+
+        // Push pre-selected data to inputs + chips
+        PASSENGERS.forEach(pax => {
+            if (selections.out[pax.id]) {
+                const inp = document.getElementById(`input-out-pax-${pax.id}`);
+                if (inp) inp.value = selections.out[pax.id].flightSeatId;
+                updateChip(pax.id, 'out', selections.out[pax.id].seatNumber);
+            }
+            if (selections.ret[pax.id]) {
+                const inp = document.getElementById(`input-ret-pax-${pax.id}`);
+                if (inp) inp.value = selections.ret[pax.id].flightSeatId;
+                updateChip(pax.id, 'ret', selections.ret[pax.id].seatNumber);
+            }
+        });
+
+        updateTabs();
+        updateProceedBtn();
+        if (currentPaxId) switchPassenger(currentPaxId);
+    });
+</script>
+{% endblock %}

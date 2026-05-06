@@ -25,20 +25,25 @@
         <form method="GET" action="/search"
               class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-[1.2fr_auto_1.2fr_1.8fr_1fr_auto] gap-6 items-end">
 
-<input type="hidden" name="from"                   id="from-code">
-<input type="hidden" name="to"                     id="to-code">
-<input type="hidden" name="departure_date"         id="departure-date">
-<input type="hidden" name="return_date"            id="return-date">
-
-<!-- ✅ FIXED -->
-<input type="hidden" name="num_of_passengers"      id="passengers-count" value="1">
-<input type="hidden" name="departure_flexibility"  id="dep-flexibility" value="0">
+            <!-- Hidden inputs populated by JS -->
+            <input type="hidden" name="from"                  id="from-code">
+            <input type="hidden" name="to"                    id="to-code">
+            <input type="hidden" name="departure_date"        id="departure-date">
+            <input type="hidden" name="return_date"           id="return-date">
+            <input type="hidden" name="num_of_passengers"     id="passengers-count" value="1">
+            <input type="hidden" name="departure_flexibility" id="dep-flexibility" value="0">
+            <input type="hidden" name="return_flexibility"    id="ret-flexibility" value="0">
+            <input type="hidden" name="trip_type"             id="trip-type-input" value="oneway">
 
             <!-- 1. Origin -->
             <div class="relative" id="from-wrapper">
                 <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Origin</label>
-                <input type="text" id="from-display" placeholder="From?" autocomplete="off"
-                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-base outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="from-tag-box"
+                     class="multi-tag-box border-b border-gray-200 flex flex-wrap gap-1 pb-2 min-h-[34px] cursor-text"
+                     onclick="document.getElementById('from-display').focus()">
+                    <input type="text" id="from-display" placeholder="From?" autocomplete="off"
+                           class="flex-1 min-w-[80px] bg-transparent outline-none text-base placeholder-gray-300">
+                </div>
                 <div id="from-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
             </div>
 
@@ -51,8 +56,12 @@
             <!-- 3. Destination -->
             <div class="relative" id="to-wrapper">
                 <label class="text-[10px] uppercase font-bold text-[--sky-blue] mb-2 block tracking-widest">Destination</label>
-                <input type="text" id="to-display" placeholder="To?" autocomplete="off"
-                       class="w-full bg-transparent border-b border-gray-200 pb-2 text-base outline-none focus:border-[--sky-blue] transition-colors">
+                <div id="to-tag-box"
+                     class="multi-tag-box border-b border-gray-200 flex flex-wrap gap-1 pb-2 min-h-[34px] cursor-text"
+                     onclick="document.getElementById('to-display').focus()">
+                    <input type="text" id="to-display" placeholder="To?" autocomplete="off"
+                           class="flex-1 min-w-[80px] bg-transparent outline-none text-base placeholder-gray-300">
+                </div>
                 <div id="to-results" class="airport-dropdown absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-30 max-h-64 overflow-y-auto hidden"></div>
             </div>
 
@@ -62,17 +71,11 @@
 
                 <div id="date-display"
                      class="w-full flex items-center justify-between border-b border-gray-200 pb-2 cursor-pointer select-none group hover:border-[--sky-blue] transition-colors">
-
-                    <!-- Departing -->
                     <div class="flex items-center gap-2">
                         <span class="text-[11px] text-gray-400 font-medium">Departing</span>
                         <span id="display-departing" class="text-sm font-semibold" style="color:#d1d5db;">—</span>
                     </div>
-
-                    <!-- Separator — hidden on one-way -->
                     <span id="date-separator" class="text-gray-300 mx-2">-</span>
-
-                    <!-- Returning — hidden on one-way -->
                     <div class="flex items-center gap-2 text-right" id="display-returning-block">
                         <span id="display-returning" class="text-sm font-semibold" style="color:#d1d5db;">—</span>
                         <span class="text-[11px] text-gray-400 font-medium">Returning</span>
@@ -104,11 +107,11 @@
             </div>
 
             <!-- 6. Submit -->
-            <button type="submit" id="search-btn"
-        class="bg-[--charcoal] text-white h-[46px] px-6 rounded-xl font-bold uppercase 
-               tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300">
-    Search
-</button>
+            <button type="button" id="search-btn"
+                    class="bg-[--charcoal] text-white h-[46px] px-6 rounded-xl font-bold uppercase 
+                           tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300">
+                Search
+            </button>
 
         </form>
     </div>
@@ -120,17 +123,12 @@
      class="hidden bg-white rounded-2xl shadow-2xl p-6"
      style="position: absolute; width: 680px; z-index: 99999;">
 
-    <!-- Trip type toggle -->
     <div class="flex gap-3 mb-5">
         <button type="button" id="oneway-btn"    class="trip-btn active">One Way</button>
         <button type="button" id="roundtrip-btn" class="trip-btn">Round Trip</button>
-        <button type="button" id="multicity-btn" class="trip-btn">Multi-City</button>
     </div>
 
-    <!-- Departing / Returning summary + flexibility -->
     <div class="flex gap-6 mb-5 pb-4 border-b border-gray-100">
-
-        <!-- Departing -->
         <div class="flex-1">
             <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Departing</div>
             <div id="cal-label-dep" class="text-sm text-gray-400 italic mb-2">Select departure date</div>
@@ -144,8 +142,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Returning -->
         <div class="flex-1" id="cal-ret-block" style="display:none;">
             <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Returning</div>
             <div id="cal-label-ret" class="text-sm text-gray-400 italic mb-2">Select return date</div>
@@ -159,22 +155,9 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Multi-city legs panel (hidden by default) -->
-    <div id="multicity-panel" style="display:none;" class="mb-5">
-        <div id="multicity-legs"></div>
-        <button type="button" id="add-leg-btn"
-                class="mt-3 text-xs uppercase font-bold text-[--sky-blue] tracking-widest hover:underline">
-            + Add Another Flight
-        </button>
-    </div>
-
-    <!-- Two-month calendar -->
     <div id="dual-cal" class="grid grid-cols-2 gap-6">
-
-        <!-- LEFT MONTH -->
         <div>
             <div class="flex justify-between items-center mb-3">
                 <button type="button" id="prev-month"
@@ -187,8 +170,6 @@
             </div>
             <div id="calendar-grid-left" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
         </div>
-
-        <!-- RIGHT MONTH -->
         <div>
             <div class="flex justify-between items-center mb-3">
                 <div class="w-8"></div>
@@ -201,146 +182,46 @@
             </div>
             <div id="calendar-grid-right" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
         </div>
-
     </div>
 </div>
 
 <style>
-    /* ── Airport dropdown ── */
-    .airport-dropdown::-webkit-scrollbar { width: 4px; }
-    .airport-dropdown::-webkit-scrollbar-track { background: transparent; }
-    .airport-dropdown::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
-
-    .airport-item {
-        padding: 12px 18px;
-        font-size: 0.875rem;
-        color: #1e293b;
-        cursor: pointer;
-        border-bottom: 1px solid #f1f5f9;
-        transition: background 0.15s ease;
-        line-height: 1.4;
+    .multi-tag-box { transition: border-color 0.2s; }
+    .multi-tag-box:focus-within { border-bottom-color: var(--sky-blue, #38bdf8); }
+    .airport-tag {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: #e0f2fe; color: #0369a1; border-radius: 999px;
+        padding: 2px 10px; font-size: 0.72rem; font-weight: 700;
+        letter-spacing: 0.05em; white-space: nowrap; animation: tagIn 0.15s ease;
     }
-    .airport-item:last-child { border-bottom: none; }
-    .airport-item:hover, .airport-item.active { background: #f8fafc; }
-    .airport-item .iata {
-        display: inline-block;
-        font-weight: 700;
-        color: var(--sky-blue, #38bdf8);
-        margin-right: 8px;
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-    }
-    .airport-item .sub {
-        display: block;
-        font-size: 0.75rem;
-        color: #94a3b8;
-        margin-top: 1px;
-    }
-    .dropdown-empty, .dropdown-loading {
-        padding: 14px 18px;
-        font-size: 0.8rem;
-        color: #94a3b8;
-        text-align: center;
-        font-style: italic;
-    }
-
-    /* ── Trip toggle buttons ── */
-    .trip-btn {
-        padding: 6px 16px;
-        border-radius: 999px;
-        border: 1px solid #e2e8f0;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: background 0.2s, color 0.2s;
-        background: white;
-        color: #374151;
-    }
-    .trip-btn.active {
-        background: #38bdf8;
-        color: white;
-        border-color: #38bdf8;
-    }
-
-    /* ── Calendar days ── */
-    .cal-day {
-        padding: 7px 4px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.15s;
-        font-size: 0.82rem;
-        line-height: 1;
-    }
-    .cal-day:hover:not(.cal-past) { background: #f1f5f9; }
-    .cal-day.cal-past { color: #cbd5e1; cursor: default; }
-    .cal-day.cal-today { font-weight: 700; color: #38bdf8; }
-    .cal-day.cal-selected {
-        background: #38bdf8 !important;
-        color: white !important;
-        font-weight: 700;
-    }
-    .cal-day.cal-range { background: #e0f2fe; border-radius: 0; }
-
-    /* ── Flexibility buttons ── */
-    .flex-btn {
-        padding: 3px 9px;
-        border-radius: 999px;
-        border: 1px solid #e2e8f0;
-        font-size: 0.7rem;
-        cursor: pointer;
-        background: white;
-        color: #64748b;
-        transition: background 0.15s, color 0.15s;
-        font-weight: 600;
-    }
-    .flex-btn:hover { background: #f1f5f9; }
-    .flex-btn.active-flex {
-        background: #0ea5e9;
-        color: white;
-        border-color: #0ea5e9;
-    }
-
-    /* ── Multi-city leg row ── */
-    .mc-leg {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
-        gap: 10px;
-        align-items: end;
-        padding: 10px 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .mc-leg:last-child { border-bottom: none; }
-    .mc-leg label { font-size: 10px; font-weight: 700; color: #38bdf8; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
-    .mc-leg input[type="text"],
-    .mc-leg input[type="date"] {
-        width: 100%;
-        border: none;
-        border-bottom: 1px solid #e2e8f0;
-        outline: none;
-        font-size: 0.85rem;
-        padding-bottom: 4px;
-        background: transparent;
-        color: #1f2937;
-    }
-    .mc-leg input[type="text"]:focus,
-    .mc-leg input[type="date"]:focus { border-bottom-color: #38bdf8; }
-    .mc-remove {
-        width: 28px; height: 28px;
-        border-radius: 50%;
-        border: 1px solid #e2e8f0;
-        background: white;
-        cursor: pointer;
-        font-size: 14px;
-        color: #94a3b8;
-        display: flex; align-items: center; justify-content: center;
-        transition: background 0.15s;
-    }
-    .mc-remove:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+    @keyframes tagIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+    .airport-tag .tag-remove { cursor:pointer; color:#7dd3fc; font-size:0.9rem; line-height:1; margin-left:2px; transition:color 0.15s; }
+    .airport-tag .tag-remove:hover { color:#ef4444; }
+    .airport-dropdown::-webkit-scrollbar { width:4px; }
+    .airport-dropdown::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:99px; }
+    .airport-item { padding:12px 18px; font-size:0.875rem; color:#1e293b; cursor:pointer; border-bottom:1px solid #f1f5f9; transition:background 0.15s; line-height:1.4; }
+    .airport-item:last-child { border-bottom:none; }
+    .airport-item:hover, .airport-item.active { background:#f8fafc; }
+    .airport-item.already-selected { opacity:0.45; pointer-events:none; }
+    .airport-item .iata { display:inline-block; font-weight:700; color:var(--sky-blue,#38bdf8); margin-right:8px; font-size:0.72rem; letter-spacing:0.1em; }
+    .airport-item .sub { display:block; font-size:0.75rem; color:#94a3b8; margin-top:1px; }
+    .dropdown-empty, .dropdown-loading { padding:14px 18px; font-size:0.8rem; color:#94a3b8; text-align:center; font-style:italic; }
+    .trip-btn { padding:6px 16px; border-radius:999px; border:1px solid #e2e8f0; font-size:0.8rem; cursor:pointer; transition:background 0.2s,color 0.2s,border-color 0.2s; background:white; color:#374151; }
+    .trip-btn.active { background:#38bdf8; color:white; border-color:#38bdf8; }
+    .cal-day { padding:7px 4px; border-radius:8px; cursor:pointer; transition:background 0.15s; font-size:0.82rem; line-height:1; }
+    .cal-day:hover:not(.cal-past) { background:#f1f5f9; }
+    .cal-day.cal-past { color:#cbd5e1; cursor:default; }
+    .cal-day.cal-today { font-weight:700; color:#38bdf8; }
+    .cal-day.cal-selected { background:#38bdf8 !important; color:white !important; font-weight:700; }
+    .cal-day.cal-range { background:#e0f2fe; border-radius:0; }
+    .flex-btn { padding:3px 9px; border-radius:999px; border:1px solid #e2e8f0; font-size:0.7rem; cursor:pointer; background:white; color:#64748b; transition:background 0.15s,color 0.15s; font-weight:600; }
+    .flex-btn:hover { background:#f1f5f9; }
+    .flex-btn.active-flex { background:#0ea5e9; color:white; border-color:#0ea5e9; }
 </style>
 
 <script>
 (function () {
 
-    // ── ELEMENT SELECTORS ───────────────────────────────────────
     const calDropdown    = document.getElementById('calendar-dropdown');
     const dateDisplayEl  = document.getElementById('date-display');
     const depInput       = document.getElementById('departure-date');
@@ -351,7 +232,6 @@
     const retFlexInput   = document.getElementById('ret-flexibility');
     const oneWayBtn      = document.getElementById('oneway-btn');
     const roundTripBtn   = document.getElementById('roundtrip-btn');
-    const multiCityBtn   = document.getElementById('multicity-btn');
     const retBlockMain   = document.getElementById('display-returning-block');
     const dateSeparator  = document.getElementById('date-separator');
     const dispDep        = document.getElementById('display-departing');
@@ -359,10 +239,6 @@
     const calRetBlock    = document.getElementById('cal-ret-block');
     const calLabelDep    = document.getElementById('cal-label-dep');
     const calLabelRet    = document.getElementById('cal-label-ret');
-    const dualCal        = document.getElementById('dual-cal');
-    const multicityPanel = document.getElementById('multicity-panel');
-    const multicityLegs  = document.getElementById('multicity-legs');
-    const addLegBtn      = document.getElementById('add-leg-btn');
     const depFlexRow     = document.getElementById('dep-flex-row');
     const retFlexRow     = document.getElementById('ret-flex-row');
 
@@ -374,16 +250,16 @@
     let tripType  = 'oneway';
     let selDep    = null;
     let selRet    = null;
-    let mcLegs    = [];
 
-    // Move calendar to body to escape overflow/z-index issues
     if (calDropdown) document.body.appendChild(calDropdown);
 
-    // ── AIRPORT SEARCH ──────────────────────────────────────────
+    const multiState = { from: [], to: [] };
+
     const FALLBACK_AIRPORTS = [
         { iata:'LHR', name:'Heathrow Airport',              city:'London',        country:'GB' },
         { iata:'LGW', name:'Gatwick Airport',               city:'London',        country:'GB' },
         { iata:'STN', name:'Stansted Airport',              city:'London',        country:'GB' },
+        { iata:'LBA', name:'Leeds Bradford Airport',        city:'Leeds',         country:'GB' },
         { iata:'MAN', name:'Manchester Airport',            city:'Manchester',    country:'GB' },
         { iata:'EDI', name:'Edinburgh Airport',             city:'Edinburgh',     country:'GB' },
         { iata:'BHX', name:'Birmingham Airport',            city:'Birmingham',    country:'GB' },
@@ -499,7 +375,41 @@
         }
     }
 
-    function renderResults(results, dropdownEl, inputEl, codeInputEl) {
+    function addTag(field, airport) {
+        const state = multiState[field];
+        if (state.find(a => a.iata === airport.iata)) return;
+        state.push({ iata: airport.iata, label: `${airport.city || airport.name} (${airport.iata})` });
+
+        const tagBox  = document.getElementById(`${field}-tag-box`);
+        const inputEl = document.getElementById(`${field}-display`);
+
+        const tag = document.createElement('span');
+        tag.className = 'airport-tag';
+        tag.dataset.iata = airport.iata;
+        tag.innerHTML = `${airport.iata}<span class="tag-remove" title="Remove">×</span>`;
+        tag.querySelector('.tag-remove').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeTag(field, airport.iata);
+        });
+        tagBox.insertBefore(tag, inputEl);
+        inputEl.value = '';
+        inputEl.placeholder = 'Add more…';
+    }
+
+    function removeTag(field, iata) {
+        const state = multiState[field];
+        const idx   = state.findIndex(a => a.iata === iata);
+        if (idx === -1) return;
+        state.splice(idx, 1);
+        const tagBox = document.getElementById(`${field}-tag-box`);
+        const tag    = tagBox.querySelector(`.airport-tag[data-iata="${iata}"]`);
+        if (tag) tag.remove();
+        const inputEl = document.getElementById(`${field}-display`);
+        if (state.length === 0) inputEl.placeholder = field === 'from' ? 'From?' : 'To?';
+    }
+
+    function renderResults(results, dropdownEl, field) {
+        const state = multiState[field];
         dropdownEl.innerHTML = '';
         if (!results.length) {
             dropdownEl.innerHTML = '<div class="dropdown-empty">No airports found</div>';
@@ -508,58 +418,83 @@
         }
         results.forEach(airport => {
             const item = document.createElement('div');
-            item.className = 'airport-item';
+            const alreadySelected = !!state.find(a => a.iata === airport.iata);
+            item.className = 'airport-item' + (alreadySelected ? ' already-selected' : '');
             item.innerHTML = `
                 <span class="iata">${airport.iata}</span>
                 ${airport.city ? airport.city + ' — ' : ''}${airport.name}
-                <span class="sub">${airport.country}</span>
-            `;
-            item.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                inputEl.value     = `${airport.city || airport.name} (${airport.iata})`;
-                codeInputEl.value = airport.iata;
-                dropdownEl.classList.add('hidden');
-            });
+                <span class="sub">${airport.country}${alreadySelected ? ' · already added' : ''}</span>`;
+            if (!alreadySelected) {
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    addTag(field, airport);
+                    dropdownEl.classList.add('hidden');
+                });
+            }
             dropdownEl.appendChild(item);
         });
         dropdownEl.classList.remove('hidden');
     }
 
-    function initAirportSearch(inputId, resultsId, codeInputId) {
-        const inputEl     = document.getElementById(inputId);
-        const resultsEl   = document.getElementById(resultsId);
-        const codeInputEl = document.getElementById(codeInputId);
-        if (!inputEl || !resultsEl || !codeInputEl) return;
+    function initAirportSearch(field) {
+        const inputEl   = document.getElementById(`${field}-display`);
+        const resultsEl = document.getElementById(`${field}-results`);
+        if (!inputEl || !resultsEl) return;
 
         const doSearch = debounce(async (query) => {
             if (query.length < 2) { resultsEl.classList.add('hidden'); return; }
             resultsEl.innerHTML = '<div class="dropdown-loading">Searching…</div>';
             resultsEl.classList.remove('hidden');
             const results = await fetchAirports(query);
-            renderResults(results, resultsEl, inputEl, codeInputEl);
+            renderResults(results, resultsEl, field);
         }, 280);
 
-        inputEl.addEventListener('input', () => { codeInputEl.value = ''; doSearch(inputEl.value); });
+        inputEl.addEventListener('input', () => doSearch(inputEl.value));
         inputEl.addEventListener('focus', () => { if (inputEl.value.length >= 2) doSearch(inputEl.value); });
         inputEl.addEventListener('blur',  () => { setTimeout(() => resultsEl.classList.add('hidden'), 150); });
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && inputEl.value === '' && multiState[field].length > 0) {
+                const last = multiState[field][multiState[field].length - 1];
+                removeTag(field, last.iata);
+            }
+        });
         document.addEventListener('click', (e) => {
-            if (!inputEl.contains(e.target) && !resultsEl.contains(e.target))
+            const tagBox = document.getElementById(`${field}-tag-box`);
+            if (!tagBox.contains(e.target) && !resultsEl.contains(e.target))
                 resultsEl.classList.add('hidden');
         });
     }
 
-    initAirportSearch('from-display', 'from-results', 'from-code');
-    initAirportSearch('to-display',   'to-results',   'to-code');
+    initAirportSearch('from');
+    initAirportSearch('to');
 
-    // ── SWAP ────────────────────────────────────────────────────
     document.getElementById('swap-btn').addEventListener('click', () => {
-        const fD = document.getElementById('from-display'), tD = document.getElementById('to-display');
-        const fC = document.getElementById('from-code'),    tC = document.getElementById('to-code');
-        [fD.value, tD.value] = [tD.value, fD.value];
-        [fC.value, tC.value] = [tC.value, fC.value];
+        const tempState = [...multiState.from];
+        multiState.from = [...multiState.to];
+        multiState.to   = tempState;
+
+        ['from', 'to'].forEach(field => {
+            const tagBox  = document.getElementById(`${field}-tag-box`);
+            const inputEl = document.getElementById(`${field}-display`);
+            tagBox.querySelectorAll('.airport-tag').forEach(t => t.remove());
+            multiState[field].forEach(airport => {
+                const tag = document.createElement('span');
+                tag.className = 'airport-tag';
+                tag.dataset.iata = airport.iata;
+                tag.innerHTML = `${airport.iata}<span class="tag-remove" title="Remove">×</span>`;
+                tag.querySelector('.tag-remove').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeTag(field, airport.iata);
+                });
+                tagBox.insertBefore(tag, inputEl);
+            });
+            inputEl.value = '';
+            inputEl.placeholder = multiState[field].length === 0
+                ? (field === 'from' ? 'From?' : 'To?')
+                : 'Add more…';
+        });
     });
 
-    // ── DATE FLEXIBILITY ────────────────────────────────────────
     document.querySelectorAll('.flex-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -585,95 +520,30 @@
         if (group === 'ret') { retFlexInput.value = '0'; retFlexRow.style.display = 'none'; }
     }
 
-    // ── TRIP TYPE ───────────────────────────────────────────────
     function setTripType(type) {
         tripType = type;
         tripTypeInput.value = type;
-
-        if (type === 'oneway' || type === 'multicity') {
-            selRet = null;
-            retInput.value = '';
-            resetFlex('dep');
-            resetFlex('ret');
-        }
-
-        [oneWayBtn, roundTripBtn, multiCityBtn].forEach(b => b.classList.remove('active'));
+        if (type === 'oneway') { selRet = null; retInput.value = ''; resetFlex('ret'); }
+        [oneWayBtn, roundTripBtn].forEach(b => b.classList.remove('active'));
         if (type === 'oneway')    oneWayBtn.classList.add('active');
         if (type === 'roundtrip') roundTripBtn.classList.add('active');
-        if (type === 'multicity') multiCityBtn.classList.add('active');
-
         const showRet = type === 'roundtrip';
         retBlockMain.style.display  = showRet ? '' : 'none';
         dateSeparator.style.display = showRet ? '' : 'none';
         calRetBlock.style.display   = showRet ? '' : 'none';
-
-        if (type === 'multicity') {
-            dualCal.style.display        = 'none';
-            multicityPanel.style.display = '';
-            if (mcLegs.length === 0) addMcLeg();
-        } else {
-            dualCal.style.display        = '';
-            multicityPanel.style.display = 'none';
-        }
-
         updateDisplayBar();
-        if (type !== 'multicity') renderBoth();
+        renderBoth();
     }
 
     oneWayBtn.addEventListener('click',    () => setTripType('oneway'));
     roundTripBtn.addEventListener('click', () => setTripType('roundtrip'));
-    multiCityBtn.addEventListener('click', () => setTripType('multicity'));
 
-    // ── MULTI-CITY LEGS ─────────────────────────────────────────
-    function addMcLeg() {
-        const idx = mcLegs.length;
-        mcLegs.push({ from: '', to: '', date: '' });
-        const row = document.createElement('div');
-        row.className   = 'mc-leg';
-        row.dataset.idx = idx;
-        row.innerHTML = `
-            <div>
-                <label>From</label>
-                <input type="text" placeholder="City or airport" class="mc-from" data-idx="${idx}">
-            </div>
-            <div>
-                <label>To</label>
-                <input type="text" placeholder="City or airport" class="mc-to" data-idx="${idx}">
-            </div>
-            <div>
-                <label>Date</label>
-                <input type="date" class="mc-date" data-idx="${idx}">
-            </div>
-            <button type="button" class="mc-remove" data-idx="${idx}" title="Remove">✕</button>
-        `;
-        row.querySelector('.mc-from').addEventListener('input',  e => { mcLegs[idx].from = e.target.value; });
-        row.querySelector('.mc-to').addEventListener('input',    e => { mcLegs[idx].to   = e.target.value; });
-        row.querySelector('.mc-date').addEventListener('change', e => { mcLegs[idx].date = e.target.value; });
-        row.querySelector('.mc-remove').addEventListener('click', () => removeMcLeg(row, idx));
-        multicityLegs.appendChild(row);
-    }
-
-    function removeMcLeg(row, idx) {
-        if (mcLegs.length <= 1) return;
-        row.remove();
-        mcLegs.splice(idx, 1);
-        [...multicityLegs.querySelectorAll('.mc-leg')].forEach((r, i) => { r.dataset.idx = i; });
-    }
-
-    addLegBtn.addEventListener('click', () => { if (mcLegs.length < 6) addMcLeg(); });
-
-    // ── CALENDAR OPEN / CLOSE ───────────────────────────────────
     if (dateDisplayEl) {
         dateDisplayEl.addEventListener('click', (e) => {
             e.stopPropagation();
             const isHidden = calDropdown.classList.contains('hidden');
-            if (isHidden) {
-                calDropdown.classList.remove('hidden');
-                positionCalendar();
-                if (tripType !== 'multicity') renderBoth();
-            } else {
-                calDropdown.classList.add('hidden');
-            }
+            if (isHidden) { calDropdown.classList.remove('hidden'); positionCalendar(); renderBoth(); }
+            else { calDropdown.classList.add('hidden'); }
         });
     }
 
@@ -683,25 +553,19 @@
         let left = rect.left;
         if (left + 680 > window.innerWidth) left = window.innerWidth - 690;
         if (left < 8) left = 8;
-        const top = rect.bottom + window.scrollY + 12;
-        calDropdown.style.top      = top + 'px';
+        calDropdown.style.top      = (rect.bottom + window.scrollY + 12) + 'px';
         calDropdown.style.left     = left + 'px';
         calDropdown.style.position = 'absolute';
         calDropdown.style.zIndex   = '99999';
     }
 
     document.addEventListener('click', (e) => {
-        if (calDropdown &&
-            !calDropdown.contains(e.target) &&
-            !dateDisplayEl.contains(e.target)) {
+        if (calDropdown && !calDropdown.contains(e.target) && !dateDisplayEl.contains(e.target))
             calDropdown.classList.add('hidden');
-        }
     });
-
     window.addEventListener('scroll', () => { if (!calDropdown.classList.contains('hidden')) positionCalendar(); }, true);
     window.addEventListener('resize', () => { if (!calDropdown.classList.contains('hidden')) positionCalendar(); });
 
-    // ── CALENDAR RENDER ─────────────────────────────────────────
     function renderBoth() {
         let rYear = leftYear, rMonth = leftMonth + 1;
         if (rMonth > 11) { rMonth = 0; rYear++; }
@@ -728,107 +592,80 @@
             const cell     = document.createElement('div');
             cell.className = 'cal-day';
             cell.textContent = d;
-
             const thisDate = new Date(year, month, d);
             const isPast   = thisDate < new Date(tY, tM, tD);
             const isToday  = year === tY && month === tM && d === tD;
             const isDepSel = selDep && selDep.y === year && selDep.m === month && selDep.d === d;
             const isRetSel = selRet && selRet.y === year && selRet.m === month && selRet.d === d;
-
             if (isPast)               cell.classList.add('cal-past');
             if (isToday)              cell.classList.add('cal-today');
             if (isDepSel || isRetSel) cell.classList.add('cal-selected');
-
             if (selDep && selRet) {
                 const ts    = thisDate.getTime();
                 const depTs = new Date(selDep.y, selDep.m, selDep.d).getTime();
                 const retTs = new Date(selRet.y, selRet.m, selRet.d).getTime();
                 if (ts > depTs && ts < retTs) cell.classList.add('cal-range');
             }
-
             if (!isPast) cell.onclick = () => pickDate(year, month, d);
             grid.appendChild(cell);
         }
     }
 
-    // ── PICK DATE ───────────────────────────────────────────────
     function pickDate(y, m, d) {
         const fmt = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
         if (tripType === 'oneway') {
-            selDep = { y, m, d };
-            selRet = null;
+            selDep = { y, m, d }; selRet = null;
             depInput.value = fmt;
-            showDepFlex();
-            updateDisplayBar();
-            calDropdown.classList.add('hidden');
-
+            showDepFlex(); updateDisplayBar(); calDropdown.classList.add('hidden');
         } else {
-            // Round trip — first click = depart, second click = return
             if (!selDep || selRet) {
-                selDep = { y, m, d };
-                selRet = null;
-                depInput.value = fmt;
-                retInput.value = '';
-                showDepFlex();
-                resetFlex('ret');
+                selDep = { y, m, d }; selRet = null;
+                depInput.value = fmt; retInput.value = '';
+                showDepFlex(); resetFlex('ret');
             } else {
                 const depTs = new Date(selDep.y, selDep.m, selDep.d).getTime();
                 const selTs = new Date(y, m, d).getTime();
-                if (selTs <= depTs) {
-                    selDep = { y, m, d };
-                    selRet = null;
-                    depInput.value = fmt;
-                    retInput.value = '';
-                    showDepFlex();
-                    resetFlex('ret');
+                if (selTs < depTs) {
+                    selDep = { y, m, d }; selRet = null;
+                    depInput.value = fmt; retInput.value = '';
+                    showDepFlex(); resetFlex('ret');
                 } else {
                     selRet = { y, m, d };
                     retInput.value = fmt;
-                    showRetFlex();
-                    calDropdown.classList.add('hidden');
+                    showRetFlex(); calDropdown.classList.add('hidden');
                 }
             }
         }
-
-        updateDisplayBar();
-        renderBoth();
+        updateDisplayBar(); renderBoth();
     }
 
-    // ── DISPLAY BAR ─────────────────────────────────────────────
     function updateDisplayBar() {
         if (selDep) {
             dispDep.textContent = `${selDep.d} ${MONTHS[selDep.m].substring(0, 3)}`;
             dispDep.style.color = '#1f2937';
             calLabelDep.textContent = `${selDep.d} ${MONTHS[selDep.m]} ${selDep.y}`;
         } else {
-            dispDep.textContent = '—';
-            dispDep.style.color = '#d1d5db';
+            dispDep.textContent = '—'; dispDep.style.color = '#d1d5db';
             calLabelDep.textContent = 'Select departure date';
         }
-
         if (tripType === 'roundtrip' && selRet) {
             dispRet.textContent = `${selRet.d} ${MONTHS[selRet.m].substring(0, 3)}`;
             dispRet.style.color = '#1f2937';
             if (calLabelRet) calLabelRet.textContent = `${selRet.d} ${MONTHS[selRet.m]} ${selRet.y}`;
         } else {
-            dispRet.textContent = '—';
-            dispRet.style.color = '#d1d5db';
+            dispRet.textContent = '—'; dispRet.style.color = '#d1d5db';
             if (calLabelRet) calLabelRet.textContent = 'Select return date';
         }
     }
 
-    // ── PASSENGERS ──────────────────────────────────────────────
     const paxDisplay  = document.getElementById('passenger-display');
     const paxDropdown = document.getElementById('passenger-dropdown');
     const paxLabel    = document.getElementById('display-passengers');
     let paxCount = 1;
 
     paxDisplay.addEventListener('click', (e) => { e.stopPropagation(); paxDropdown.classList.toggle('hidden'); });
-
     document.getElementById('p-plus').onclick  = (e) => { e.stopPropagation(); if (paxCount < 20) { paxCount++; updatePaxUI(); } };
     document.getElementById('p-minus').onclick = (e) => { e.stopPropagation(); if (paxCount > 1)  { paxCount--; updatePaxUI(); } };
-
     document.addEventListener('click', (e) => {
         if (!paxDropdown.contains(e.target) && !paxDisplay.contains(e.target))
             paxDropdown.classList.add('hidden');
@@ -840,7 +677,6 @@
         paxInput.value = paxCount;
     }
 
-    // ── MONTH NAVIGATION ────────────────────────────────────────
     document.getElementById('prev-month').onclick = (e) => {
         e.stopPropagation();
         if (--leftMonth < 0) { leftMonth = 11; leftYear--; }
@@ -852,122 +688,86 @@
         renderBoth();
     };
 
-    // ── INIT ────────────────────────────────────────────────────
-    const defaultType = "{{ defaultTripType | default('oneway') }}";
-    setTripType(defaultType);
+    // ── SEARCH BUTTON ───────────────────────────────────────────
+    document.getElementById('search-btn').addEventListener('click', function () {
+
+        document.getElementById('from-error')?.remove();
+        document.getElementById('to-error')?.remove();
+        document.getElementById('date-error')?.remove();
+        document.getElementById('from-tag-box').style.borderBottomColor = '';
+        document.getElementById('to-tag-box').style.borderBottomColor   = '';
+
+        let valid = true;
+
+        ['from', 'to'].forEach(field => {
+            const inputEl = document.getElementById(`${field}-display`);
+            if (multiState[field].length === 0 && inputEl.value.trim()) {
+                const q = inputEl.value.trim().toUpperCase();
+                const match = FALLBACK_AIRPORTS.find(a =>
+                    a.iata === q ||
+                    a.city.toLowerCase() === inputEl.value.trim().toLowerCase()
+                );
+                if (match) addTag(field, match);
+            }
+        });
+
+        if (multiState.from.length === 0) {
+            valid = false;
+            document.getElementById('from-tag-box').style.borderBottomColor = '#ef4444';
+            const err = document.createElement('div');
+            err.id = 'from-error';
+            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
+            err.textContent   = 'Please select a departure airport';
+            document.getElementById('from-wrapper').appendChild(err);
+        }
+
+        if (multiState.to.length === 0) {
+            valid = false;
+            document.getElementById('to-tag-box').style.borderBottomColor = '#ef4444';
+            const err = document.createElement('div');
+            err.id = 'to-error';
+            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
+            err.textContent   = 'Please select a destination airport';
+            document.getElementById('to-wrapper').appendChild(err);
+        }
+
+        const depDateVal = document.getElementById('departure-date').value;
+        if (!depDateVal) {
+            valid = false;
+            const err = document.createElement('div');
+            err.id = 'date-error';
+            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;';
+            err.textContent   = 'Please select a departure date';
+            document.getElementById('date-wrapper').appendChild(err);
+        }
+
+        if (!valid) return;
+
+        // ── BUILD URL WITH REPEATED PARAMS ──────────────────────
+        // Result: ?from=LBA&from=MAN&from=LHR&to=DEL&...
+        const params = new URLSearchParams();
+
+        multiState.from.forEach(a => params.append('from', a.iata));
+        multiState.to.forEach(a   => params.append('to',   a.iata));
+
+        params.append('departure_date',        depDateVal);
+        params.append('num_of_passengers',     paxInput.value);
+        params.append('departure_flexibility', depFlexInput.value);
+        
+
+        const retDateVal = document.getElementById('return-date').value;
+        if (retDateVal) {
+            params.append('return_date',        retDateVal);
+            
+        }
+
+        window.location.href = '/search?' + params.toString();
+    });
+
+    setTripType('oneway');
     updatePaxUI();
 
 })();
-// ── SEARCH BUTTON HANDLER ────────────────────────────────────
-// Backend expects: from, to, departure_date, passengers, dep_flexibility
-// These MUST match exactly what FlightRepository.searchFlights() reads
-
-document.getElementById('search-btn').addEventListener('click', function () {
-
-    // Clear old errors
-    document.getElementById('from-error')?.remove();
-    document.getElementById('to-error')?.remove();
-    document.getElementById('date-error')?.remove();
-    document.getElementById('from-display').style.borderBottomColor = '';
-    document.getElementById('to-display').style.borderBottomColor   = '';
-
-    let valid = true;
-
-    // ── STEP 1: Resolve airport codes ─────────────────────────
-    // Backend reads `from` and `to` as List<String> (airport codes like "LHR")
-    // So from-code and to-code hidden inputs MUST be populated
-
-    const fromDisplay = document.getElementById('from-display');
-    const toDisplay   = document.getElementById('to-display');
-    const fromCode    = document.getElementById('from-code');
-    const toCode      = document.getElementById('to-code');
-
-    // Auto-match if user typed IATA code directly (e.g. "LHR") without clicking dropdown
-    if (!fromCode.value.trim() && fromDisplay.value.trim()) {
-        const q = fromDisplay.value.trim().toUpperCase();
-        const match = FALLBACK_AIRPORTS.find(a =>
-            a.iata === q ||
-            a.city.toLowerCase() === fromDisplay.value.trim().toLowerCase()
-        );
-        if (match) {
-            fromCode.value    = match.iata;
-            fromDisplay.value = `${match.city} (${match.iata})`;
-        }
-    }
-
-    if (!toCode.value.trim() && toDisplay.value.trim()) {
-        const q = toDisplay.value.trim().toUpperCase();
-        const match = FALLBACK_AIRPORTS.find(a =>
-            a.iata === q ||
-            a.city.toLowerCase() === toDisplay.value.trim().toLowerCase()
-        );
-        if (match) {
-            toCode.value    = match.iata;
-            toDisplay.value = `${match.city} (${match.iata})`;
-        }
-    }
-
-    // Validate origin
-    if (!fromCode.value.trim()) {
-        valid = false;
-        fromDisplay.style.borderBottomColor = '#ef4444';
-        const err = document.createElement('div');
-        err.id = 'from-error';
-        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
-        err.textContent   = 'Please select a departure airport';
-        document.getElementById('from-wrapper').appendChild(err);
-    }
-
-    // Validate destination
-    if (!toCode.value.trim()) {
-        valid = false;
-        toDisplay.style.borderBottomColor = '#ef4444';
-        const err = document.createElement('div');
-        err.id = 'to-error';
-        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
-        err.textContent   = 'Please select a destination airport';
-        document.getElementById('to-wrapper').appendChild(err);
-    }
-
-    // ── STEP 2: Validate departure date ───────────────────────
-    // Backend reads `departure_date` as LocalDate — format must be YYYY-MM-DD
-    // This is already set by pickDate() as `departure-date` hidden input
-
-    const depDateVal = document.getElementById('departure-date').value;
-    if (!depDateVal) {
-        valid = false;
-        const err = document.createElement('div');
-        err.id = 'date-error';
-        err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;';
-        err.textContent   = 'Please select a departure date';
-        document.getElementById('date-wrapper').appendChild(err);
-    }
-
-    if (!valid) return; // stop here, show errors
-
-   
-
-    const params = new URLSearchParams();
-
-params.set('from', fromCode.value.trim());
-params.set('to', toCode.value.trim());
-params.set('departure_date', depDateVal);
-
-
-params.set('num_of_passengers', document.getElementById('passengers-count').value);
-params.set('departure_flexibility', document.getElementById('dep-flexibility').value);
-
-// optional return
-if (retDateVal) {
-    params.set('return_date', retDateVal);
-}
-
-    // Include trip type so the results page knows what to show
-    params.set('trip_type', document.getElementById('trip-type-input').value);
-
-    // ── NAVIGATE ──────────────────────────────────────────────
-    window.location.href = '/search?' + params.toString();
-});
 </script>
 
 {% endblock %}

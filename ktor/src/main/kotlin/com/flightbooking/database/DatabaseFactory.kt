@@ -46,6 +46,7 @@ object DatabaseFactory {
             if (UserTable.selectAll().none()) {
                 DefaultDataSeeder.seed()
             }
+            // Needed
             if (SeatTable.selectAll().any() && FlightTable.selectAll().any()) {
                 DefaultDataSeeder.seedFlightSeats()
             }

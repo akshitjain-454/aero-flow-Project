@@ -1,4 +1,4 @@
-package com.flightBooking
+package com.flightBooking.test.kotlin
 
 import com.flightbooking.module
 import io.ktor.client.request.get
