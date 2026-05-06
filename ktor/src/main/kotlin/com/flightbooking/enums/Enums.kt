@@ -3,55 +3,55 @@ package com.flightbooking.enums
 enum class BookingStatus {
     CREATED,
     CONFIRMED,
-    CANCELLED
+    CANCELLED,
 }
 
 enum class FlightStatus {
     SCHEDULED,
     DELAYED,
     ARRIVED,
-    CANCELLED
+    CANCELLED,
 }
 
 enum class PaymentStatus {
     PENDING,
     COMPLETED,
     FAILED,
-    REFUNDED
+    REFUNDED,
 }
 
 enum class PaymentMethod {
     CARD,
     PAYPAL,
-    BANK_TRANSFER
+    BANK_TRANSFER,
 }
 
 enum class UserRole {
     USER,
-    ADMIN
+    ADMIN,
 }
 
 enum class SeatClass {
     ECONOMY,
     BUSINESS,
-    FIRST
+    FIRST,
 }
 
 enum class ComplaintStatus {
     OPEN,
     IN_REVIEW,
     RESOLVED,
-    CLOSED
+    CLOSED,
 }
 
 enum class FlightInfoRequestStatus {
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,
 }
 
 enum class FlightInfoRequestType {
     PASSENGER_INFO,
     FLIGHT_CHANGE,
-    BOTH
+    BOTH,
 }
