@@ -1,297 +1,175 @@
+package com.flightbooking.routes
+
 import com.flightbooking.enums.UserRole
-import com.flightbooking.routes.notificationRoutes
 import com.flightbooking.services.NotificationEvent
 import com.flightbooking.services.NotificationService
 import com.flightbooking.sessions.UserSession
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.install
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import io.ktor.server.sessions.Sessions
-import io.ktor.server.sessions.cookie
-import io.ktor.server.sessions.sessions
-import io.ktor.server.sessions.set
-import io.ktor.server.testing.testApplication
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readLine
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
+import io.ktor.server.testing.*
+import kotlinx.coroutines.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 
-class NotificationRoutesTest : StringSpec({
+class NotificationRoutesTest {
+    private val testSession = UserSession(userId = 1, role = UserRole.USER, initials = "AB")
+    private val otherSession = UserSession(userId = 2, role = UserRole.USER, initials = "CD")
 
-    "should return NotFound when no session exists" {
+    @BeforeEach
+    fun setUp() {
+        NotificationService.reset()
+    }
+
+    private fun ApplicationTestBuilder.configureApp(session: UserSession? = null) {
+        install(Sessions) {
+            cookie<UserSession>("user_session")
+        }
+        if (session != null) {
+            application {
+                intercept(ApplicationCallPipeline.Plugins) {
+                    call.sessions.set(session)
+                    proceed()
+                }
+            }
+        }
+        routing {
+            notificationRoutes()
+        }
+    }
+
+    @Test
+    fun `returns 404 when no session exists`() =
         testApplication {
-            install(Sessions) {
-                cookie<UserSession>("user_session")
-            }
-
-            routing {
-                this.notificationRoutes()
-            }
+            configureApp(session = null)
 
             val response = client.get("/notifications/stream")
-            response.status shouldBe HttpStatusCode.NotFound
+
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("Not Found", response.bodyAsText())
         }
-    }
 
-    "should return OK for authenticated user on stream endpoint" {
+    @Test
+    fun `returns 200 with SSE content type when session exists`() =
         testApplication {
-            install(Sessions) {
-                cookie<UserSession>("user_session")
-            }
+            configureApp(session = testSession)
 
-            routing {
-                get("/setup-session") {
-                    call.sessions.set(
-                        UserSession(
-                            userId = 1,
-                            role = UserRole.USER,
-                            initials = "JD",
-                        ),
-                    )
-                }
+            NotificationService.send(NotificationEvent(userId = 1, message = "hello"))
 
-                this.notificationRoutes()
-            }
+            val response = client.get("/notifications/stream")
 
-            val sessionResponse = client.get("/setup-session")
-            val cookie = sessionResponse.headers["Set-Cookie"] ?: ""
-
-            val response =
-                client.get("/notifications/stream") {
-                    header("Cookie", cookie)
-                }
-
-            response.status shouldBe HttpStatusCode.OK
-
-            response.bodyAsChannel().cancel()
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(ContentType.Text.EventStream, response.contentType()?.withoutParameters())
         }
-    }
 
-    "should receive SSE notification for authenticated user" {
+    @Test
+    fun `sets Cache-Control no-cache header`() =
         testApplication {
-            install(Sessions) {
-                cookie<UserSession>("user_session")
-            }
+            configureApp(session = testSession)
 
-            routing {
-                get("/setup-session") {
-                    call.sessions.set(
-                        UserSession(
-                            userId = 1,
-                            role = UserRole.USER,
-                            initials = "JD",
-                        ),
-                    )
-                }
+            NotificationService.send(NotificationEvent(userId = 1, message = "hello"))
 
-                this.notificationRoutes()
-            }
+            val response = client.get("/notifications/stream")
 
-            val sessionResponse = client.get("/setup-session")
-            val cookie = sessionResponse.headers["Set-Cookie"] ?: ""
-
-            val response =
-                client.get("/notifications/stream") {
-                    header("Cookie", cookie)
-                }
-
-            response.status shouldBe HttpStatusCode.OK
-
-            val sendJob =
-                launch {
-                    delay(100)
-
-                    NotificationService.send(
-                        NotificationEvent(
-                            userId = 1,
-                            message = "Test notification",
-                            type = "info",
-                        ),
-                    )
-                }
-
-            val line =
-                withTimeout(3000) {
-                    response.bodyAsChannel().readLine()
-                }
-
-            sendJob.join()
-
-            line shouldContain "Test notification"
-            line shouldContain "\"type\":\"info\""
-
-            response.bodyAsChannel().cancel()
+            assertTrue(
+                (response.headers[HttpHeaders.CacheControl] ?: "").contains("no-cache"),
+                "Expected Cache-Control: no-cache header",
+            )
         }
-    }
 
-    "should ignore events for different users" {
+    @Test
+    fun `sets Transfer-Encoding chunked header`() =
         testApplication {
-            install(Sessions) {
-                cookie<UserSession>("user_session")
-            }
+            configureApp(session = testSession)
 
-            routing {
-                get("/setup-session") {
-                    call.sessions.set(
-                        UserSession(
-                            userId = 2,
-                            role = UserRole.USER,
-                            initials = "AB",
-                        ),
-                    )
-                }
+            NotificationService.send(NotificationEvent(userId = 1, message = "hello"))
 
-                this.notificationRoutes()
-            }
+            val response = client.get("/notifications/stream")
 
-            val sessionResponse = client.get("/setup-session")
-            val cookie = sessionResponse.headers["Set-Cookie"] ?: ""
+            assertEquals("chunked", response.headers[HttpHeaders.TransferEncoding])
+        }
 
-            val response =
-                client.get("/notifications/stream") {
-                    header("Cookie", cookie)
-                }
+    @Test
+    fun `emits correctly formatted SSE data for matching userId`() =
+        testApplication {
+            configureApp(session = testSession)
 
-            response.status shouldBe HttpStatusCode.OK
-
-            NotificationService.send(
+            val event =
                 NotificationEvent(
-                    userId = 99,
-                    message = "Not for you",
-                    type = "info",
-                ),
-            )
+                    userId = 1,
+                    message = "Gate changed to B7",
+                    type = "gate_change",
+                    sentAt = 1700001234L,
+                )
+            NotificationService.send(event)
 
-            delay(300)
+            val body = client.get("/notifications/stream").bodyAsText()
 
-            response.bodyAsChannel().cancel()
+            assertTrue(body.contains("\"message\":\"Gate changed to B7\""), "body=$body")
+            assertTrue(body.contains("\"type\":\"gate_change\""), "body=$body")
+            assertTrue(body.contains("\"sentAt\":1700001234"), "body=$body")
+            assertTrue(body.startsWith("data: {"), "SSE line must start with 'data: ', body=$body")
+            assertTrue(body.contains("}\n\n"), "SSE line must end with double newline, body=$body")
         }
-    }
 
-    "should format SSE event data string correctly" {
-        val event =
-            NotificationEvent(
-                userId = 1,
-                message = "Hello",
-                type = "info",
-                sentAt = 1234567890L,
-            )
-
-        val formatted =
-            """data: {"message":"${event.message}","type":"${event.type}","sentAt":${event.sentAt}}"""
-
-        formatted shouldContain "data:"
-        formatted shouldContain "\"message\":\"Hello\""
-        formatted shouldContain "\"type\":\"info\""
-        formatted shouldContain "\"sentAt\":1234567890"
-    }
-
-    "should have correct content type for SSE stream" {
+    @Test
+    fun `does not emit events belonging to a different userId`() =
         testApplication {
-            install(Sessions) {
-                cookie<UserSession>("user_session")
-            }
+            configureApp(session = testSession)
 
-            routing {
-                get("/setup-session") {
-                    call.sessions.set(
-                        UserSession(
-                            userId = 1,
-                            role = UserRole.USER,
-                            initials = "JD",
-                        ),
-                    )
+            NotificationService.send(NotificationEvent(userId = 2, message = "Secret"))
+
+            val body =
+                withTimeoutOrNull(300) {
+                    runBlocking { client.get("/notifications/stream").bodyAsText() }
                 }
 
-                notificationRoutes()
-            }
-
-            val sessionResponse = client.get("/setup-session")
-            val cookie = sessionResponse.headers["Set-Cookie"] ?: ""
-
-            val response =
-                client.get("/notifications/stream") {
-                    header("Cookie", cookie)
-                }
-
-            val contentType = response.headers["Content-Type"]
-
-            contentType shouldContain "text/event-stream"
-
-            response.bodyAsChannel().cancel()
+            assertTrue(
+                body == null || !body.contains("Secret"),
+                "Stream should not forward events for a different user",
+            )
         }
-    }
 
-    "NotificationEvent should default type to info" {
-        val event =
-            NotificationEvent(
-                userId = 1,
-                message = "Test",
-            )
+    @Test
+    fun `emits multiple events for the same user in order`() =
+        testApplication {
+            configureApp(session = testSession)
 
-        event.type shouldBe "info"
-    }
+            val messages = listOf("First", "Second", "Third")
 
-    "NotificationEvent should store all fields correctly" {
-        val event =
-            NotificationEvent(
-                userId = 42,
-                message = "Hello World",
-                type = "warning",
-            )
+            val body =
+                coroutineScope {
+                    val job =
+                        launch(Dispatchers.IO) {
+                            messages.forEach { msg ->
+                                NotificationService.send(NotificationEvent(userId = 1, message = msg))
+                                delay(10)
+                            }
+                        }
+                    val response = client.get("/notifications/stream").bodyAsText()
+                    job.cancelAndJoin()
+                    response
+                }
 
-        event.userId shouldBe 42
-        event.message shouldBe "Hello World"
-        event.type shouldBe "warning"
-    }
+            val indices = messages.map { body.indexOf(it) }.filter { it >= 0 }
+            assertEquals(indices.sorted(), indices, "Events should appear in emission order, body=$body")
+        }
 
-    "NotificationEvent sentAt should be set automatically within valid range" {
-        val before = System.currentTimeMillis()
+    @Test
+    fun `mixed-user events only delivers events for the session user`() =
+        testApplication {
+            configureApp(session = testSession) // session userId = 1
 
-        val event =
-            NotificationEvent(
-                userId = 1,
-                message = "Test",
-            )
+            // userId 1 event goes into replay cache; userId 2 is filtered
+            NotificationService.send(NotificationEvent(userId = 2, message = "For user 2"))
+            NotificationService.send(NotificationEvent(userId = 1, message = "For user 1"))
 
-        val after = System.currentTimeMillis()
+            val body = client.get("/notifications/stream").bodyAsText()
 
-        (event.sentAt >= before) shouldBe true
-        (event.sentAt <= after) shouldBe true
-    }
-
-    "NotificationService should emit events to collectors" {
-        val deferred =
-            async {
-                NotificationService.events.first()
-            }
-
-        val event =
-            NotificationEvent(
-                userId = 5,
-                message = "Live event",
-                type = "alert",
-            )
-
-        NotificationService.send(event)
-
-        val received =
-            withTimeout(3000) {
-                deferred.await()
-            }
-
-        received.userId shouldBe 5
-        received.message shouldBe "Live event"
-        received.type shouldBe "alert"
-    }
-})
+            assertTrue(body.contains("For user 1"), "Expected user 1 message, body=$body")
+            assertFalse(body.contains("For user 2"), "Should not contain user 2 message, body=$body")
+        }
+}

@@ -11,7 +11,7 @@ data class NotificationEvent(
 )
 
 object NotificationService {
-    private val _events =
+    private var _events =
         MutableSharedFlow<NotificationEvent>(
             replay = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -20,5 +20,13 @@ object NotificationService {
 
     suspend fun send(event: NotificationEvent) {
         _events.emit(event)
+    }
+
+    fun reset() {
+        _events =
+            MutableSharedFlow(
+                replay = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST,
+            )
     }
 }
