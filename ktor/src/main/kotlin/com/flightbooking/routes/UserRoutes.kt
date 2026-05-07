@@ -26,7 +26,6 @@ private const val DASHBOARD_PREVIEW_COUNT = 2
 private const val SILVER_TIER_THRESHOLD = 5000
 private const val GOLD_TIER_THRESHOLD = 10000
 private const val PLATINUM_TIER_THRESHOLD = 25000
-private const val MAX_TIER_NAME = "Max Tier"
 
 fun Route.userRoutes() {
     val userRepository = UserRepository()
@@ -174,7 +173,7 @@ fun Route.userRoutes() {
                 }
             val nextTierName =
                 when {
-                    points >= PLATINUM_TIER_THRESHOLD -> MAX_TIER_NAME
+                    points >= PLATINUM_TIER_THRESHOLD -> "Max Tier"
                     points >= GOLD_TIER_THRESHOLD -> "Platinum"
                     points >= SILVER_TIER_THRESHOLD -> "Gold"
                     else -> "Silver"
