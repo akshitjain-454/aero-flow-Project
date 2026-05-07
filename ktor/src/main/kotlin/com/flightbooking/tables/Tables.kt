@@ -10,8 +10,8 @@ import com.flightbooking.enums.PaymentStatus
 import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.UserRole
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.javatime.datetime
 
 private const val DEFAULT_VARCHAR_LENGTH = 100
 private const val EMAIL_VARCHAR_LENGTH = 255

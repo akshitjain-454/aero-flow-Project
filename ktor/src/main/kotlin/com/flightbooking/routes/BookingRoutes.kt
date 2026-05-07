@@ -22,8 +22,8 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
-import java.time.LocalDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
 
 private const val BOOKING_EXPIRY_MINUTES = 30L
@@ -562,18 +562,19 @@ fun Route.bookingRoutes() {
             val newLastname = params["newLastname"]?.trim()
             val newPassportCode = params["newPassportCode"]?.trim()
             val requestedDepartureDateText = params["requestedDepartureDate"]?.trim()
-            val requestedDepartureDate = if (!requestedDepartureDateText.isNullOrBlank()) {
-                try {
-                    LocalDate.parse(requestedDepartureDateText)
-                } catch (error: DateTimeParseException) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        "Invalid requested flight date",
-                    )
+            val requestedDepartureDate =
+                if (!requestedDepartureDateText.isNullOrBlank()) {
+                    try {
+                        LocalDate.parse(requestedDepartureDateText)
+                    } catch (error: DateTimeParseException) {
+                        return@post call.respond(
+                            HttpStatusCode.BadRequest,
+                            "Invalid requested flight date",
+                        )
+                    }
+                } else {
+                    null
                 }
-            } else {
-                null
-            }
             val message = params["message"]?.trim()
 
             val needsPassengerInfo = requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH

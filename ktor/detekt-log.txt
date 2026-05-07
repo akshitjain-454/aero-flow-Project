@@ -1,0 +1,69 @@
+Initialized native services in: /home/codespace/.gradle/native
+Initialized jansi services in: /home/codespace/.gradle/native
+The client will now receive all logging from the daemon (pid: 2982). The daemon log file: /home/codespace/.gradle/daemon/9.3.0/daemon-2982.out.log
+Starting 13th build in daemon [uptime: 1 hrs 41 mins 37.403 secs, performance: 100%, GC rate: 0.00/s, heap usage: 7% of 512 MiB, non-heap usage: 46% of 384 MiB]
+Using 2 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=false, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=false, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Not watching /workspaces/aero-flow-Project/ktor since the file system is not supported
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/workspaces/aero-flow-Project/ktor/settings.gradle.kts'.
+Projects loaded. Root project using build file '/workspaces/aero-flow-Project/ktor/build.gradle.kts'.
+Included projects: [root project 'ktor']
+
+> Configure project :
+Evaluating root project 'ktor' using build file '/workspaces/aero-flow-Project/ktor/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.3.0']
+Resolved plugin [id: 'io.ktor.plugin', version: '3.4.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '1.9.22']
+Resolved plugin [id: 'org.jlleitschuh.gradle.ktlint', version: '12.1.0']
+Resolved plugin [id: 'io.gitlab.arturbosch.detekt', version: '1.23.8']
+Variant Selection Exception: org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException caused by Resolution Failure: org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure
+Build 60f642ff-ad85-46f2-aefc-2404f632280e is started
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Skipping Develocity integration for Shadow plugin.
+Setting org.gradle.jvm.version attribute for shadowRuntimeElements configuration.
+Setting target JVM version to 21 for shadowRuntimeElements configuration.
+Adding shadowRuntimeElements variant to Java component.
+All projects evaluated.
+Task name matched 'detekt'
+Selected primary task 'detekt' from project :
+Tasks to be executed: [task ':detekt']
+Tasks that were excluded: []
+Resolve mutations for :detekt (Thread[#443,included builds,5,main]) started.
+:detekt (Thread[#443,included builds,5,main]) started.
+
+> Task :detekt FAILED
+Caching disabled for task ':detekt' because:
+  Build cache is disabled
+Task ':detekt' is not up-to-date because:
+  Executed with '--rerun-tasks'.
+Executing detekt using DetektInvoker
+Build 60f642ff-ad85-46f2-aefc-2404f632280e is closed
+
+[Incubating] Problems report is available at: file:///workspaces/aero-flow-Project/ktor/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':detekt'.
+> 25.0.2
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1s
+1 actionable task: 1 executed
+Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. The relevant state was discarded to ensure changes to these locations are properly detected. You can override this by explicitly enabling file system watching.

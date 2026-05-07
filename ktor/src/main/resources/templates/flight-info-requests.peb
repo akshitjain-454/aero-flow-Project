@@ -248,7 +248,7 @@
 
     <div class="hero">
         <h1 class="serif">Flight Information Updates</h1>
-        <p>Request passenger information changes or ask the airline to move your booking to another flight.</p>
+        <p>Request passenger information changes or ask the airline to change your flight date.</p>
 
         <div class="hero-actions">
             <a href="/" class="top-link top-link-light">Back to Home</a>
@@ -283,11 +283,11 @@
                     <label class="label">Request Type</label>
                     <select name="requestType" class="input" required>
                         <option value="PASSENGER_INFO">Passenger information only</option>
-                        <option value="FLIGHT_CHANGE">Flight change only</option>
-                        <option value="BOTH">Passenger information and flight change</option>
+                        <option value="FLIGHT_CHANGE">Flight date change only</option>
+                        <option value="BOTH">Passenger information and flight date change</option>
                     </select>
                     <p class="hint">
-                        For flight changes, enter an existing flight code. The admin will review and approve it.
+                        For flight date changes, select the new date you want. The admin will review and approve it.
                     </p>
                 </div>
 
@@ -329,10 +329,10 @@
                 </div>
 
                 <div class="field">
-                    <label class="label">Requested Flight Code</label>
-                    <input name="requestedFlightCode" class="input" placeholder="Example: AE102">
+                    <label class="label">Requested Flight Date</label>
+                    <input name="requestedDepartureDate" type="date" class="input">
                     <p class="hint">
-                        This should be another existing flight code in the system.
+                        Choose the new flight date you would like to request.
                     </p>
                 </div>
 
@@ -363,8 +363,17 @@
 
                                 <div class="request-sub">
                                     Current flight: {{ request.currentFlightCode }}
-                                    {% if request.requestedFlightCode != null and request.requestedFlightCode != "" %}
-                                        → Requested: {{ request.requestedFlightCode }}
+
+                                    {% if request.currentDepartureTime != null %}
+                                        <br>Departure: {{ request.currentDepartureTime | date("dd MMM yyyy, HH:mm") }}
+                                    {% endif %}
+
+                                    {% if request.currentArrivalTime != null %}
+                                        <br>Arrival: {{ request.currentArrivalTime | date("dd MMM yyyy, HH:mm") }}
+                                    {% endif %}
+
+                                    {% if request.requestedDepartureDate != null %}
+                                        <br>Requested flight date: {{ request.requestedDepartureDate | date("dd MMM yyyy") }}
                                     {% endif %}
                                 </div>
                             </div>

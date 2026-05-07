@@ -7,8 +7,8 @@ import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.enums.FlightStatus
 import com.flightbooking.enums.SeatClass
 import java.math.BigDecimal
-import java.time.LocalDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class SeatAvailability(
     val flightSeatId: Int,
