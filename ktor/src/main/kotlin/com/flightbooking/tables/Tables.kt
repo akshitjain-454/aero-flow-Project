@@ -11,6 +11,7 @@ import com.flightbooking.enums.SeatClass
 import com.flightbooking.enums.UserRole
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.javatime.date
 
 private const val DEFAULT_VARCHAR_LENGTH = 100
 private const val EMAIL_VARCHAR_LENGTH = 255
@@ -184,6 +185,7 @@ object FlightInfoRequestTable : Table("FlightInfoRequest") {
     val createdAt = datetime("created_at")
     val handledAt = datetime("handled_at").nullable()
     val handledByUserId = integer("handled_by_user_id").references(UserTable.id).nullable()
+    val requestedDepartureDate = date("requested_departure_date").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

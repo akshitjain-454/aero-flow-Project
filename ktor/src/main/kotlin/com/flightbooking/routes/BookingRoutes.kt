@@ -23,6 +23,8 @@ import io.ktor.server.sessions.set
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 private const val BOOKING_EXPIRY_MINUTES = 30L
 
@@ -553,7 +555,19 @@ fun Route.bookingRoutes() {
             val newFirstname = params["newFirstname"]?.trim()
             val newLastname = params["newLastname"]?.trim()
             val newPassportCode = params["newPassportCode"]?.trim()
-            val requestedFlightCode = params["requestedFlightCode"]?.trim()?.uppercase()
+            val requestedDepartureDateText = params["requestedDepartureDate"]?.trim()
+            val requestedDepartureDate = if (!requestedDepartureDateText.isNullOrBlank()) {
+                try {
+                    LocalDate.parse(requestedDepartureDateText)
+                } catch (error: DateTimeParseException) {
+                    return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        "Invalid requested flight date",
+                    )
+                }
+            } else {
+                null
+            }
             val message = params["message"]?.trim()
 
             val needsPassengerInfo = requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH
@@ -574,12 +588,13 @@ fun Route.bookingRoutes() {
                 )
             }
 
-            if (needsFlightChange && requestedFlightCode.isNullOrBlank()) {
+            if (needsFlightChange && requestedDepartureDate == null) {
                 return@post call.respond(
                     HttpStatusCode.BadRequest,
-                    "Requested flight code is required",
+                    "Requested flight date is required",
                 )
             }
+
             val success =
                 bookingRepository.createFlightInfoRequest(
                     userId = session.userId,
@@ -589,7 +604,7 @@ fun Route.bookingRoutes() {
                     newFirstname = newFirstname,
                     newLastname = newLastname,
                     newPassportCode = newPassportCode,
-                    requestedFlightCode = requestedFlightCode,
+                    requestedDepartureDate = requestedDepartureDate,
                     message = message,
                 )
 

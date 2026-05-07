@@ -945,7 +945,9 @@ class AdminRepository {
                             ).joinToString(" "),
                         email = row[UserTable.email],
                         currentFlightCode = row[FlightTable.flightCode],
-                        requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                        currentDepartureTime = row[FlightTable.departureTime],
+                        currentArrivalTime = row[FlightTable.arrivalTime],
+                        requestedDepartureDate = row[FlightInfoRequestTable.requestedDepartureDate],
                         requestType = row[FlightInfoRequestTable.requestType],
                         status = row[FlightInfoRequestTable.status],
                         passengerId = row[FlightInfoRequestTable.passengerId],
@@ -1004,7 +1006,9 @@ class AdminRepository {
                             ).joinToString(" "),
                         email = row[UserTable.email],
                         currentFlightCode = row[FlightTable.flightCode],
-                        requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                        currentDepartureTime = row[FlightTable.departureTime],
+                        currentArrivalTime = row[FlightTable.arrivalTime],
+                        requestedDepartureDate = row[FlightInfoRequestTable.requestedDepartureDate],
                         requestType = row[FlightInfoRequestTable.requestType],
                         status = row[FlightInfoRequestTable.status],
                         passengerId = row[FlightInfoRequestTable.passengerId],
@@ -1074,15 +1078,20 @@ class AdminRepository {
                     }
                 }
 
-                if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
-                    val requestedFlightCode = request[FlightInfoRequestTable.requestedFlightCode]
+                // if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
+                //     val requestedFlightCode = request[FlightInfoRequestTable.requestedFlightCode]
 
-                    if (!requestedFlightCode.isNullOrBlank()) {
-                        applyFlightChangeToBooking(
-                            bookingId = request[FlightInfoRequestTable.bookingId],
-                            requestedFlightCode = requestedFlightCode,
-                        )
-                    }
+                //     if (!requestedFlightCode.isNullOrBlank()) {
+                //         applyFlightChangeToBooking(
+                //             bookingId = request[FlightInfoRequestTable.bookingId],
+                //             requestedFlightCode = requestedFlightCode,
+                //         )
+                //     }
+                // }
+                if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
+                    // Flight date change request approved.
+                    // The requested date is stored in requestedDepartureDate.
+                    // Do not change booking by flight code.
                 }
             }
             FlightInfoRequestTable.update({ FlightInfoRequestTable.id eq requestId }) {
