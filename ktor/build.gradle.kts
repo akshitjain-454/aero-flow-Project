@@ -30,6 +30,7 @@ dependencies {
     // Unit Test
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.mockk:mockk:1.13.10")
 
     // Auth & Sessions
     implementation("io.ktor:ktor-server-auth:2.3.4")
