@@ -29,3 +29,4 @@ jobs:
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
+        continue-on-error: false
