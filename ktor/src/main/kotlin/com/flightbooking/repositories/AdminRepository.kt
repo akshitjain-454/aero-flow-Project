@@ -49,9 +49,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 /**
- * This Adminrepository is responsible for generating management reports, retrieving reservation and flight information, updating flight schedules
+ * This Admin repository is responsible for generating management reports,
+ * retrieving reservation and flight information, updating flight schedules
  * and statuses, and handling customer flight information change requests.
  *
  * Provides data access and business logic for administrator functions.
@@ -59,12 +61,17 @@ import java.time.LocalDateTime
  */
 
 class AdminRepository {
+    companion object {
+        private val DAY_END_TIME = LocalTime.of(23, 59, 59)
+    }
+
     private val flightRepository = FlightRepository()
 
     /**
      * Generates a report showing the number of confirmed bookings for each flight.
      *
-     * The result includes flight details, airport information, aircraft type, flight status, and the total number of bookings for each flight.
+     * The result includes flight details, airport information, aircraft type,
+     * flight status, and the total number of bookings for each flight.
      * Cancelled bookings are excluded from the booking count.
      *
      * @return A list of booking count summaries grouped by flight.
@@ -241,11 +248,12 @@ class AdminRepository {
     /**
      * Generates a flight availability report with optional filtering.
      *
-     * The report compares total seats against booked seats for each matching flight and calculates the number of available seats.
+     * The report compares total seats against booked seats for each matching flight.
+     * It calculates the number of available seats for each matching flight.
      *
-     * @param fromCodes: Optional list of departure airport codes to filter by.
-     * @param toCodes: Optional list of arrival airport codes to filter by.
-     * @param date: Optional departure date to filter by.
+     * @param fromCodes Optional list of departure airport codes to filter by.
+     * @param toCodes Optional list of arrival airport codes to filter by.
+     * @param date Optional departure date to filter by.
      * @return A list of flight availability summaries matching the filters.
      */
     fun getFlightAvailabilityReport(
@@ -272,7 +280,7 @@ class AdminRepository {
 
             if (date != null) {
                 val dayStart = date.atStartOfDay()
-                val dayEnd = date.atTime(23, 59, 59)
+                val dayEnd = date.atTime(DAY_END_TIME)
 
                 selectCondition = selectCondition and
                     (FlightTable.departureTime greaterEq dayStart) and
@@ -367,7 +375,7 @@ class AdminRepository {
             }
             if (date != null) {
                 val dayStart = date.atStartOfDay()
-                val dayEnd = date.atTime(23, 59, 59)
+                val dayEnd = date.atTime(DAY_END_TIME)
                 selectCondition = selectCondition and
                     (FlightTable.departureTime greaterEq dayStart) and
                     (FlightTable.departureTime lessEq dayEnd)
@@ -454,7 +462,7 @@ class AdminRepository {
             }
             if (date != null) {
                 val dayStart = date.atStartOfDay()
-                val dayEnd = date.atTime(23, 59, 59)
+                val dayEnd = date.atTime(DAY_END_TIME)
                 selectCondition = selectCondition and
                     (FlightTable.departureTime greaterEq dayStart) and
                     (FlightTable.departureTime lessEq dayEnd)
@@ -486,8 +494,10 @@ class AdminRepository {
     /**
      * Updates the route and schedule information for an existing flight.
      *
-     * Before updating the flight, the current departure airport, arrival airport,departure time, and arrival time are stored.
-     * A change log record is record,then created so that administrators can review the history of schedule changes.
+     * Before updating the flight, the current departure airport, arrival airport,
+     * departure time, and arrival time are stored.
+     * A change log record is then created so that administrators can review the
+     * history of schedule changes.
      *
      * @param flightId: The ID of the flight to update.
      * @param newDepartureAirportId: The new departure airport ID.
@@ -506,7 +516,9 @@ class AdminRepository {
         changedByUserId: Int?,
     ): Flight? =
         transaction {
-            val existingFlight = FlightTable.select { FlightTable.id eq flightId }.singleOrNull() ?: return@transaction null
+            val existingFlight =
+                FlightTable.select { FlightTable.id eq flightId }
+                    .singleOrNull() ?: return@transaction null
             val oldDepartureAirportId = existingFlight[FlightTable.departureAirportId]
             val oldArrivalAirportId = existingFlight[FlightTable.arrivalAirportId]
             val oldDepartureTime = existingFlight[FlightTable.departureTime]
@@ -582,7 +594,9 @@ class AdminRepository {
     /**
      * Retrieves all recorded flight schedule changes using optional filters.
      *
-     * The result includes the old and new route information, old and new schedule times, aircraft type, flight status, and the administrator who made the change.
+     * The result includes the old and new route information,
+     * old and new schedule times, aircraft type, flight status,
+     * and the administrator who made the change.
      *
      * @param fromCodes: Optional list of departure airport codes to filter by.
      * @param date: Optional departure date to filter by.
@@ -606,7 +620,7 @@ class AdminRepository {
             }
             if (date != null) {
                 val dayStart = date.atStartOfDay()
-                val dayEnd = date.atTime(23, 59, 59)
+                val dayEnd = date.atTime(DAY_END_TIME)
                 selectCondition = selectCondition and
                     (FlightTable.departureTime greaterEq dayStart) and
                     (FlightTable.departureTime lessEq dayEnd)
@@ -625,10 +639,14 @@ class AdminRepository {
                         id = row[FlightChangeLogTable.id],
                         flightId = row[FlightChangeLogTable.flightId],
                         flightCode = row[FlightTable.flightCode],
-                        oldDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
-                        newDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
-                        oldArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
-                        newArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
+                        oldDepartureAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
+                        newDepartureAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
+                        oldArrivalAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
+                        newArrivalAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
                         oldDepartureTime = row[FlightChangeLogTable.oldDepartureTime],
                         newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                         oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
@@ -637,7 +655,8 @@ class AdminRepository {
                         flightStatus = row[FlightTable.status],
                         aircraftType = row[AircraftTable.type],
                         changedByUserId = row[FlightChangeLogTable.changedByUserId],
-                        changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
+                        changedByName =
+                            getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                     )
                 }
         }
@@ -664,10 +683,14 @@ class AdminRepository {
                         id = row[FlightChangeLogTable.id],
                         flightId = row[FlightChangeLogTable.flightId],
                         flightCode = row[FlightTable.flightCode],
-                        oldDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
-                        newDepartureAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
-                        oldArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
-                        newArrivalAirportNameCode = getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
+                        oldDepartureAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.oldDepartureAirportId]),
+                        newDepartureAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.newDepartureAirportId]),
+                        oldArrivalAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.oldArrivalAirportId]),
+                        newArrivalAirportNameCode =
+                            getAirportNameCodeById(row[FlightChangeLogTable.newArrivalAirportId]),
                         oldDepartureTime = row[FlightChangeLogTable.oldDepartureTime],
                         newDepartureTime = row[FlightChangeLogTable.newDepartureTime],
                         oldArrivalTime = row[FlightChangeLogTable.oldArrivalTime],
@@ -676,7 +699,8 @@ class AdminRepository {
                         flightStatus = row[FlightTable.status],
                         aircraftType = row[AircraftTable.type],
                         changedByUserId = row[FlightChangeLogTable.changedByUserId],
-                        changedByName = getUserNameById(row[FlightChangeLogTable.changedByUserId]),
+                        changedByName =
+                            getUserNameById(row[FlightChangeLogTable.changedByUserId]),
                     )
                 }
         }
@@ -763,7 +787,8 @@ class AdminRepository {
     }
 
     /**
-     * Each result contains booking details, customer information, flight information,payment amount where available, and aircraft type.
+     * Each result contains booking details, customer information, flight information,
+     * payment amount where available, and aircraft type.
      *
      * @param fromCodes: Optional list of departure airport codes to filter by.
      * @param toCodes: Optional list of arrival airport codes to filter by.
@@ -794,7 +819,7 @@ class AdminRepository {
 
             if (date != null) {
                 val dayStart = date.atStartOfDay()
-                val dayEnd = date.atTime(23, 59, 59)
+                val dayEnd = date.atTime(DAY_END_TIME)
 
                 selectCondition = selectCondition and
                     (FlightTable.departureTime greaterEq dayStart) and
@@ -879,8 +904,9 @@ class AdminRepository {
     /**
      * Retrieves all customer flight information change requests.
      *
-     * The result includes the customer, booking reference, current flight, requested flight, request type, request status, passenger changes,
-     * message, admin reply,and handling timestamps.
+     * The result includes the customer, booking reference, current flight,
+     * requested flight, request type, request status, passenger changes,
+     * message, admin reply, and handling timestamps.
      *
      * @return A list of flight information request summaries ordered by creation time.
      */
@@ -935,10 +961,11 @@ class AdminRepository {
         }
 
     /**
-     * Retrieves customer flight information change requests byt request Id.
+     * Retrieves customer flight information change requests by request Id.
      *
-     * The result includes the customer, booking reference, current flight, requested flight, request type, request status, passenger changes,
-     * message, admin reply,and handling timestamps.
+     * The result includes the customer, booking reference, current flight,
+     * requested flight, request type, request status, and passenger changes.
+     * Message, admin reply, and handling timestamps are also included.
      *
      * @return Flight information request summaries ordered by creation time.
      */
@@ -1070,8 +1097,10 @@ class AdminRepository {
     /**
      * Searches reservations by customer details or booking reference.
      *
-     * The search checks customer first name, last name, email address, and booking reference. If the search contains multiple words,
-     * the method also attempts to match first-name and last-name combinations in either order.
+     * The search checks customer first name, last name, email address,
+     * and booking reference.
+     * If the search contains multiple words, the method also attempts to
+     * match first-name and last-name combinations in either order.
      *
      * @param query: The search keyword entered by the administrator.
      * @return A list of matching reservation summaries, or an empty list if the query is blank.
@@ -1203,7 +1232,9 @@ class AdminRepository {
      * @param bookingId: The booking to update.
      * @param requestedFlightCode: The new flight code requested by the customer.
      *
-     * @throws IllegalStateException If the booking, requested flight, passengers,or sufficient available seats cannot be found.
+     * @throws IllegalStateException
+     * If the booking, requested flight, passengers, or sufficient available seats
+     * cannot be found.
      */
     private fun applyFlightChangeToBooking(
         bookingId: Int,
@@ -1269,7 +1300,8 @@ class AdminRepository {
         BookingTable.update({ BookingTable.id eq bookingId }) {
             it[BookingTable.flightId] = newFlightId
         }
-        // Pair the passenger list (passengerIds) with the available seat list (availableSeats) one by one, and then process each pair individually.
+        // Pair the passenger list (passengerIds) with the available seat list (availableSeats) one by one,
+        // and then process each pair individually.
         passengerIds.zip(availableSeats).forEach { pair ->
             val passengerId = pair.first
             val newFlightSeatId = pair.second.first

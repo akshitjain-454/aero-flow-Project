@@ -1,5 +1,3 @@
-package com.flightBooking.test.kotlin
-
 import com.flightbooking.module
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode

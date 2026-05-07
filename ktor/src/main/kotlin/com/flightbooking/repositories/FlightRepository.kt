@@ -20,6 +20,13 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
+import java.time.LocalTime
+
+private val DAY_END_TIME = LocalTime.MAX
+private val DEFAULT_FROM_AIRPORT_CODES = listOf("LBA")
+private const val DEFAULT_PASSENGER_COUNT = 1
+private const val DEFAULT_DEPARTURE_FLEXIBILITY = 0L
+private const val AIRPORT_SEARCH_LIMIT = 10
 
 /**
  * Provides flight search and lookup operations.
@@ -46,10 +53,10 @@ class FlightRepository {
         departureFlexibility: Long?,
     ): List<FlightInfo> =
         transaction {
-            val searchFromCodes = fromCodes ?: listOf("LBA")
+            val searchFromCodes = fromCodes ?: DEFAULT_FROM_AIRPORT_CODES
             val searchDate = date ?: LocalDate.now()
-            val searchNumOfPassengers = numOfPassengers ?: 1
-            val searchDepartureFlexibility = departureFlexibility ?: 0
+            val searchNumOfPassengers = numOfPassengers ?: DEFAULT_PASSENGER_COUNT
+            val searchDepartureFlexibility = departureFlexibility ?: DEFAULT_DEPARTURE_FLEXIBILITY
 
             val fromIds =
                 AirportTable
@@ -58,7 +65,7 @@ class FlightRepository {
 
             var dayStart = searchDate.atStartOfDay()
             dayStart = dayStart.minusDays(searchDepartureFlexibility)
-            var dayEnd = searchDate.atTime(23, 59, 59)
+            var dayEnd = searchDate.atTime(DAY_END_TIME)
             dayEnd = dayEnd.plusDays(searchDepartureFlexibility)
 
             val availableFlightIds =
@@ -155,7 +162,7 @@ class FlightRepository {
                         (AirportTable.city like "$search%") or
                         (AirportTable.country like "$search%")
                 }
-                .limit(10)
+                .limit(AIRPORT_SEARCH_LIMIT)
                 .map { resultRowToAirport(it) }
         }
 

@@ -45,6 +45,28 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+private const val TRANSACTION_ID_LENGTH = 10
+private const val BOOKING_REFERENCE_LENGTH = 8
+private const val LOYALTY_POINT_REFUND_SCALE = 2
+private val LOYALTY_POINT_DIVISOR = BigDecimal("100")
+private const val PRICE_SCALE = 2
+private val PRICE_ROUNDING_MODE = RoundingMode.HALF_UP
+private val DEFAULT_PRICE_MULTIPLIER = BigDecimal("1.0")
+private val ECONOMY_PRICE_MULTIPLIER = BigDecimal("1.0")
+private val BUSINESS_PRICE_MULTIPLIER = BigDecimal("1.75")
+private val FIRST_CLASS_PRICE_MULTIPLIER = BigDecimal("3.0")
+private val SAME_DAY_PRICE_MULTIPLIER = BigDecimal("1.75")
+private val THREE_DAY_PRICE_MULTIPLIER = BigDecimal("1.5")
+private val ONE_WEEK_PRICE_MULTIPLIER = BigDecimal("1.25")
+private val TWO_WEEK_PRICE_MULTIPLIER = BigDecimal("1.15")
+private val FOUR_WEEK_PRICE_MULTIPLIER = BigDecimal("1.1")
+private const val SHORT_TERM_BOOKING_DAYS = 3L
+private const val ONE_WEEK_BOOKING_WEEKS = 1L
+private const val TWO_WEEK_BOOKING_WEEKS = 2L
+private const val FOUR_WEEK_BOOKING_WEEKS = 4L
+private const val NO_LOYALTY_POINTS = 0
+private const val ZERO = 0
+
 /**
  * Handles booking lifecycle operations, payments, seat selection, and customer flight information requests.
  *
@@ -104,7 +126,7 @@ class BookingRepository {
     ): Payment =
         transaction {
             val now = LocalDateTime.now()
-            val transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, 10).uppercase()
+            val transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, TRANSACTION_ID_LENGTH).uppercase()
 
             val paymentId =
                 PaymentTable.insert {
@@ -202,16 +224,16 @@ class BookingRepository {
             val loyaltyPoints = getLoyaltyPointsByUserId(userId)
             val redeemedLoyaltyPoints = getRedeemedLoyaltyPointsByUserId(userId)
 
-            val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
-            val discountedPrice = (price - discount).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP)
+            val discount = loyaltyPoints.toBigDecimal() / LOYALTY_POINT_DIVISOR
+            val discountedPrice = (price - discount).max(BigDecimal.ZERO).setScale(PRICE_SCALE, PRICE_ROUNDING_MODE)
 
             // Set redeemed to current
             UserTable.update({ UserTable.id eq userId }) {
                 it[UserTable.redeemedLoyaltyPoints] = redeemedLoyaltyPoints + loyaltyPoints
             }
-            // set current to 0
+            // set current to no loyalty points
             UserTable.update({ UserTable.id eq userId }) {
-                it[UserTable.loyaltyPoints] = 0
+                it[UserTable.loyaltyPoints] = NO_LOYALTY_POINTS
             }
 
             return@transaction discountedPrice
@@ -367,12 +389,12 @@ class BookingRepository {
             val usersLoyaltyPoints = getLoyaltyPointsByUserId(userId)
             val changedPoints = usersLoyaltyPoints - paidAmount.toInt()
             val refundAmount =
-                if (changedPoints <= 0) {
+                if (changedPoints <= ZERO) {
                     val deficitPoints = -changedPoints
 
                     val penalty =
                         BigDecimal(deficitPoints)
-                            .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+                            .divide(LOYALTY_POINT_DIVISOR, LOYALTY_POINT_REFUND_SCALE, RoundingMode.HALF_UP)
 
                     paidAmount - penalty
                 } else {
@@ -534,26 +556,26 @@ class BookingRepository {
             val now = LocalDate.now()
             val seatClassMultiplier =
                 when (seatClass) {
-                    SeatClass.ECONOMY -> BigDecimal("1.0")
-                    SeatClass.BUSINESS -> BigDecimal("1.75")
-                    SeatClass.FIRST -> BigDecimal("3.0")
-                    null -> BigDecimal("1.0")
+                    SeatClass.ECONOMY -> ECONOMY_PRICE_MULTIPLIER
+                    SeatClass.BUSINESS -> BUSINESS_PRICE_MULTIPLIER
+                    SeatClass.FIRST -> FIRST_CLASS_PRICE_MULTIPLIER
+                    null -> DEFAULT_PRICE_MULTIPLIER
                 }
             val dateMultiplier =
                 when {
-                    date == null -> BigDecimal("1.0")
-                    date == now -> BigDecimal("1.75")
-                    date <= now.plusDays(3) -> BigDecimal("1.5")
-                    date <= now.plusWeeks(1) -> BigDecimal("1.25")
-                    date <= now.plusWeeks(2) -> BigDecimal("1.15")
-                    date <= now.plusWeeks(4) -> BigDecimal("1.1")
-                    else -> BigDecimal("1.0")
+                    date == null -> DEFAULT_PRICE_MULTIPLIER
+                    date == now -> SAME_DAY_PRICE_MULTIPLIER
+                    date <= now.plusDays(SHORT_TERM_BOOKING_DAYS) -> THREE_DAY_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(ONE_WEEK_BOOKING_WEEKS) -> ONE_WEEK_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(TWO_WEEK_BOOKING_WEEKS) -> TWO_WEEK_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(FOUR_WEEK_BOOKING_WEEKS) -> FOUR_WEEK_PRICE_MULTIPLIER
+                    else -> DEFAULT_PRICE_MULTIPLIER
                 }
             val ticketPrice =
                 flightPrice
                     .multiply(seatClassMultiplier)
                     .multiply(dateMultiplier)
-                    .setScale(2, RoundingMode.HALF_UP)
+                    .setScale(PRICE_SCALE, PRICE_ROUNDING_MODE)
 
             return@transaction ticketPrice
         }
@@ -963,6 +985,6 @@ class BookingRepository {
      * @return A random uppercase booking reference string.
      */
     fun generateBookingReference(): String {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 8).uppercase()
+        return UUID.randomUUID().toString().replace("-", "").substring(0, BOOKING_REFERENCE_LENGTH).uppercase()
     }
 }

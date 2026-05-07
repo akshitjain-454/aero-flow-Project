@@ -24,6 +24,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
+private const val BOOKING_EXPIRY_MINUTES = 30L
+
 fun Route.bookingRoutes() {
     val bookingRepository = BookingRepository()
     val flightRepository = FlightRepository()
@@ -33,7 +35,7 @@ fun Route.bookingRoutes() {
         post("/create_booking") {
             val session =
                 call.sessions.get<UserSession>()
-                    ?: return@post call.respondRedirect("/login") // Need this to be the page btw not the login post. TODO - make page loading routes
+                    ?: return@post call.respondRedirect("/login")
             val params = call.receiveParameters()
             val flightCode = params["flight_code"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing flight_code")
             val returnFlightCode = params["return_flight_code"]
@@ -105,7 +107,7 @@ fun Route.bookingRoutes() {
             }
 
             // Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
+            if (booking.createdAt.plusMinutes(BOOKING_EXPIRY_MINUTES) < LocalDateTime.now()) {
                 bookingRepository.deleteBookingByReference(reference)
                 return@post call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
             }
@@ -192,7 +194,7 @@ fun Route.bookingRoutes() {
             }
 
             // Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
+            if (booking.createdAt.plusMinutes(BOOKING_EXPIRY_MINUTES) < LocalDateTime.now()) {
                 bookingRepository.deleteBookingByReference(reference)
                 return@post call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
             }
@@ -307,7 +309,7 @@ fun Route.bookingRoutes() {
             }
 
             // Stops booking if taking too long
-            if (booking.createdAt.plusMinutes(30) < LocalDateTime.now()) {
+            if (booking.createdAt.plusMinutes(BOOKING_EXPIRY_MINUTES) < LocalDateTime.now()) {
                 bookingRepository.deleteBookingByReference(reference)
                 return@post call.respondPebble("index.peb", mapOf("error" to "Your booking session expired. Please search again."))
             }

@@ -185,10 +185,9 @@ class ComplaintRepository {
         adminUserId: Int,
     ): Complaint? =
         transaction {
-            val existingComplaint =
-                ComplaintTable
-                    .select { ComplaintTable.id eq id }
-                    .singleOrNull() ?: return@transaction null
+            ComplaintTable
+                .select { ComplaintTable.id eq id }
+                .singleOrNull() ?: return@transaction null
 
             ComplaintTable.update({ ComplaintTable.id eq id }) {
                 it[status] = newStatus

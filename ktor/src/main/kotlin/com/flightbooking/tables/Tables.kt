@@ -12,13 +12,24 @@ import com.flightbooking.enums.UserRole
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 
+private const val DEFAULT_VARCHAR_LENGTH = 100
+private const val EMAIL_VARCHAR_LENGTH = 255
+private const val ENUM_NAME_LENGTH = 30
+private const val AIRPORT_CODE_LENGTH = 5
+private const val BOOKING_REFERENCE_LENGTH = 100
+private const val MESSAGE_LENGTH = 300
+private const val ADMIN_REPLY_LENGTH = 1000
+private const val TRANSACTION_ID_LENGTH = 255
+private const val DECIMAL_PRECISION = 10
+private const val DECIMAL_SCALE = 2
+
 object UserTable : Table("User") {
     val id = integer("user_id").autoIncrement()
-    val firstname = varchar("firstname", 100).nullable()
-    val lastname = varchar("lastname", 100).nullable()
-    val email = varchar("email", 255).uniqueIndex()
-    val passwordHash = varchar("password_hash", 255)
-    val role = enumerationByName("role", 30, UserRole::class)
+    val firstname = varchar("firstname", DEFAULT_VARCHAR_LENGTH).nullable()
+    val lastname = varchar("lastname", DEFAULT_VARCHAR_LENGTH).nullable()
+    val email = varchar("email", EMAIL_VARCHAR_LENGTH).uniqueIndex()
+    val passwordHash = varchar("password_hash", EMAIL_VARCHAR_LENGTH)
+    val role = enumerationByName("role", ENUM_NAME_LENGTH, UserRole::class)
     val loyaltyPoints = integer("loyalty_points")
     val redeemedLoyaltyPoints = integer("redeemed_loyalty_points")
     val createdAt = datetime("created_at")
@@ -28,11 +39,11 @@ object UserTable : Table("User") {
 
 object BookingTable : Table("Booking") {
     val id = integer("booking_id").autoIncrement()
-    val bookingReference = varchar("booking_reference", 100).uniqueIndex()
+    val bookingReference = varchar("booking_reference", BOOKING_REFERENCE_LENGTH).uniqueIndex()
     val userId = integer("user_id").references(UserTable.id)
     val flightId = integer("flight_id").references(FlightTable.id)
     val returnFlightId = integer("return_flight_id").references(FlightTable.id).nullable()
-    val status = enumerationByName("status", 30, BookingStatus::class)
+    val status = enumerationByName("status", ENUM_NAME_LENGTH, BookingStatus::class)
     val createdAt = datetime("created_at")
 
     override val primaryKey = PrimaryKey(id)
@@ -40,21 +51,21 @@ object BookingTable : Table("Booking") {
 
 object FlightTable : Table("Flight") {
     val id = integer("flight_id").autoIncrement()
-    val flightCode = varchar("flight_code", 100).uniqueIndex()
+    val flightCode = varchar("flight_code", BOOKING_REFERENCE_LENGTH).uniqueIndex()
     val departureAirportId = integer("departure_airport_id").references(AirportTable.id)
     val arrivalAirportId = integer("arrival_airport_id").references(AirportTable.id)
     val aircraftId = integer("aircraft_id").references(AircraftTable.id)
     val departureTime = datetime("departure_time")
     val arrivalTime = datetime("arrival_time")
-    val minPrice = decimal("min_price", 10, 2)
-    val status = enumerationByName("status", 30, FlightStatus::class)
+    val minPrice = decimal("min_price", DECIMAL_PRECISION, DECIMAL_SCALE)
+    val status = enumerationByName("status", ENUM_NAME_LENGTH, FlightStatus::class)
 
     override val primaryKey = PrimaryKey(id)
 }
 
 object AircraftTable : Table("Aircraft") {
     val id = integer("aircraft_id").autoIncrement()
-    val type = varchar("type", 100)
+    val type = varchar("type", DEFAULT_VARCHAR_LENGTH)
     val numOfSeats = integer("num_of_seats")
 
     override val primaryKey = PrimaryKey(id)
@@ -62,10 +73,10 @@ object AircraftTable : Table("Aircraft") {
 
 object AirportTable : Table("Airport") {
     val id = integer("airport_id").autoIncrement()
-    val name = varchar("name", 100)
-    val code = varchar("code", 5).uniqueIndex()
-    val city = varchar("city", 100)
-    val country = varchar("country", 100)
+    val name = varchar("name", DEFAULT_VARCHAR_LENGTH)
+    val code = varchar("code", AIRPORT_CODE_LENGTH).uniqueIndex()
+    val city = varchar("city", DEFAULT_VARCHAR_LENGTH)
+    val country = varchar("country", DEFAULT_VARCHAR_LENGTH)
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -73,9 +84,9 @@ object AirportTable : Table("Airport") {
 object PassengerTable : Table("Passenger") {
     val id = integer("passenger_id").autoIncrement()
     val bookingId = integer("booking_id").references(BookingTable.id)
-    val firstname = varchar("firstname", 100)
-    val lastname = varchar("lastname", 100)
-    val passportCode = varchar("passport_code", 100).nullable()
+    val firstname = varchar("firstname", DEFAULT_VARCHAR_LENGTH)
+    val lastname = varchar("lastname", DEFAULT_VARCHAR_LENGTH)
+    val passportCode = varchar("passport_code", DEFAULT_VARCHAR_LENGTH).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -83,12 +94,12 @@ object PassengerTable : Table("Passenger") {
 object PaymentTable : Table("Payment") {
     val id = integer("payment_id").autoIncrement()
     val bookingId = integer("booking_id").references(BookingTable.id)
-    val amount = decimal("amount", 10, 2)
-    val paymentStatus = enumerationByName("payment_status", 30, PaymentStatus::class)
-    val paymentMethod = enumerationByName("payment_method", 30, PaymentMethod::class)
-    val transactionId = varchar("transaction_id", 255)
+    val amount = decimal("amount", DECIMAL_PRECISION, DECIMAL_SCALE)
+    val paymentStatus = enumerationByName("payment_status", ENUM_NAME_LENGTH, PaymentStatus::class)
+    val paymentMethod = enumerationByName("payment_method", ENUM_NAME_LENGTH, PaymentMethod::class)
+    val transactionId = varchar("transaction_id", TRANSACTION_ID_LENGTH)
     val createdAt = datetime("created_at")
-    val refundAmount = decimal("refund_amount", 10, 2).nullable()
+    val refundAmount = decimal("refund_amount", DECIMAL_PRECISION, DECIMAL_SCALE).nullable()
     val refundDate = datetime("refund_date").nullable()
 
     override val primaryKey = PrimaryKey(id)
@@ -97,12 +108,12 @@ object PaymentTable : Table("Payment") {
 object ComplaintTable : Table("Complaint") {
     val id = integer("complaint_id").autoIncrement()
     val userId = integer("user_id").references(UserTable.id)
-    val message = varchar("message", 300)
-    val status = enumerationByName("status", 30, ComplaintStatus::class)
+    val message = varchar("message", MESSAGE_LENGTH)
+    val status = enumerationByName("status", ENUM_NAME_LENGTH, ComplaintStatus::class)
     val createdAt = datetime("created_at")
 
     // Admin handling part
-    val adminReply = varchar("admin_reply", 1000).nullable()
+    val adminReply = varchar("admin_reply", ADMIN_REPLY_LENGTH).nullable()
     val repliedAt = datetime("replied_at").nullable()
     val repliedByUserId = integer("replied_by_user_id").references(UserTable.id).nullable()
 
@@ -112,8 +123,8 @@ object ComplaintTable : Table("Complaint") {
 object SeatTable : Table("Seat") {
     val id = integer("seat_id").autoIncrement()
     val aircraftId = integer("aircraft_id").references(AircraftTable.id)
-    val seatNumber = varchar("seat_number", 100)
-    val seatClass = enumerationByName("seat_class", 30, SeatClass::class)
+    val seatNumber = varchar("seat_number", DEFAULT_VARCHAR_LENGTH)
+    val seatClass = enumerationByName("seat_class", ENUM_NAME_LENGTH, SeatClass::class)
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -122,8 +133,8 @@ object TicketAssignmentTable : Table("TicketAssignment") {
     val id = integer("ticket_assignment_id").autoIncrement()
     val passengerId = integer("passenger_id").references(PassengerTable.id)
     val flightSeatId = integer("flight_seat_id").references(FlightSeatTable.id).uniqueIndex()
-    val ticketPrice = decimal("ticketPrice", 10, 2)
-    val seatNumber = varchar("seat_number", 100)
+    val ticketPrice = decimal("ticketPrice", DECIMAL_PRECISION, DECIMAL_SCALE)
+    val seatNumber = varchar("seat_number", DEFAULT_VARCHAR_LENGTH)
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -161,15 +172,15 @@ object FlightInfoRequestTable : Table("FlightInfoRequest") {
     val id = integer("flight_info_request_id").autoIncrement()
     val userId = integer("user_id").references(UserTable.id)
     val bookingId = integer("booking_id").references(BookingTable.id)
-    val requestType = enumerationByName("request_type", 30, FlightInfoRequestType::class)
-    val status = enumerationByName("status", 30, FlightInfoRequestStatus::class)
+    val requestType = enumerationByName("request_type", ENUM_NAME_LENGTH, FlightInfoRequestType::class)
+    val status = enumerationByName("status", ENUM_NAME_LENGTH, FlightInfoRequestStatus::class)
     val passengerId = integer("passenger_id").references(PassengerTable.id).nullable()
-    val newFirstname = varchar("new_firstname", 100).nullable()
-    val newLastname = varchar("new_lastname", 100).nullable()
-    val newPassportCode = varchar("new_passport_code", 100).nullable()
-    val requestedFlightCode = varchar("requested_flight_code", 100).nullable()
-    val message = varchar("message", 1000).nullable()
-    val adminReply = varchar("admin_reply", 1000).nullable()
+    val newFirstname = varchar("new_firstname", DEFAULT_VARCHAR_LENGTH).nullable()
+    val newLastname = varchar("new_lastname", DEFAULT_VARCHAR_LENGTH).nullable()
+    val newPassportCode = varchar("new_passport_code", DEFAULT_VARCHAR_LENGTH).nullable()
+    val requestedFlightCode = varchar("requested_flight_code", DEFAULT_VARCHAR_LENGTH).nullable()
+    val message = varchar("message", ADMIN_REPLY_LENGTH).nullable()
+    val adminReply = varchar("admin_reply", ADMIN_REPLY_LENGTH).nullable()
     val createdAt = datetime("created_at")
     val handledAt = datetime("handled_at").nullable()
     val handledByUserId = integer("handled_by_user_id").references(UserTable.id).nullable()
