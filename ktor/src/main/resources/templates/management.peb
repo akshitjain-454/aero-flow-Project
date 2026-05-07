@@ -924,73 +924,61 @@
             const data = await fetchData("/admin/flight-info-requests");
             const results = getResults(data);
 
-            const rows = results.map(item => `
-                <tr class="hover:bg-gray-50 align-top">
-                    <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.id)}</td>
+            const rows = results.map(item => {
+                const flightCell = item.returnFlightCode
+                    ? `
+                        <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.flightCode)}</div>
+                        <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnFlightCode)}</div>
+                    `
+                    : escapeHtml(item.flightCode);
 
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-gray-900">${escapeHtml(item.bookingReference)}</div>
-                        <div class="text-xs text-gray-400">${escapeHtml(item.customerName)}</div>
-                        <div class="text-xs text-gray-400 mt-1">${escapeHtml(item.email)}</div>
-                        <div class="text-xs text-gray-400 mt-1">User #${escapeHtml(item.userId)}</div>
-                    </td>
+                const aircraftCell = item.returnAircraftType
+                    ? `
+                        <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.aircraftType)}</div>
+                        <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnAircraftType)}</div>
+                    `
+                    : escapeHtml(item.aircraftType);
 
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-gray-900">
-                            Current: ${escapeHtml(item.currentFlightCode)}
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">
-                            Requested: ${escapeHtml(item.requestedFlightCode)}
-                        </div>
-                    </td>
+                const fromCell = item.returnDepartureAirportNameCode
+                    ? `
+                        <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.departureAirportNameCode)}</div>
+                        <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnDepartureAirportNameCode)}</div>
+                    `
+                    : escapeHtml(item.departureAirportNameCode);
 
-                    <td class="px-6 py-4 min-w-72">
-                        <div class="font-bold">${escapeHtml(item.requestType)}</div>
-                        <div class="text-xs text-gray-400 mt-2">
-                            Passenger ID: ${escapeHtml(item.passengerId)}
-                        </div>
-                        <div class="text-sm text-gray-600 mt-2">
-                            ${escapeHtml(item.newFirstname)} ${escapeHtml(item.newLastname)}
-                        </div>
-                        <div class="text-xs text-gray-400">
-                            Passport: ${escapeHtml(item.newPassportCode)}
-                        </div>
-                    </td>
+                const toCell = item.returnArrivalAirportNameCode
+                    ? `
+                        <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.arrivalAirportNameCode)}</div>
+                        <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnArrivalAirportNameCode)}</div>
+                    `
+                    : escapeHtml(item.arrivalAirportNameCode);
 
-                    <td class="px-6 py-4 min-w-80">
-                        ${escapeHtml(item.message)}
-                    </td>
+                const departureCell = item.returnDepartureTime
+                    ? `
+                        <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${formatDateTime(item.departureTime)}</div>
+                        <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${formatDateTime(item.returnDepartureTime)}</div>
+                    `
+                    : formatDateTime(item.departureTime);
 
-                    <td class="px-6 py-4">
-                        ${statusBadge(item.status)}
-                        <div class="text-xs text-gray-400 mt-2">
-                            Created: ${formatDateTime(item.createdAt)}
-                        </div>
-                        <div class="text-xs text-gray-400">
-                            Handled: ${formatDateTime(item.handledAt)}
-                        </div>
-                    </td>
-
-                    <td class="px-6 py-4 min-w-80">
-                        <textarea id="flight-request-reply-${Number(item.id)}"
-                                rows="3"
-                                placeholder="Write admin reply..."
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[--sky-blue]">${item.adminReply ? escapeHtml(item.adminReply) : ""}</textarea>
-
-                        <select id="flight-request-status-${Number(item.id)}"
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mt-3">
-                            <option value="PENDING" ${item.status === "PENDING" ? "selected" : ""}>Pending</option>
-                            <option value="APPROVED" ${item.status === "APPROVED" ? "selected" : ""}>Approve</option>
-                            <option value="REJECTED" ${item.status === "REJECTED" ? "selected" : ""}>Reject</option>
-                        </select>
-
-                        <button onclick="handleFlightInfoRequest(${Number(item.id)})"
-                                class="w-full mt-3 px-3 py-2 bg-[--sky-blue] text-white rounded-lg text-sm font-bold hover:opacity-90">
-                            Save Decision
-                        </button>
-                    </td>
-                </tr>
-            `);
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">${escapeHtml(item.firstname)} ${escapeHtml(item.lastname)}</div>
+                            <div class="text-xs text-gray-400">User #${escapeHtml(item.userId)}</div>
+                        </td>
+                        <td class="px-6 py-4">${escapeHtml(item.email)}</td>
+                        <td class="px-6 py-4 font-bold">${flightCell}</td>
+                        <td class="px-6 py-4">${aircraftCell}</td>
+                        <td class="px-6 py-4">${fromCell}</td>
+                        <td class="px-6 py-4">${toCell}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${departureCell}</td>
+                        <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
+                        <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
+                    </tr>
+                `;
+            });
 
             setSummary(`Flight information requests shown: ${results.length}`);
 
@@ -1057,7 +1045,43 @@
             const data = await fetchData("/admin/reservations" + getFilterQuery(true));
             const results = getResults(data);
 
-            const rows = results.map(item => `
+            const rows = results.map(item => {
+            const flightCell = item.returnFlightCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.flightCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnFlightCode)}</div>
+                `
+                : escapeHtml(item.flightCode);
+
+            const aircraftCell = item.returnAircraftType
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.aircraftType)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnAircraftType)}</div>
+                `
+                : escapeHtml(item.aircraftType);
+
+            const fromCell = item.returnDepartureAirportNameCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.departureAirportNameCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnDepartureAirportNameCode)}</div>
+                `
+                : escapeHtml(item.departureAirportNameCode);
+
+            const toCell = item.returnArrivalAirportNameCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.arrivalAirportNameCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnArrivalAirportNameCode)}</div>
+                `
+                : escapeHtml(item.arrivalAirportNameCode);
+
+            const departureCell = item.returnDepartureTime
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${formatDateTime(item.departureTime)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${formatDateTime(item.returnDepartureTime)}</div>
+                `
+                : formatDateTime(item.departureTime);
+
+            return `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
                     <td class="px-6 py-4">
@@ -1065,16 +1089,17 @@
                         <div class="text-xs text-gray-400">User #${escapeHtml(item.userId)}</div>
                     </td>
                     <td class="px-6 py-4">${escapeHtml(item.email)}</td>
-                    <td class="px-6 py-4 font-bold">${escapeHtml(item.flightCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 font-bold">${flightCell}</td>
+                    <td class="px-6 py-4">${aircraftCell}</td>
+                    <td class="px-6 py-4">${fromCell}</td>
+                    <td class="px-6 py-4">${toCell}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${departureCell}</td>
                     <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
                     <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
                 </tr>
-            `);
+            `;
+        });
 
             setSummary(`Reservations shown: ${results.length}`);
             renderTable(
@@ -1172,7 +1197,43 @@
             const data = await fetchData("/admin/customer-search?q=" + encodeURIComponent(query));
             const results = getResults(data);
 
-            const rows = results.map(item => `
+            const rows = results.map(item => {
+            const flightCell = item.returnFlightCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.flightCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnFlightCode)}</div>
+                `
+                : escapeHtml(item.flightCode);
+
+            const aircraftCell = item.returnAircraftType
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.aircraftType)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnAircraftType)}</div>
+                `
+                : escapeHtml(item.aircraftType);
+
+            const fromCell = item.returnDepartureAirportNameCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.departureAirportNameCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnDepartureAirportNameCode)}</div>
+                `
+                : escapeHtml(item.departureAirportNameCode);
+
+            const toCell = item.returnArrivalAirportNameCode
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${escapeHtml(item.arrivalAirportNameCode)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${escapeHtml(item.returnArrivalAirportNameCode)}</div>
+                `
+                : escapeHtml(item.arrivalAirportNameCode);
+
+            const departureCell = item.returnDepartureTime
+                ? `
+                    <div><span class="text-xs text-gray-400 font-bold">Outbound:</span> ${formatDateTime(item.departureTime)}</div>
+                    <div><span class="text-xs text-gray-400 font-bold">Return:</span> ${formatDateTime(item.returnDepartureTime)}</div>
+                `
+                : formatDateTime(item.departureTime);
+
+            return `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-900">${escapeHtml(item.bookingReference)}</td>
 
@@ -1184,16 +1245,17 @@
                     </td>
 
                     <td class="px-6 py-4">${escapeHtml(item.email)}</td>
-                    <td class="px-6 py-4 font-bold">${escapeHtml(item.flightCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.aircraftType)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.departureAirportNameCode)}</td>
-                    <td class="px-6 py-4">${escapeHtml(item.arrivalAirportNameCode)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.departureTime)}</td>
+                    <td class="px-6 py-4 font-bold">${flightCell}</td>
+                    <td class="px-6 py-4">${aircraftCell}</td>
+                    <td class="px-6 py-4">${fromCell}</td>
+                    <td class="px-6 py-4">${toCell}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${departureCell}</td>
                     <td class="px-6 py-4">${statusBadge(item.bookingStatus)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(item.createdAt)}</td>
                     <td class="px-6 py-4">${formatMoney(item.amountPaid)}</td>
                 </tr>
-            `);
+            `;
+        });
 
             document.getElementById("summaryBox").innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

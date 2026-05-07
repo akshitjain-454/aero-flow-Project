@@ -162,13 +162,15 @@ class AdminRepositoryTest : StringSpec({
         flightId: Int,
         status: BookingStatus = BookingStatus.CONFIRMED,
         createdAt: LocalDateTime = LocalDateTime.of(2026, 5, 1, 10, 0),
+        returnFlightId: Int? = null,
     ): Int =
         transaction {
             BookingTable.insert {
                 it[BookingTable.bookingReference] = bookingReference
                 it[BookingTable.userId] = userId
                 it[BookingTable.flightId] = flightId
-                it[BookingTable.returnFlightId] = null
+                // it[BookingTable.returnFlightId] = null
+                it[BookingTable.returnFlightId] = returnFlightId
                 it[BookingTable.status] = status
                 it[BookingTable.createdAt] = createdAt
             } get BookingTable.id
@@ -1275,5 +1277,76 @@ class AdminRepositoryTest : StringSpec({
 
         // Assert: reversed full name search should still find John's booking.
         reversedFullNameResults.map { it.bookingId } shouldContain firstBookingId
+    }
+
+    "Get all reservations includes return flight details for round trip booking" {
+        // Arrange: create a round trip reservation with outbound and return flights.
+        val userId =
+            createTestUser(
+                email = "round-trip@test.com",
+                role = UserRole.USER,
+                firstname = "Round",
+                lastname = "Trip",
+            )
+
+        val lhrAirportId = createAirport("London Heathrow Airport", "LHR")
+        val manAirportId = createAirport("Manchester Airport", "MAN")
+        val aircraftId = createAircraft(type = "Boeing 737")
+
+        val outboundFlightId =
+            createFlight(
+                flightCode = "AE0226001",
+                departureAirportId = lhrAirportId,
+                arrivalAirportId = manAirportId,
+                aircraftId = aircraftId,
+                departureTime = LocalDateTime.of(2026, 6, 1, 6, 0),
+                arrivalTime = LocalDateTime.of(2026, 6, 1, 7, 0),
+            )
+
+        val returnFlightId =
+            createFlight(
+                flightCode = "AE2602002",
+                departureAirportId = manAirportId,
+                arrivalAirportId = lhrAirportId,
+                aircraftId = aircraftId,
+                departureTime = LocalDateTime.of(2026, 6, 3, 6, 0),
+                arrivalTime = LocalDateTime.of(2026, 6, 3, 7, 0),
+            )
+
+        val bookingId =
+            transaction {
+                BookingTable.insert {
+                    it[BookingTable.bookingReference] = "BR-ROUND-TRIP"
+                    it[BookingTable.userId] = userId
+                    it[BookingTable.flightId] = outboundFlightId
+                    it[BookingTable.returnFlightId] = returnFlightId
+                    it[BookingTable.status] = BookingStatus.CONFIRMED
+                    it[BookingTable.createdAt] = LocalDateTime.of(2026, 5, 1, 10, 0)
+                } get BookingTable.id
+            }
+
+        // Act: retrieve reservations.
+        val reservations =
+            repository.getAllReservations(
+                fromCodes = null,
+                toCodes = null,
+                date = null,
+                status = null,
+            )
+
+        val summary = reservations.single()
+
+        // Assert: outbound and return flight details should both be included.
+        summary.bookingId shouldBe bookingId
+        summary.flightCode shouldBe "AE0226001"
+        summary.departureAirportNameCode shouldBe "London Heathrow Airport LHR"
+        summary.arrivalAirportNameCode shouldBe "Manchester Airport MAN"
+
+        summary.returnFlightId shouldBe returnFlightId
+        summary.returnFlightCode shouldBe "AE2602002"
+        summary.returnDepartureAirportNameCode shouldBe "Manchester Airport MAN"
+        summary.returnArrivalAirportNameCode shouldBe "London Heathrow Airport LHR"
+        summary.returnDepartureTime shouldBe LocalDateTime.of(2026, 6, 3, 6, 0)
+        summary.returnAircraftType shouldBe "Boeing 737"
     }
 })

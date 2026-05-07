@@ -167,6 +167,13 @@ data class ReservationSummary(
     val createdAt: LocalDateTime,
     val amountPaid: BigDecimal?,
     val aircraftType: String,
+    val returnFlightId: Int? = null,
+    val returnFlightCode: String? = null,
+    val returnDepartureAirportNameCode: String? = null,
+    val returnArrivalAirportNameCode: String? = null,
+    val returnDepartureTime: LocalDateTime? = null,
+    val returnArrivalTime: LocalDateTime? = null,
+    val returnAircraftType: String? = null,
 )
 
 data class ComplaintSummary(
