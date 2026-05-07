@@ -220,13 +220,12 @@ class FlightRepositoryTest : StringSpec({
         val arrMatchId = createTestAirport(code = "LHR")
         val arrOtherId = createTestAirport(code = "MAN")
 
-        val matchFlight =
-            createTestFlight(
-                departureAirportId = depId,
-                arrivalAirportId = arrMatchId,
-                departureTime = LocalDateTime.now().plusDays(1).withHour(10),
-                arrivalTime = LocalDateTime.now().plusDays(1).withHour(12),
-            ).also { createTestFlightSeat(it) }
+        createTestFlight(
+            departureAirportId = depId,
+            arrivalAirportId = arrMatchId,
+            departureTime = LocalDateTime.now().plusDays(1).withHour(10),
+            arrivalTime = LocalDateTime.now().plusDays(1).withHour(12),
+        ).also { createTestFlightSeat(it) }
 
         createTestFlight(
             departureAirportId = depId,
@@ -513,7 +512,6 @@ class FlightRepositoryTest : StringSpec({
     "Get airport by search is case-sensitive to the LIKE operator behaviour" {
         createTestAirport(code = "LBA", name = "Leeds Bradford Airport")
 
-        val upper = repository.getAirportBySearch("LEEDS")
         val lower = repository.getAirportBySearch("leeds")
 
         lower shouldHaveSize 1

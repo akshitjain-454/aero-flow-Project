@@ -9,7 +9,6 @@ import com.flightbooking.models.ReservationSummary
 import com.flightbooking.models.User
 import com.flightbooking.repositories.AdminRepository
 import com.flightbooking.repositories.ComplaintRepository
-import com.flightbooking.repositories.FlightRepository
 import com.flightbooking.repositories.UserRepository
 import com.flightbooking.respondPebble
 import com.flightbooking.services.NotificationEvent
@@ -34,7 +33,11 @@ import java.time.LocalDateTime
 /**
  * Registers administrator-only routes for the management dashboard.
  *
- * These routes allow administrators to view operational reports, manage complaints, handle customer flight information requests, search reservations,
+ * These routes allow administrators to,
+ * view operational reports,
+ * manage complaints,
+ * handle customer flight information requests,
+ * search reservations,
  * update flight schedules, and update flight statuses.
  *
  * Most routes require an active user session with the ADMIN role. Unauthenticated users are redirected to the login page,
@@ -43,7 +46,6 @@ import java.time.LocalDateTime
 fun Route.adminRoutes() {
     val complaintRepository = ComplaintRepository()
     val adminRepository = AdminRepository()
-    val flightRepository = FlightRepository()
     val userRepository = UserRepository()
 
     route("/admin") {
