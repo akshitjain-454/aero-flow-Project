@@ -711,35 +711,7 @@
             }
         });
 
-        if (multiState.from.length === 0) {
-            valid = false;
-            document.getElementById('from-tag-box').style.borderBottomColor = '#ef4444';
-            const err = document.createElement('div');
-            err.id = 'from-error';
-            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
-            err.textContent   = 'Please select a departure airport';
-            document.getElementById('from-wrapper').appendChild(err);
-        }
-
-        if (multiState.to.length === 0) {
-            valid = false;
-            document.getElementById('to-tag-box').style.borderBottomColor = '#ef4444';
-            const err = document.createElement('div');
-            err.id = 'to-error';
-            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;position:absolute;';
-            err.textContent   = 'Please select a destination airport';
-            document.getElementById('to-wrapper').appendChild(err);
-        }
-
         const depDateVal = document.getElementById('departure-date').value;
-        if (!depDateVal) {
-            valid = false;
-            const err = document.createElement('div');
-            err.id = 'date-error';
-            err.style.cssText = 'color:#ef4444;font-size:11px;margin-top:4px;';
-            err.textContent   = 'Please select a departure date';
-            document.getElementById('date-wrapper').appendChild(err);
-        }
 
         if (!valid) return;
 
