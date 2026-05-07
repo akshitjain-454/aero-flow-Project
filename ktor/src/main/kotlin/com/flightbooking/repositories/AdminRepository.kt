@@ -209,33 +209,34 @@ class AdminRepository {
      * @param flightCode: The flight code used to search for the flight.
      * Return a booking summary for the matching flight, or null if no flight exists.
      */
-    fun getBookingsPerFlightByFlightCode(flightCode: String): BookingsPerFlightReport? {
-        val flight = flightRepository.getFlightByFlightCode(flightCode.uppercase()) ?: return null
+    fun getBookingsPerFlightByFlightCode(flightCode: String): BookingsPerFlightReport? =
+        transaction {
+            val flightRow =
+                FlightTable.select { FlightTable.flightCode eq flightCode.uppercase() }
+                    .singleOrNull() ?: return@transaction null
 
-        val bookingCount =
-            transaction {
+            val bookingCount =
                 BookingTable
                     .select {
-                        (BookingTable.flightId eq flight.id) and
+                        (BookingTable.flightId eq flightRow[FlightTable.id]) and
                             (BookingTable.status neq BookingStatus.CANCELLED)
                     }
                     .count()
-            }
 
-        return BookingsPerFlightReport(
-            flightId = flight.id,
-            flightCode = flight.flightCode,
-            departureAirportId = flight.departureAirportId,
-            arrivalAirportId = flight.arrivalAirportId,
-            departureAirportNameCode = getAirportNameCodeById(flight.departureAirportId),
-            arrivalAirportNameCode = getAirportNameCodeById(flight.arrivalAirportId),
-            departureTime = flight.departureTime,
-            arrivalTime = flight.arrivalTime,
-            flightStatus = flight.status,
-            bookingCount = bookingCount,
-            aircraftType = getAircraftTypeById(flight.aircraftId),
-        )
-    }
+            BookingsPerFlightReport(
+                flightId = flightRow[FlightTable.id],
+                flightCode = flightRow[FlightTable.flightCode],
+                departureAirportId = flightRow[FlightTable.departureAirportId],
+                arrivalAirportId = flightRow[FlightTable.arrivalAirportId],
+                departureAirportNameCode = getAirportNameCodeById(flightRow[FlightTable.departureAirportId]),
+                arrivalAirportNameCode = getAirportNameCodeById(flightRow[FlightTable.arrivalAirportId]),
+                departureTime = flightRow[FlightTable.departureTime],
+                arrivalTime = flightRow[FlightTable.arrivalTime],
+                flightStatus = flightRow[FlightTable.status],
+                bookingCount = bookingCount,
+                aircraftType = getAircraftTypeById(flightRow[FlightTable.aircraftId]),
+            )
+        }
 
     /**
      * Generates a flight availability report with optional filtering.

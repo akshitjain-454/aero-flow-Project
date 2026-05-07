@@ -66,7 +66,6 @@ class ComplaintRepositoryTest : StringSpec({
     "Create complaint stores message with OPEN status" {
         // Arrange
         val userId = createTestUser("customer1@test.com")
-
         // Act
         val complaint =
             repository.createComplaint(
@@ -83,6 +82,37 @@ class ComplaintRepositoryTest : StringSpec({
         complaint.repliedByUserId shouldBe null
     }
 
+    "Create complaint stores special character message without crashing" {
+        // Arrange: create a test user and prepare a complaint message with special characters
+        val userId = createTestUser("special@test.com")
+        val message = "Delayed flight! @#$%^&*() 中文 test 123"
+        // Act: create a complaint using the special character message
+        val complaint =
+            repository.createComplaint(
+                userId = userId,
+                message = message,
+            )
+        // Assert: the complaint should be saved exactly as submitted
+        complaint.userId shouldBe userId
+        complaint.message shouldBe message
+        complaint.status shouldBe ComplaintStatus.OPEN
+    }
+
+    "Create complaint stores script-like input without crashing" {
+        // Arrange: create a test user and prepare a script-like complaint message
+        val userId = createTestUser("xss@test.com")
+        val message = "<script>alert('xss')</script>"
+        // Act: create a complaint using the script-like message
+        val complaint =
+            repository.createComplaint(
+                userId = userId,
+                message = message,
+            )
+        // Assert: the repository should store the input as a normal string value
+        complaint.userId shouldBe userId
+        complaint.message shouldBe message
+        complaint.status shouldBe ComplaintStatus.OPEN
+    }
     "Get complaint by id returns existing complaint" {
         // Arrange
         val userId = createTestUser("customer2@test.com")
@@ -94,7 +124,6 @@ class ComplaintRepositoryTest : StringSpec({
 
         // Act
         val foundComplaint = repository.getComplaintById(createdComplaint.id)
-
         // Assert
         foundComplaint shouldNotBe null
         foundComplaint!!.id shouldBe createdComplaint.id
@@ -106,7 +135,6 @@ class ComplaintRepositoryTest : StringSpec({
     "Get complaint by id returns null for unknown id" {
         // Act
         val result = repository.getComplaintById(99999)
-
         // Assert
         result shouldBe null
     }
@@ -115,24 +143,29 @@ class ComplaintRepositoryTest : StringSpec({
         // Arrange
         val userOneId = createTestUser("customer3@test.com")
         val userTwoId = createTestUser("customer4@test.com")
-
         repository.createComplaint(
             userId = userOneId,
             message = "First user complaint",
         )
-
         repository.createComplaint(
             userId = userTwoId,
             message = "Second user complaint",
         )
-
         // Act
         val userOneComplaints = repository.getComplaintsByUserId(userOneId)
-
         // Assert
         userOneComplaints.size shouldBe 1
         userOneComplaints[0].userId shouldBe userOneId
         userOneComplaints[0].message shouldBe "First user complaint"
+    }
+
+    "Get complaints by user id returns empty list when user has no complaints" {
+        // Arrange: create a user who has not submitted any complaints
+        val userId = createTestUser("nocomplaints@test.com")
+        // Act: retrieve complaints for that user
+        val complaints = repository.getComplaintsByUserId(userId)
+        // Assert: the repository should return an empty list
+        complaints.size shouldBe 0
     }
 
     "Update complaint status changes status" {
@@ -236,6 +269,25 @@ class ComplaintRepositoryTest : StringSpec({
         handledComplaint.repliedAt shouldBe null
     }
 
+    "Handle complaint returns null when complaint id does not exist" {
+        // Arrange: create an admin user
+        val adminId =
+            createTestUser(
+                email = "admin-not-found-test@test.com",
+                role = UserRole.ADMIN,
+            )
+        // Act: try to handle a complaint that does not exist
+        val result =
+            repository.handleComplaint(
+                id = 99999,
+                newStatus = ComplaintStatus.RESOLVED,
+                reply = "Handled",
+                adminUserId = adminId,
+            )
+        // Assert: the repository should return null instead of crashing
+        result shouldBe null
+    }
+
     "Get all complaints excludes CLOSED complaints" {
         // Arrange
         val userId = createTestUser("customer8@test.com")
@@ -256,11 +308,9 @@ class ComplaintRepositoryTest : StringSpec({
             id = closedComplaint.id,
             newStatus = ComplaintStatus.CLOSED,
         )
-
         // Act
         val complaints = repository.getAllComplaints()
         val complaintIds = complaints.map { it.id }
-
         // Assert
         complaints.size shouldBe 1
         complaintIds.contains(openComplaint.id) shouldBe true
@@ -296,11 +346,9 @@ class ComplaintRepositoryTest : StringSpec({
             reply = "The confirmation email has been resent.",
             adminUserId = adminId,
         )
-
         // Act
         val complaints = repository.getAllComplaints()
         val summary = complaints.single()
-
         // Assert
         summary.id shouldBe complaint.id
         summary.userId shouldBe customerId
