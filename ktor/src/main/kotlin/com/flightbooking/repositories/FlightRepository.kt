@@ -21,7 +21,23 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
+/**
+ * Provides flight search and lookup operations.
+ *
+ * This repository is responsible for searching available flights, resolving airport details,
+ * and converting database rows into flight and airport models.
+ */
 class FlightRepository {
+    /**
+     * Searches available flights based on route, date, passenger count, and flexibility.
+     *
+     * @param fromCodes Optional list of departure airport codes.
+     * @param toCodes Optional list of arrival airport codes.
+     * @param date Optional travel date.
+     * @param numOfPassengers Optional number of passengers required.
+     * @param departureFlexibility Optional date flexibility in days.
+     * @return A list of matching flight information objects.
+     */
     fun searchFlights(
         fromCodes: List<String>?,
         toCodes: List<String>?,
@@ -85,6 +101,12 @@ class FlightRepository {
                 }
         }
 
+    /**
+     * Retrieves airport details by airport ID.
+     *
+     * @param airportId The ID of the airport.
+     * @return The airport model.
+     */
     fun getAirportById(airportId: Int): Airport =
         transaction {
             AirportTable
@@ -92,6 +114,12 @@ class FlightRepository {
                 .map { resultRowToAirport(it) }.singleOrNull() ?: throw IllegalStateException("Airport not found")
         }
 
+    /**
+     * Finds a flight by its flight code.
+     *
+     * @param flightCode The flight code to search.
+     * @return The matching flight, or null if none exists.
+     */
     fun getFlightByFlightCode(flightCode: String): Flight? =
         transaction {
             FlightTable
@@ -99,6 +127,12 @@ class FlightRepository {
                 .map { resultRowToFlight(it) }.singleOrNull()
         }
 
+    /**
+     * Finds a flight by its unique flight ID.
+     *
+     * @param flightId The flight ID to search.
+     * @return The matching flight, or null if not found.
+     */
     fun getFlightByFlightId(flightId: Int): Flight? =
         transaction {
             FlightTable
@@ -106,6 +140,12 @@ class FlightRepository {
                 .map { resultRowToFlight(it) }.singleOrNull()
         }
 
+    /**
+     * Searches airports by name, code, city, or country prefix.
+     *
+     * @param search The search string used for matching airport fields.
+     * @return A list of airports that match the search.
+     */
     fun getAirportBySearch(search: String): List<Airport> =
         transaction {
             AirportTable
@@ -119,6 +159,12 @@ class FlightRepository {
                 .map { resultRowToAirport(it) }
         }
 
+    /**
+     * Maps a database row to an Airport model.
+     *
+     * @param row The result row containing airport fields.
+     * @return The airport model.
+     */
     fun resultRowToAirport(row: ResultRow): Airport {
         return Airport(
             id = row[AirportTable.id],
@@ -129,6 +175,12 @@ class FlightRepository {
         )
     }
 
+    /**
+     * Maps a database row to a Flight model.
+     *
+     * @param row The result row containing flight fields.
+     * @return The flight model.
+     */
     fun resultRowToFlight(row: ResultRow): Flight {
         return Flight(
             id = row[FlightTable.id],
