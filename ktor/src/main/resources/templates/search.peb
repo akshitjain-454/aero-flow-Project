@@ -132,7 +132,7 @@
         <div class="flex-1">
             <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Departing</div>
             <div id="cal-label-dep" class="text-sm text-gray-400 italic mb-2">Select departure date</div>
-            <div id="dep-flex-row" style="display:none;" class="flex items-center gap-2 flex-wrap">
+            <div id="dep-flex-row" class="flex items-center gap-2 flex-wrap">
                 <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">± Days</span>
                 <div class="flex gap-1">
                     <button type="button" data-flex="dep" data-val="0" class="flex-btn active-flex">Exact</button>
@@ -146,13 +146,6 @@
             <div class="text-xs uppercase font-bold text-[--sky-blue] tracking-widest mb-1">Returning</div>
             <div id="cal-label-ret" class="text-sm text-gray-400 italic mb-2">Select return date</div>
             <div id="ret-flex-row" style="display:none;" class="flex items-center gap-2 flex-wrap">
-                <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">± Days</span>
-                <div class="flex gap-1">
-                    <button type="button" data-flex="ret" data-val="0" class="flex-btn active-flex">Exact</button>
-                    <button type="button" data-flex="ret" data-val="1" class="flex-btn">± 1</button>
-                    <button type="button" data-flex="ret" data-val="2" class="flex-btn">± 2</button>
-                    <button type="button" data-flex="ret" data-val="3" class="flex-btn">± 3</button>
-                </div>
             </div>
         </div>
     </div>
