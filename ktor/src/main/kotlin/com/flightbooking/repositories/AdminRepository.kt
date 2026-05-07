@@ -710,6 +710,59 @@ class AdminRepository {
     }
 
     /**
+     * Holds return flight details while building admin reservation summaries.
+     *
+     * This is an internal helper type used by AdminRepository only. It is not a
+     * database table and is not returned directly to the frontend.
+     */
+    private data class ReturnFlightReservationInfo(
+        val flightId: Int,
+        val flightCode: String,
+        val departureAirportNameCode: String,
+        val arrivalAirportNameCode: String,
+        val departureTime: LocalDateTime,
+        val arrivalTime: LocalDateTime,
+        val aircraftType: String,
+    )
+
+    /**
+     * Retrieves summary details for an optional return flight.
+     *
+     * One-way bookings do not have a return flight, so this function returns null
+     * when returnFlightId is null. For round-trip bookings, it loads the return
+     * flight information, airport display names, and aircraft type so admin
+     * reservation and customer search results can show both outbound and return
+     * flight details.
+     *
+     * @param returnFlightId The optional return flight ID stored on the booking.
+     * @return Return flight summary details, or null when no return flight exists.
+     */
+    private fun getReturnFlightReservationInfo(returnFlightId: Int?): ReturnFlightReservationInfo? {
+        if (returnFlightId == null) return null
+
+        return FlightTable
+            .join(
+                AircraftTable,
+                JoinType.INNER,
+                FlightTable.aircraftId,
+                AircraftTable.id,
+            )
+            .select { FlightTable.id eq returnFlightId }
+            .map { row ->
+                ReturnFlightReservationInfo(
+                    flightId = row[FlightTable.id],
+                    flightCode = row[FlightTable.flightCode],
+                    departureAirportNameCode = getAirportNameCodeById(row[FlightTable.departureAirportId]),
+                    arrivalAirportNameCode = getAirportNameCodeById(row[FlightTable.arrivalAirportId]),
+                    departureTime = row[FlightTable.departureTime],
+                    arrivalTime = row[FlightTable.arrivalTime],
+                    aircraftType = row[AircraftTable.type],
+                )
+            }
+            .singleOrNull()
+    }
+
+    /**
      * Each result contains booking details, customer information, flight information,payment amount where available, and aircraft type.
      *
      * @param fromCodes: Optional list of departure airport codes to filter by.
@@ -780,6 +833,7 @@ class AdminRepository {
                 .select { selectCondition }
                 .orderBy(BookingTable.createdAt, SortOrder.DESC)
                 .map { row ->
+                    val returnFlightInfo = getReturnFlightReservationInfo(row[BookingTable.returnFlightId])
                     ReservationSummary(
                         bookingId = row[BookingTable.id],
                         bookingReference = row[BookingTable.bookingReference],
@@ -796,6 +850,13 @@ class AdminRepository {
                         createdAt = row[BookingTable.createdAt],
                         amountPaid = row.getOrNull(PaymentTable.amount),
                         aircraftType = row[AircraftTable.type],
+                        returnFlightId = returnFlightInfo?.flightId,
+                        returnFlightCode = returnFlightInfo?.flightCode,
+                        returnDepartureAirportNameCode = returnFlightInfo?.departureAirportNameCode,
+                        returnArrivalAirportNameCode = returnFlightInfo?.arrivalAirportNameCode,
+                        returnDepartureTime = returnFlightInfo?.departureTime,
+                        returnArrivalTime = returnFlightInfo?.arrivalTime,
+                        returnAircraftType = returnFlightInfo?.aircraftType,
                     )
                 }
         }
@@ -1024,13 +1085,26 @@ class AdminRepository {
             }
             // Split the keyword by one or more spaces, so a full name like "John Wick" can be separated into ["John", "Wick"]
             val likeKeyword = "%$keyword%"
+            val flightCodeKeyword = "%${keyword.uppercase()}%"
             val parts = keyword.split(Regex("\\s+")).filter { it.isNotBlank() }
+
+            val matchingFlightIds =
+                FlightTable
+                    .select { FlightTable.flightCode like flightCodeKeyword }
+                    .map { it[FlightTable.id] }
 
             var searchCondition: Op<Boolean> =
                 (UserTable.firstname like likeKeyword) or
                     (UserTable.lastname like likeKeyword) or
                     (UserTable.email like likeKeyword) or
-                    (BookingTable.bookingReference like likeKeyword)
+                    (BookingTable.bookingReference like likeKeyword) or
+                    (FlightTable.flightCode like flightCodeKeyword)
+
+            if (matchingFlightIds.isNotEmpty()) {
+                searchCondition =
+                    searchCondition or
+                    (BookingTable.returnFlightId inList matchingFlightIds)
+            }
 
             if (parts.size >= 2) {
                 val first = "%${parts[0]}%"
@@ -1071,6 +1145,7 @@ class AdminRepository {
                 .select { searchCondition }
                 .orderBy(BookingTable.createdAt, SortOrder.DESC)
                 .map { row ->
+                    val returnFlightInfo = getReturnFlightReservationInfo(row[BookingTable.returnFlightId])
                     ReservationSummary(
                         bookingId = row[BookingTable.id],
                         bookingReference = row[BookingTable.bookingReference],
@@ -1087,6 +1162,13 @@ class AdminRepository {
                         createdAt = row[BookingTable.createdAt],
                         amountPaid = row.getOrNull(PaymentTable.amount),
                         aircraftType = row[AircraftTable.type],
+                        returnFlightId = returnFlightInfo?.flightId,
+                        returnFlightCode = returnFlightInfo?.flightCode,
+                        returnDepartureAirportNameCode = returnFlightInfo?.departureAirportNameCode,
+                        returnArrivalAirportNameCode = returnFlightInfo?.arrivalAirportNameCode,
+                        returnDepartureTime = returnFlightInfo?.departureTime,
+                        returnArrivalTime = returnFlightInfo?.arrivalTime,
+                        returnAircraftType = returnFlightInfo?.aircraftType,
                     )
                 }
         }
