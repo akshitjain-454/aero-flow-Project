@@ -1173,6 +1173,11 @@ class AdminRepository {
                 }
         }
 
+    /**
+     * Creates a new administrator user record.
+     *
+     * @param admin The admin user details to insert.
+     */
     fun createAdmin(admin: User) {
         transaction {
             UserTable.insert {

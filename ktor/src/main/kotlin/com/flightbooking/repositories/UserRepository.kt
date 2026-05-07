@@ -20,7 +20,17 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 import java.util.Properties
 
+/**
+ * Handles persistence and email operations for user accounts.
+ *
+ * This repository manages user creation, update, retrieval, and notification behaviors.
+ */
 class UserRepository {
+    /**
+     * Inserts a new user record into the database.
+     *
+     * @param user The user model containing account details.
+     */
     fun createUser(user: User) {
         transaction {
             UserTable.insert {
@@ -36,12 +46,24 @@ class UserRepository {
         }
     }
 
+    /**
+     * Deletes a user by ID.
+     *
+     * @param userId The ID of the user to delete.
+     */
     fun deleteUser(userId: Int) {
         transaction {
             UserTable.deleteWhere { SqlExpressionBuilder.run { UserTable.id eq userId } }
         }
     }
 
+    /**
+     * Updates the stored first and last name for a user.
+     *
+     * @param userId The ID of the user to update.
+     * @param firstname The new first name, or null to leave unchanged.
+     * @param lastname The new last name, or null to leave unchanged.
+     */
     fun updateNameForUser(
         userId: Int,
         firstname: String?,
@@ -55,6 +77,12 @@ class UserRepository {
         }
     }
 
+    /**
+     * Changes a user's stored password hash.
+     *
+     * @param userId The ID of the user whose password is changed.
+     * @param newPasswordHash The new hashed password.
+     */
     fun changePasswordForUser(
         userId: Int,
         newPasswordHash: String,
@@ -66,6 +94,12 @@ class UserRepository {
         }
     }
 
+    /**
+     * Retrieves a user by email address.
+     *
+     * @param email The email address to search.
+     * @return The matching user, or null if none exists.
+     */
     fun getUserByEmail(email: String): User? =
         transaction {
             UserTable
@@ -73,6 +107,12 @@ class UserRepository {
                 .map { resultRowToUser(it) }.singleOrNull()
         }
 
+    /**
+     * Builds the initials string for a user.
+     *
+     * @param user The user whose initials are generated.
+     * @return The uppercase initials for the user.
+     */
     fun getInitialsByUser(user: User): String =
         transaction {
             if (user.firstname != null && user.lastname != null) {
@@ -86,6 +126,13 @@ class UserRepository {
             }
         }
 
+    /**
+     * Sends an email using configured SMTP settings.
+     *
+     * @param email The recipient email address.
+     * @param subject The subject line of the email.
+     * @param body The plain text body of the email.
+     */
     fun sendEmail(
         email: String,
         subject: String,
@@ -116,6 +163,12 @@ class UserRepository {
         }
     }
 
+    /**
+     * Maps a database row to a User model.
+     *
+     * @param row The result row containing user fields.
+     * @return The user model.
+     */
     fun resultRowToUser(row: ResultRow): User {
         return User(
             id = row[UserTable.id],
@@ -130,6 +183,12 @@ class UserRepository {
         )
     }
 
+    /**
+     * Retrieves a user by their unique ID.
+     *
+     * @param id The user ID.
+     * @return The matching user, or null if the user does not exist.
+     */
     fun getUserById(id: Int): User? =
         transaction {
             UserTable
