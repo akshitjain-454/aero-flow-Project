@@ -73,7 +73,8 @@ fun Route.bookingRoutes() {
                 return@get call.respond(HttpStatusCode.Forbidden, "Not your booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@get call.respondPebble("alreadyPaid.peb")
+                //return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             val passengers = bookingRepository.getPassengersByBookingId(booking.id)
@@ -103,7 +104,8 @@ fun Route.bookingRoutes() {
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@post call.respondPebble("alreadyPaid.peb")
+                //return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             // Stops booking if taking too long
@@ -141,7 +143,8 @@ fun Route.bookingRoutes() {
                 return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@get call.respondPebble("alreadyPaid.peb")
+                //return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             val seats = bookingRepository.getSeatsByFlightId(booking.flightId)
@@ -190,7 +193,8 @@ fun Route.bookingRoutes() {
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@post call.respondPebble("alreadyPaid.peb")
+                //return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             // Stops booking if taking too long
@@ -278,7 +282,8 @@ fun Route.bookingRoutes() {
                 return@get call.respond(HttpStatusCode.Forbidden, "Not the users booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@get call.respondPebble("alreadyPaid.peb")
+                //return@get call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             val price = bookingRepository.getBookingPricePriceByBookingId(booking.id)
@@ -305,7 +310,8 @@ fun Route.bookingRoutes() {
                 return@post call.respond(HttpStatusCode.Forbidden, "Not the users booking")
             }
             if (booking.status == BookingStatus.CONFIRMED) {
-                return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
+                return@post call.respondPebble("alreadyPaid.peb")
+                //return@post call.respond(HttpStatusCode.Forbidden, "Already paid")
             }
 
             // Stops booking if taking too long

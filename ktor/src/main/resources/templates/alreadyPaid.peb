@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Already Paid | Aetheria{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+        overflow-x: hidden;
+    }
+
+    .nav-link { position: relative; padding-bottom: 6px; }
+    .nav-link::after {
+        content: ''; position: absolute; bottom: 0; left: 50%;
+        transform: translateX(-50%); width: 0; height: 3px;
+        background-color: var(--sky-blue); transition: width 0.3s ease-in-out; border-radius: 3px;
+    }
+    .nav-link.active::after { width: 100%; }
+    .nav-link:hover::after { width: 100%; }
+    .avatar-btn {
+        width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+        background-color: var(--sky-blue); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35);
+        transition: background-color 0.2s, transform 0.2s; text-decoration: none;
+    }
+    .avatar-btn:hover { background-color: var(--charcoal); transform: scale(1.08); }
+
+    .dashboard-hero {
+        background: var(--charcoal);
+        padding: 8rem 2rem 4rem;
+    }
+
+    .dashboard-container {
+        max-width: 64rem; margin: -2rem auto 4rem;
+        padding: 0 1.5rem; position: relative; z-index: 10;
+    }
+
+    .paid-card {
+        background: #fff; border-radius: 20px; border: 1px solid #f0f0f0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        animation: fadeUp 0.4s ease both;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .checkmark-ring {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    .checkmark-ring svg {
+        width: 38px;
+        height: 38px;
+        stroke: white;
+        stroke-width: 2.5;
+        fill: none;
+        stroke-dasharray: 60;
+        stroke-dashoffset: 60;
+        animation: drawCheck 0.4s ease-out 0.4s forwards;
+    }
+
+    @keyframes popIn {
+        from { transform: scale(0.6); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+    }
+
+    @keyframes drawCheck {
+        to { stroke-dashoffset: 0; }
+    }
+
+    .paid-title {
+        font-size: 1.6rem; font-weight: 800; color: var(--charcoal);
+        margin-bottom: 0.75rem;
+    }
+
+    .paid-subtitle {
+        font-size: 0.9rem; color: #6b7280; font-weight: 500;
+        max-width: 28rem; margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+
+    .view-bookings-btn {
+        display: inline-block; padding: 0.85rem 2rem; border-radius: 9999px;
+        background: var(--sky-blue); color: #fff; font-size: 0.7rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.15em; text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0,102,255,0.35); transition: all 0.2s;
+    }
+    .view-bookings-btn:hover { background: var(--charcoal); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/60 backdrop-blur-lg border-b border-gray-100">
+    <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
+    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
+            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+        </ul>
+    </nav>
+    <div class="flex items-center gap-6 z-10">
+        {% if isLoggedIn %}
+            <a href="/overview" class="avatar-btn" style="text-decoration: none;">{{ userInitials }}</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="dashboard-hero">
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl serif font-light text-white leading-tight">Your booking is <span class="italic text-[--sky-blue]">confirmed</span></h1>
+        <p class="text-gray-400 text-sm mt-4 font-medium">This booking has already been paid for.</p>
+    </div>
+</div>
+
+<main class="dashboard-container">
+    <div class="paid-card">
+        <div class="checkmark-ring">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <p class="paid-title">Already Paid</p>
+        <p class="paid-subtitle">
+            This booking has already been paid for. No further action is needed —
+            your reservation is confirmed and secured.
+        </p>
+        <a href="/review_bookings" class="view-bookings-btn">View My Bookings</a>
+    </div>
+</main>
+{% endblock %}
