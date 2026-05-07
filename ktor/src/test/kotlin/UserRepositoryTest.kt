@@ -1,181 +1,177 @@
 package com.flightbooking.repositories
 
+import com.flightbooking.enums.UserRole
 import com.flightbooking.models.User
 import com.flightbooking.tables.UserTable
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDateTime
-import kotlin.test.*
 
-class UserRepositoryTest {
-    private val repo = UserRepository()
+class UserRepositoryTest : StringSpec({
 
-    @Before
-    fun setup() {
+    lateinit var repo: UserRepository
+    var databaseFile: Path? = null
+
+    beforeTest {
+        databaseFile = Files.createTempFile("user-repository-test", ".sqlite")
+
         Database.connect(
-            url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;",
-            driver = "org.h2.Driver",
+            url = "jdbc:sqlite:${databaseFile!!.toAbsolutePath()}",
+            driver = "org.sqlite.JDBC",
         )
+
         transaction {
             SchemaUtils.create(UserTable)
         }
+
+        repo = UserRepository()
     }
 
-    @After
-    fun teardown() {
+    afterTest {
         transaction {
             SchemaUtils.drop(UserTable)
         }
+
+        databaseFile?.let {
+            Files.deleteIfExists(it)
+        }
     }
 
-    private fun createTestUser(): User {
+    fun createTestUser(): User {
         return User(
             id = 0,
             firstname = "John",
             lastname = "Doe",
             email = "john@test.com",
             passwordHash = "hash123",
-            role = "USER",
+            role = UserRole.ADMIN,
             loyaltyPoints = 10,
             redeemedLoyaltyPoints = 0,
             createdAt = LocalDateTime.now(),
         )
     }
 
-    // ✅ CREATE + GET
-    @Test
-    fun `should create and fetch user by email`() {
+    "should create and fetch user by email" {
         val user = createTestUser()
         repo.createUser(user)
+
         val fetched = repo.getUserByEmail(user.email)
-        assertNotNull(fetched)
-        assertEquals("John", fetched?.firstname)
-        assertEquals("Doe", fetched?.lastname)
+
+        fetched.shouldNotBeNull()
+        fetched.firstname shouldBe "John"
+        fetched.lastname shouldBe "Doe"
     }
 
-    // ✅ GET BY ID
-    @Test
-    fun `should fetch user by id`() {
+    "should fetch user by id" {
         val user = createTestUser()
         repo.createUser(user)
+
         val created = repo.getUserByEmail(user.email)!!
         val fetched = repo.getUserById(created.id)
-        assertNotNull(fetched)
-        assertEquals(created.id, fetched?.id)
+
+        fetched.shouldNotBeNull()
+        fetched.id shouldBe created.id
     }
 
-    // ✅ RETURN NULL FOR NON-EXISTENT EMAIL
-    @Test
-    fun `should return null for non-existent email`() {
-        val result = repo.getUserByEmail("nobody@test.com")
-        assertNull(result)
+    "should return null for non-existent email" {
+        repo.getUserByEmail("nobody@test.com").shouldBeNull()
     }
 
-    // ✅ RETURN NULL FOR NON-EXISTENT ID
-    @Test
-    fun `should return null for non-existent id`() {
-        val result = repo.getUserById(99999)
-        assertNull(result)
+    "should return null for non-existent id" {
+        repo.getUserById(99999).shouldBeNull()
     }
 
-    // ✅ UPDATE NAME
-    @Test
-    fun `should update user name`() {
+    "should update user name" {
         val user = createTestUser()
         repo.createUser(user)
+
         val created = repo.getUserByEmail(user.email)!!
         repo.updateNameForUser(created.id, "Alice", "Smith")
+
         val updated = repo.getUserById(created.id)
-        assertEquals("Alice", updated?.firstname)
-        assertEquals("Smith", updated?.lastname)
+        updated?.firstname shouldBe "Alice"
+        updated?.lastname shouldBe "Smith"
     }
 
-    @Test
-    fun `should allow updating name to null`() {
+    "should allow updating name to null" {
         val user = createTestUser()
         repo.createUser(user)
+
         val created = repo.getUserByEmail(user.email)!!
         repo.updateNameForUser(created.id, null, null)
+
         val updated = repo.getUserById(created.id)
-        assertNull(updated?.firstname)
-        assertNull(updated?.lastname)
+        updated?.firstname.shouldBeNull()
+        updated?.lastname.shouldBeNull()
     }
 
-    @Test
-    fun `should change password`() {
+    "should change password" {
         val user = createTestUser()
         repo.createUser(user)
+
         val created = repo.getUserByEmail(user.email)!!
         repo.changePasswordForUser(created.id, "newHash")
+
         val updated = repo.getUserById(created.id)
-        assertEquals("newHash", updated?.passwordHash)
+        updated?.passwordHash shouldBe "newHash"
     }
 
-    @Test
-    fun `should delete user`() {
+    "should delete user" {
         val user = createTestUser()
         repo.createUser(user)
+
         val created = repo.getUserByEmail(user.email)!!
         repo.deleteUser(created.id)
-        val deleted = repo.getUserById(created.id)
-        assertNull(deleted)
+
+        repo.getUserById(created.id).shouldBeNull()
     }
 
-    @Test
-    fun `should not throw when deleting non-existent user`() {
-        assertDoesNotThrow {
-            repo.deleteUser(99999)
-        }
+    "should not throw when deleting non-existent user" {
+        repo.deleteUser(99999)
     }
 
-    @Test
-    fun `should return correct initials when both names present`() {
+    "should return correct initials when both names present" {
         val user = createTestUser()
-        val initials = repo.getInitialsByUser(user)
-        assertEquals("JD", initials)
+        repo.getInitialsByUser(user) shouldBe "JD"
     }
 
-    @Test
-    fun `should return lastname initial when firstname is missing`() {
+    "should return lastname initial when firstname is missing" {
         val user = createTestUser().copy(firstname = null)
-        val initials = repo.getInitialsByUser(user)
-        assertEquals("D", initials)
+        repo.getInitialsByUser(user) shouldBe "D"
     }
 
-    @Test
-    fun `should return firstname initial when lastname is missing`() {
+    "should return firstname initial when lastname is missing" {
         val user = createTestUser().copy(lastname = null)
-        val initials = repo.getInitialsByUser(user)
-        assertEquals("J", initials)
+        repo.getInitialsByUser(user) shouldBe "J"
     }
 
-    // ✅ INITIALS - fallback to email when no names
-    @Test
-    fun `should fallback to email initials when no names present`() {
+    "should fallback to email initials when no names present" {
         val user = createTestUser().copy(firstname = null, lastname = null)
-        val initials = repo.getInitialsByUser(user)
-        assertEquals("JO", initials) // from "john@test.com"
+        repo.getInitialsByUser(user) shouldBe "JO"
     }
 
-    // ✅ LOYALTY POINTS - persisted correctly on create
-    @Test
-    fun `should persist loyalty points on create`() {
+    "should persist loyalty points on create" {
         val user = createTestUser().copy(loyaltyPoints = 100, redeemedLoyaltyPoints = 25)
         repo.createUser(user)
+
         val fetched = repo.getUserByEmail(user.email)
-        assertEquals(100, fetched?.loyaltyPoints)
-        assertEquals(25, fetched?.redeemedLoyaltyPoints)
+        fetched?.loyaltyPoints shouldBe 100
+        fetched?.redeemedLoyaltyPoints shouldBe 25
     }
 
-    @Test
-    fun `should persist role on create`() {
-        val user = createTestUser().copy(role = "ADMIN")
+    "should persist role on create" {
+        val user = createTestUser()
         repo.createUser(user)
+
         val fetched = repo.getUserByEmail(user.email)
-        assertEquals("ADMIN", fetched?.role)
+        fetched.shouldNotBeNull()
+        fetched.role shouldBe UserRole.ADMIN
     }
-}
+})
