@@ -52,46 +52,52 @@ INSERT INTO Aircraft (type, num_of_seats) VALUES
   ('Boeing 737', 150),
   ('Boeing 777', 300),
   ('Airbus A380', 500),
-  ('Airbus A320', 180),
-  ('Boeing 787 Dreamliner', 250);
+  ('Airbus A320', 180);
 
 -- ─────────────────────────────────────────────────────────────
 -- FLIGHTS
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO Flight (flight_code, departure_airport_id, arrival_airport_id, aircraft_id, departure_time, arrival_time, min_price, status) VALUES
-  ('AE0101000', 2, 4, 5, '2026-05-07 09:30:00', '2026-05-07 13:30:00', 749.99, 'SCHEDULED'),
-  ('AE0201000', 2, 3, 5, '2026-05-07 10:00:00', '2026-05-07 19:00:00', 899.99, 'SCHEDULED'),
-  ('AE0301000', 36, 7, 5, '2026-05-08 12:00:00', '2026-05-08 22:00:00', 1299.99, 'SCHEDULED'),
-  ('AE0401000', 37, 13, 5, '2026-05-08 07:00:00', '2026-05-08 11:30:00', 499.99, 'SCHEDULED'),
-  ('AE0501000', 3, 4, 5, '2026-05-09 15:30:00', '2026-05-09 23:30:00', 1099.99, 'SCHEDULED'),
-  ('AE0601000', 4, 2, 5, '2026-05-10 08:00:00', '2026-05-10 12:00:00', 699.99, 'SCHEDULED'),
-  ('AE0701000', 37, 1, 5, '2026-05-11 09:00:00', '2026-05-11 13:30:00', 849.99, 'SCHEDULED'),
-  ('AE0711000', 37, 8, 5, '2026-05-11 13:00:00', '2026-05-11 23:00:00', 1099.99, 'SCHEDULED'),
-  ('AE0712000', 1, 9, 5, '2026-05-11 14:30:00', '2026-05-11 22:30:00', 1199.99, 'SCHEDULED'),
-  ('AE0713000', 36, 4, 5, '2026-05-11 06:00:00', '2026-05-11 16:00:00', 999.99, 'SCHEDULED'),
-  ('AE0801000', 37, 2, 5, '2026-05-12 10:00:00', '2026-05-12 20:00:00', 899.99, 'SCHEDULED'),
-  ('AE0811000', 8, 36, 5, '2026-05-12 13:00:00', '2026-05-13 01:00:00', 1199.99, 'SCHEDULED'),
-  ('AE0812000', 2, 1, 5, '2026-05-12 07:30:00', '2026-05-12 14:30:00', 799.99, 'SCHEDULED'),
-  ('AE0813000', 36, 9, 5, '2026-05-12 18:00:00', '2026-05-13 04:00:00', 1299.99, 'SCHEDULED'),
-  ('AE0901000', 2, 36, 5, '2026-05-13 15:00:00', '2026-05-13 23:00:00', 799.99, 'SCHEDULED'),
-  ('AE1001000', 36, 3, 5, '2026-05-14 13:00:00', '2026-05-14 18:00:00', 899.99, 'SCHEDULED'),
-  ('AE1101000', 36, 9, 5, '2026-05-15 18:00:00', '2026-05-16 04:00:00', 1299.99, 'SCHEDULED'),
-  ('AE1201000', 3, 4, 5, '2026-05-16 08:30:00', '2026-05-16 16:30:00', 999.99, 'SCHEDULED'),
-  ('AE1301000', 4, 5, 5, '2026-05-17 09:45:00', '2026-05-17 16:45:00', 949.99, 'SCHEDULED'),
-  ('AE1401000', 5, 2, 5, '2026-05-18 12:30:00', '2026-05-18 21:30:00', 899.99, 'SCHEDULED'),
-  ('AE1501000', 2, 37, 5, '2026-05-19 07:00:00', '2026-05-19 16:30:00', 819.99, 'SCHEDULED'),
-  ('AE1601000', 2, 37, 5, '2026-05-20 07:00:00', '2026-05-20 16:30:00', 799.99, 'SCHEDULED'),
-  ('AE1701000', 37, 6, 5, '2026-05-21 11:00:00', '2026-05-21 20:00:00', 999.99, 'SCHEDULED'),
-  ('AE1801000', 6, 36, 5, '2026-05-22 08:00:00', '2026-05-22 18:00:00', 949.99, 'SCHEDULED'),
-  ('AE1901000', 36, 1, 5, '2026-05-23 09:00:00', '2026-05-23 13:00:00', 799.99, 'SCHEDULED'),
-  ('AE2001000', 1, 37, 5, '2026-05-24 09:30:00', '2026-05-24 14:00:00', 849.99, 'SCHEDULED'),
-  ('AE2101000', 5, 36, 5, '2026-05-25 11:00:00', '2026-05-25 23:00:00', 1099.99, 'SCHEDULED'),
-  ('AE2201000', 37, 9, 5, '2026-05-26 20:00:00', '2026-05-27 08:00:00', 1199.99, 'SCHEDULED'),
-  ('AE2301000', 9, 36, 5, '2026-05-27 20:30:00', '2026-05-28 10:30:00', 1299.99, 'SCHEDULED'),
-  ('AE2401000', 37, 8, 5, '2026-05-28 22:00:00', '2026-05-29 10:00:00', 949.99, 'SCHEDULED'),
-  ('AE2501000', 36, 37, 5, '2026-05-29 16:00:00', '2026-05-30 02:00:00', 1099.99, 'SCHEDULED'),
-  ('AE2601000', 37, 13, 5, '2026-05-30 07:00:00', '2026-05-30 11:30:00', 759.99, 'SCHEDULED'),
-  ('AE2701000', 9, 36, 5, '2026-05-31 21:00:00', '2026-06-01 12:00:00', 1299.99, 'SCHEDULED'),
+  ('AE0101000', 2, 4, 4, '2026-05-07 09:30:00', '2026-05-07 13:30:00', 749.99, 'SCHEDULED'),
+  ('AE0102000', 1, 2, 4, '2026-05-07 20:00:00', '2026-05-07 21:00:00', 899.99, 'SCHEDULED'),
+  ('AE0201000', 2, 3, 4, '2026-05-07 10:00:00', '2026-05-07 19:00:00', 899.99, 'SCHEDULED'),
+  ('AE0301000', 36, 7, 4, '2026-05-08 12:00:00', '2026-05-08 22:00:00', 1299.99, 'SCHEDULED'),
+  ('AE0302000', 1, 3, 4, '2026-05-08 08:30:00', '2026-05-08 13:00:00', 649.99, 'SCHEDULED'),
+  ('AE0401000', 37, 13, 4, '2026-05-08 07:00:00', '2026-05-08 11:30:00', 499.99, 'SCHEDULED'),
+  ('AE0501000', 3, 4, 4, '2026-05-09 15:30:00', '2026-05-09 23:30:00', 1099.99, 'SCHEDULED'),
+  ('AE0502000', 1, 7, 4, '2026-05-09 10:00:00', '2026-05-09 20:00:00', 1149.99, 'SCHEDULED'),
+  ('AE0601000', 4, 2, 4, '2026-05-10 08:00:00', '2026-05-10 12:00:00', 699.99, 'SCHEDULED'),
+  ('AE0602000', 1, 8, 4, '2026-05-10 14:00:00', '2026-05-11 00:00:00', 1099.99, 'SCHEDULED'),
+  ('AE0701000', 37, 1, 4, '2026-05-11 09:00:00', '2026-05-11 13:30:00', 849.99, 'SCHEDULED'),
+  ('AE0711000', 37, 8, 4, '2026-05-11 13:00:00', '2026-05-11 23:00:00', 1099.99, 'SCHEDULED'),
+  ('AE0712000', 1, 9, 4, '2026-05-11 14:30:00', '2026-05-11 22:30:00', 1199.99, 'SCHEDULED'),
+  ('AE0713000', 36, 4, 4, '2026-05-11 06:00:00', '2026-05-11 16:00:00', 999.99, 'SCHEDULED'),
+  ('AE0714000', 1, 3, 4, '2026-05-11 07:00:00', '2026-05-11 11:30:00', 649.99, 'SCHEDULED'),
+  ('AE0715000', 1, 2, 4, '2026-05-11 16:00:00', '2026-05-12 02:00:00', 899.99, 'SCHEDULED'),
+  ('AE0801000', 37, 2, 4, '2026-05-12 10:00:00', '2026-05-12 20:00:00', 899.99, 'SCHEDULED'),
+  ('AE0802000', 1, 4, 4, '2026-05-12 09:00:00', '2026-05-12 13:00:00', 749.99, 'SCHEDULED'),
+  ('AE0811000', 8, 36, 4, '2026-05-12 13:00:00', '2026-05-13 01:00:00', 1199.99, 'SCHEDULED'),
+  ('AE0812000', 2, 1, 4, '2026-05-12 07:30:00', '2026-05-12 14:30:00', 799.99, 'SCHEDULED'),
+  ('AE0813000', 36, 9, 4, '2026-05-12 18:00:00', '2026-05-13 04:00:00', 1299.99, 'SCHEDULED'),
+  ('AE0901000', 2, 36, 4, '2026-05-13 15:00:00', '2026-05-13 23:00:00', 799.99, 'SCHEDULED'),
+  ('AE1001000', 36, 3, 4, '2026-05-14 13:00:00', '2026-05-14 18:00:00', 899.99, 'SCHEDULED'),
+  ('AE1101000', 36, 9, 4, '2026-05-15 18:00:00', '2026-05-16 04:00:00', 1299.99, 'SCHEDULED'),
+  ('AE1201000', 3, 4, 4, '2026-05-16 08:30:00', '2026-05-16 16:30:00', 999.99, 'SCHEDULED'),
+  ('AE1301000', 4, 5, 4, '2026-05-17 09:45:00', '2026-05-17 16:45:00', 949.99, 'SCHEDULED'),
+  ('AE1401000', 5, 2, 4, '2026-05-18 12:30:00', '2026-05-18 21:30:00', 899.99, 'SCHEDULED'),
+  ('AE1501000', 2, 37, 4, '2026-05-19 07:00:00', '2026-05-19 16:30:00', 819.99, 'SCHEDULED'),
+  ('AE1601000', 2, 37, 4, '2026-05-20 07:00:00', '2026-05-20 16:30:00', 799.99, 'SCHEDULED'),
+  ('AE1701000', 37, 6, 4, '2026-05-21 11:00:00', '2026-05-21 20:00:00', 999.99, 'SCHEDULED'),
+  ('AE1801000', 6, 36, 4, '2026-05-22 08:00:00', '2026-05-22 18:00:00', 949.99, 'SCHEDULED'),
+  ('AE1901000', 36, 1, 4, '2026-05-23 09:00:00', '2026-05-23 13:00:00', 799.99, 'SCHEDULED'),
+  ('AE2001000', 1, 37, 4, '2026-05-24 09:30:00', '2026-05-24 14:00:00', 849.99, 'SCHEDULED'),
+  ('AE2101000', 5, 36, 4, '2026-05-25 11:00:00', '2026-05-25 23:00:00', 1099.99, 'SCHEDULED'),
+  ('AE2201000', 37, 9, 4, '2026-05-26 20:00:00', '2026-05-27 08:00:00', 1199.99, 'SCHEDULED'),
+  ('AE2301000', 9, 36, 4, '2026-05-27 20:30:00', '2026-05-28 10:30:00', 1299.99, 'SCHEDULED'),
+  ('AE2401000', 37, 8, 4, '2026-05-28 22:00:00', '2026-05-29 10:00:00', 949.99, 'SCHEDULED'),
+  ('AE2501000', 36, 37, 4, '2026-05-29 16:00:00', '2026-05-30 02:00:00', 1099.99, 'SCHEDULED'),
+  ('AE2601000', 37, 13, 4, '2026-05-30 07:00:00', '2026-05-30 11:30:00', 759.99, 'SCHEDULED'),
+  ('AE2701000', 9, 36, 4, '2026-05-31 21:00:00', '2026-06-01 12:00:00', 1299.99, 'SCHEDULED'),
   ('AE0102001', 1, 2, 1, '2026-06-01 08:00:00', '2026-06-01 09:00:00', 89.99, 'SCHEDULED'),
   ('AE0103001', 1, 3, 2, '2026-06-01 09:00:00', '2026-06-01 16:00:00', 299.99, 'SCHEDULED'),
   ('AE0105001', 1, 5, 1, '2026-06-01 07:00:00', '2026-06-01 09:00:00', 119.99, 'SCHEDULED'),
@@ -6075,19 +6081,22 @@ INSERT INTO Flight (flight_code, departure_airport_id, arrival_airport_id, aircr
 -- SEATS FOR ALL AIRCRAFT
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Boeing 737 (aircraft_id = 1, 150 seats)
--- Business: rows 1-5, seats A-D
+-- Boeing 737 (aircraft_id = 1)
+-- First Class: rows 1-2, seats A-D
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('1','1A','BUSINESS'),('1','1B','BUSINESS'),('1','1C','BUSINESS'),('1','1D','BUSINESS'),
-('1','2A','BUSINESS'),('1','2B','BUSINESS'),('1','2C','BUSINESS'),('1','2D','BUSINESS'),
+('1','1A','FIRST'),('1','1B','FIRST'),('1','1C','FIRST'),('1','1D','FIRST'),
+('1','2A','FIRST'),('1','2B','FIRST'),('1','2C','FIRST'),('1','2D','FIRST');
+
+-- Business: rows 3-7, seats A-D
+INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('1','3A','BUSINESS'),('1','3B','BUSINESS'),('1','3C','BUSINESS'),('1','3D','BUSINESS'),
 ('1','4A','BUSINESS'),('1','4B','BUSINESS'),('1','4C','BUSINESS'),('1','4D','BUSINESS'),
-('1','5A','BUSINESS'),('1','5B','BUSINESS'),('1','5C','BUSINESS'),('1','5D','BUSINESS');
+('1','5A','BUSINESS'),('1','5B','BUSINESS'),('1','5C','BUSINESS'),('1','5D','BUSINESS'),
+('1','6A','BUSINESS'),('1','6B','BUSINESS'),('1','6C','BUSINESS'),('1','6D','BUSINESS'),
+('1','7A','BUSINESS'),('1','7B','BUSINESS'),('1','7C','BUSINESS'),('1','7D','BUSINESS');
 
--- Economy: rows 6-30, seats A-F
+-- Economy: rows 8-32, seats A-F
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('1','6A','ECONOMY'),('1','6B','ECONOMY'),('1','6C','ECONOMY'),('1','6D','ECONOMY'),('1','6E','ECONOMY'),('1','6F','ECONOMY'),
-('1','7A','ECONOMY'),('1','7B','ECONOMY'),('1','7C','ECONOMY'),('1','7D','ECONOMY'),('1','7E','ECONOMY'),('1','7F','ECONOMY'),
 ('1','8A','ECONOMY'),('1','8B','ECONOMY'),('1','8C','ECONOMY'),('1','8D','ECONOMY'),('1','8E','ECONOMY'),('1','8F','ECONOMY'),
 ('1','9A','ECONOMY'),('1','9B','ECONOMY'),('1','9C','ECONOMY'),('1','9D','ECONOMY'),('1','9E','ECONOMY'),('1','9F','ECONOMY'),
 ('1','10A','ECONOMY'),('1','10B','ECONOMY'),('1','10C','ECONOMY'),('1','10D','ECONOMY'),('1','10E','ECONOMY'),('1','10F','ECONOMY'),
@@ -6110,28 +6119,34 @@ INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('1','27A','ECONOMY'),('1','27B','ECONOMY'),('1','27C','ECONOMY'),('1','27D','ECONOMY'),('1','27E','ECONOMY'),('1','27F','ECONOMY'),
 ('1','28A','ECONOMY'),('1','28B','ECONOMY'),('1','28C','ECONOMY'),('1','28D','ECONOMY'),('1','28E','ECONOMY'),('1','28F','ECONOMY'),
 ('1','29A','ECONOMY'),('1','29B','ECONOMY'),('1','29C','ECONOMY'),('1','29D','ECONOMY'),('1','29E','ECONOMY'),('1','29F','ECONOMY'),
-('1','30A','ECONOMY'),('1','30B','ECONOMY'),('1','30C','ECONOMY'),('1','30D','ECONOMY'),('1','30E','ECONOMY'),('1','30F','ECONOMY');
+('1','30A','ECONOMY'),('1','30B','ECONOMY'),('1','30C','ECONOMY'),('1','30D','ECONOMY'),('1','30E','ECONOMY'),('1','30F','ECONOMY'),
+('1','31A','ECONOMY'),('1','31B','ECONOMY'),('1','31C','ECONOMY'),('1','31D','ECONOMY'),('1','31E','ECONOMY'),('1','31F','ECONOMY'),
+('1','32A','ECONOMY'),('1','32B','ECONOMY'),('1','32C','ECONOMY'),('1','32D','ECONOMY'),('1','32E','ECONOMY'),('1','32F','ECONOMY');
 
--- Boeing 777 (aircraft_id = 2, 300 seats)
--- Business: rows 1-10, seats A-D
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Boeing 777 (aircraft_id = 2)
+-- First Class: rows 1-4, seats A-D
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('2','1A','BUSINESS'),('2','1B','BUSINESS'),('2','1C','BUSINESS'),('2','1D','BUSINESS'),
-('2','2A','BUSINESS'),('2','2B','BUSINESS'),('2','2C','BUSINESS'),('2','2D','BUSINESS'),
-('2','3A','BUSINESS'),('2','3B','BUSINESS'),('2','3C','BUSINESS'),('2','3D','BUSINESS'),
-('2','4A','BUSINESS'),('2','4B','BUSINESS'),('2','4C','BUSINESS'),('2','4D','BUSINESS'),
+('2','1A','FIRST'),('2','1B','FIRST'),('2','1C','FIRST'),('2','1D','FIRST'),
+('2','2A','FIRST'),('2','2B','FIRST'),('2','2C','FIRST'),('2','2D','FIRST'),
+('2','3A','FIRST'),('2','3B','FIRST'),('2','3C','FIRST'),('2','3D','FIRST'),
+('2','4A','FIRST'),('2','4B','FIRST'),('2','4C','FIRST'),('2','4D','FIRST');
+
+-- Business: rows 5-14, seats A-D
+INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('2','5A','BUSINESS'),('2','5B','BUSINESS'),('2','5C','BUSINESS'),('2','5D','BUSINESS'),
 ('2','6A','BUSINESS'),('2','6B','BUSINESS'),('2','6C','BUSINESS'),('2','6D','BUSINESS'),
 ('2','7A','BUSINESS'),('2','7B','BUSINESS'),('2','7C','BUSINESS'),('2','7D','BUSINESS'),
 ('2','8A','BUSINESS'),('2','8B','BUSINESS'),('2','8C','BUSINESS'),('2','8D','BUSINESS'),
 ('2','9A','BUSINESS'),('2','9B','BUSINESS'),('2','9C','BUSINESS'),('2','9D','BUSINESS'),
-('2','10A','BUSINESS'),('2','10B','BUSINESS'),('2','10C','BUSINESS'),('2','10D','BUSINESS');
+('2','10A','BUSINESS'),('2','10B','BUSINESS'),('2','10C','BUSINESS'),('2','10D','BUSINESS'),
+('2','11A','BUSINESS'),('2','11B','BUSINESS'),('2','11C','BUSINESS'),('2','11D','BUSINESS'),
+('2','12A','BUSINESS'),('2','12B','BUSINESS'),('2','12C','BUSINESS'),('2','12D','BUSINESS'),
+('2','13A','BUSINESS'),('2','13B','BUSINESS'),('2','13C','BUSINESS'),('2','13D','BUSINESS'),
+('2','14A','BUSINESS'),('2','14B','BUSINESS'),('2','14C','BUSINESS'),('2','14D','BUSINESS');
 
--- Economy: rows 11-60, seats A-F
+-- Economy: rows 15-64, seats A-F
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('2','11A','ECONOMY'),('2','11B','ECONOMY'),('2','11C','ECONOMY'),('2','11D','ECONOMY'),('2','11E','ECONOMY'),('2','11F','ECONOMY'),
-('2','12A','ECONOMY'),('2','12B','ECONOMY'),('2','12C','ECONOMY'),('2','12D','ECONOMY'),('2','12E','ECONOMY'),('2','12F','ECONOMY'),
-('2','13A','ECONOMY'),('2','13B','ECONOMY'),('2','13C','ECONOMY'),('2','13D','ECONOMY'),('2','13E','ECONOMY'),('2','13F','ECONOMY'),
-('2','14A','ECONOMY'),('2','14B','ECONOMY'),('2','14C','ECONOMY'),('2','14D','ECONOMY'),('2','14E','ECONOMY'),('2','14F','ECONOMY'),
 ('2','15A','ECONOMY'),('2','15B','ECONOMY'),('2','15C','ECONOMY'),('2','15D','ECONOMY'),('2','15E','ECONOMY'),('2','15F','ECONOMY'),
 ('2','16A','ECONOMY'),('2','16B','ECONOMY'),('2','16C','ECONOMY'),('2','16D','ECONOMY'),('2','16E','ECONOMY'),('2','16F','ECONOMY'),
 ('2','17A','ECONOMY'),('2','17B','ECONOMY'),('2','17C','ECONOMY'),('2','17D','ECONOMY'),('2','17E','ECONOMY'),('2','17F','ECONOMY'),
@@ -6177,17 +6192,25 @@ INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('2','57A','ECONOMY'),('2','57B','ECONOMY'),('2','57C','ECONOMY'),('2','57D','ECONOMY'),('2','57E','ECONOMY'),('2','57F','ECONOMY'),
 ('2','58A','ECONOMY'),('2','58B','ECONOMY'),('2','58C','ECONOMY'),('2','58D','ECONOMY'),('2','58E','ECONOMY'),('2','58F','ECONOMY'),
 ('2','59A','ECONOMY'),('2','59B','ECONOMY'),('2','59C','ECONOMY'),('2','59D','ECONOMY'),('2','59E','ECONOMY'),('2','59F','ECONOMY'),
-('2','60A','ECONOMY'),('2','60B','ECONOMY'),('2','60C','ECONOMY'),('2','60D','ECONOMY'),('2','60E','ECONOMY'),('2','60F','ECONOMY');
+('2','60A','ECONOMY'),('2','60B','ECONOMY'),('2','60C','ECONOMY'),('2','60D','ECONOMY'),('2','60E','ECONOMY'),('2','60F','ECONOMY'),
+('2','61A','ECONOMY'),('2','61B','ECONOMY'),('2','61C','ECONOMY'),('2','61D','ECONOMY'),('2','61E','ECONOMY'),('2','61F','ECONOMY'),
+('2','62A','ECONOMY'),('2','62B','ECONOMY'),('2','62C','ECONOMY'),('2','62D','ECONOMY'),('2','62E','ECONOMY'),('2','62F','ECONOMY'),
+('2','63A','ECONOMY'),('2','63B','ECONOMY'),('2','63C','ECONOMY'),('2','63D','ECONOMY'),('2','63E','ECONOMY'),('2','63F','ECONOMY'),
+('2','64A','ECONOMY'),('2','64B','ECONOMY'),('2','64C','ECONOMY'),('2','64D','ECONOMY'),('2','64E','ECONOMY'),('2','64F','ECONOMY');
 
--- Airbus A380 (aircraft_id = 3, 500 seats)
--- Business: rows 1-15, seats A-D
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Airbus A380 (aircraft_id = 3)
+-- First Class: rows 1-6, seats A-D
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('3','1A','BUSINESS'),('3','1B','BUSINESS'),('3','1C','BUSINESS'),('3','1D','BUSINESS'),
-('3','2A','BUSINESS'),('3','2B','BUSINESS'),('3','2C','BUSINESS'),('3','2D','BUSINESS'),
-('3','3A','BUSINESS'),('3','3B','BUSINESS'),('3','3C','BUSINESS'),('3','3D','BUSINESS'),
-('3','4A','BUSINESS'),('3','4B','BUSINESS'),('3','4C','BUSINESS'),('3','4D','BUSINESS'),
-('3','5A','BUSINESS'),('3','5B','BUSINESS'),('3','5C','BUSINESS'),('3','5D','BUSINESS'),
-('3','6A','BUSINESS'),('3','6B','BUSINESS'),('3','6C','BUSINESS'),('3','6D','BUSINESS'),
+('3','1A','FIRST'),('3','1B','FIRST'),('3','1C','FIRST'),('3','1D','FIRST'),
+('3','2A','FIRST'),('3','2B','FIRST'),('3','2C','FIRST'),('3','2D','FIRST'),
+('3','3A','FIRST'),('3','3B','FIRST'),('3','3C','FIRST'),('3','3D','FIRST'),
+('3','4A','FIRST'),('3','4B','FIRST'),('3','4C','FIRST'),('3','4D','FIRST'),
+('3','5A','FIRST'),('3','5B','FIRST'),('3','5C','FIRST'),('3','5D','FIRST'),
+('3','6A','FIRST'),('3','6B','FIRST'),('3','6C','FIRST'),('3','6D','FIRST');
+
+-- Business: rows 7-21, seats A-D
+INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('3','7A','BUSINESS'),('3','7B','BUSINESS'),('3','7C','BUSINESS'),('3','7D','BUSINESS'),
 ('3','8A','BUSINESS'),('3','8B','BUSINESS'),('3','8C','BUSINESS'),('3','8D','BUSINESS'),
 ('3','9A','BUSINESS'),('3','9B','BUSINESS'),('3','9C','BUSINESS'),('3','9D','BUSINESS'),
@@ -6196,16 +6219,16 @@ INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('3','12A','BUSINESS'),('3','12B','BUSINESS'),('3','12C','BUSINESS'),('3','12D','BUSINESS'),
 ('3','13A','BUSINESS'),('3','13B','BUSINESS'),('3','13C','BUSINESS'),('3','13D','BUSINESS'),
 ('3','14A','BUSINESS'),('3','14B','BUSINESS'),('3','14C','BUSINESS'),('3','14D','BUSINESS'),
-('3','15A','BUSINESS'),('3','15B','BUSINESS'),('3','15C','BUSINESS'),('3','15D','BUSINESS');
+('3','15A','BUSINESS'),('3','15B','BUSINESS'),('3','15C','BUSINESS'),('3','15D','BUSINESS'),
+('3','16A','BUSINESS'),('3','16B','BUSINESS'),('3','16C','BUSINESS'),('3','16D','BUSINESS'),
+('3','17A','BUSINESS'),('3','17B','BUSINESS'),('3','17C','BUSINESS'),('3','17D','BUSINESS'),
+('3','18A','BUSINESS'),('3','18B','BUSINESS'),('3','18C','BUSINESS'),('3','18D','BUSINESS'),
+('3','19A','BUSINESS'),('3','19B','BUSINESS'),('3','19C','BUSINESS'),('3','19D','BUSINESS'),
+('3','20A','BUSINESS'),('3','20B','BUSINESS'),('3','20C','BUSINESS'),('3','20D','BUSINESS'),
+('3','21A','BUSINESS'),('3','21B','BUSINESS'),('3','21C','BUSINESS'),('3','21D','BUSINESS');
 
--- Economy: rows 16-100, seats A-F
+-- Economy: rows 22-106, seats A-F
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('3','16A','ECONOMY'),('3','16B','ECONOMY'),('3','16C','ECONOMY'),('3','16D','ECONOMY'),('3','16E','ECONOMY'),('3','16F','ECONOMY'),
-('3','17A','ECONOMY'),('3','17B','ECONOMY'),('3','17C','ECONOMY'),('3','17D','ECONOMY'),('3','17E','ECONOMY'),('3','17F','ECONOMY'),
-('3','18A','ECONOMY'),('3','18B','ECONOMY'),('3','18C','ECONOMY'),('3','18D','ECONOMY'),('3','18E','ECONOMY'),('3','18F','ECONOMY'),
-('3','19A','ECONOMY'),('3','19B','ECONOMY'),('3','19C','ECONOMY'),('3','19D','ECONOMY'),('3','19E','ECONOMY'),('3','19F','ECONOMY'),
-('3','20A','ECONOMY'),('3','20B','ECONOMY'),('3','20C','ECONOMY'),('3','20D','ECONOMY'),('3','20E','ECONOMY'),('3','20F','ECONOMY'),
-('3','21A','ECONOMY'),('3','21B','ECONOMY'),('3','21C','ECONOMY'),('3','21D','ECONOMY'),('3','21E','ECONOMY'),('3','21F','ECONOMY'),
 ('3','22A','ECONOMY'),('3','22B','ECONOMY'),('3','22C','ECONOMY'),('3','22D','ECONOMY'),('3','22E','ECONOMY'),('3','22F','ECONOMY'),
 ('3','23A','ECONOMY'),('3','23B','ECONOMY'),('3','23C','ECONOMY'),('3','23D','ECONOMY'),('3','23E','ECONOMY'),('3','23F','ECONOMY'),
 ('3','24A','ECONOMY'),('3','24B','ECONOMY'),('3','24C','ECONOMY'),('3','24D','ECONOMY'),('3','24E','ECONOMY'),('3','24F','ECONOMY'),
@@ -6284,21 +6307,31 @@ INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('3','97A','ECONOMY'),('3','97B','ECONOMY'),('3','97C','ECONOMY'),('3','97D','ECONOMY'),('3','97E','ECONOMY'),('3','97F','ECONOMY'),
 ('3','98A','ECONOMY'),('3','98B','ECONOMY'),('3','98C','ECONOMY'),('3','98D','ECONOMY'),('3','98E','ECONOMY'),('3','98F','ECONOMY'),
 ('3','99A','ECONOMY'),('3','99B','ECONOMY'),('3','99C','ECONOMY'),('3','99D','ECONOMY'),('3','99E','ECONOMY'),('3','99F','ECONOMY'),
-('3','100A','ECONOMY'),('3','100B','ECONOMY'),('3','100C','ECONOMY'),('3','100D','ECONOMY'),('3','100E','ECONOMY'),('3','100F','ECONOMY');
+('3','100A','ECONOMY'),('3','100B','ECONOMY'),('3','100C','ECONOMY'),('3','100D','ECONOMY'),('3','100E','ECONOMY'),('3','100F','ECONOMY'),
+('3','101A','ECONOMY'),('3','101B','ECONOMY'),('3','101C','ECONOMY'),('3','101D','ECONOMY'),('3','101E','ECONOMY'),('3','101F','ECONOMY'),
+('3','102A','ECONOMY'),('3','102B','ECONOMY'),('3','102C','ECONOMY'),('3','102D','ECONOMY'),('3','102E','ECONOMY'),('3','102F','ECONOMY'),
+('3','103A','ECONOMY'),('3','103B','ECONOMY'),('3','103C','ECONOMY'),('3','103D','ECONOMY'),('3','103E','ECONOMY'),('3','103F','ECONOMY'),
+('3','104A','ECONOMY'),('3','104B','ECONOMY'),('3','104C','ECONOMY'),('3','104D','ECONOMY'),('3','104E','ECONOMY'),('3','104F','ECONOMY'),
+('3','105A','ECONOMY'),('3','105B','ECONOMY'),('3','105C','ECONOMY'),('3','105D','ECONOMY'),('3','105E','ECONOMY'),('3','105F','ECONOMY'),
+('3','106A','ECONOMY'),('3','106B','ECONOMY'),('3','106C','ECONOMY'),('3','106D','ECONOMY'),('3','106E','ECONOMY'),('3','106F','ECONOMY');
 
--- Airbus A320 (aircraft_id = 4, 180 seats)
--- Business: rows 1-5, seats A-D
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Airbus A320 (aircraft_id = 4)
+-- First Class: rows 1-2, seats A-D
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('4','1A','BUSINESS'),('4','1B','BUSINESS'),('4','1C','BUSINESS'),('4','1D','BUSINESS'),
-('4','2A','BUSINESS'),('4','2B','BUSINESS'),('4','2C','BUSINESS'),('4','2D','BUSINESS'),
+('4','1A','FIRST'),('4','1B','FIRST'),('4','1C','FIRST'),('4','1D','FIRST'),
+('4','2A','FIRST'),('4','2B','FIRST'),('4','2C','FIRST'),('4','2D','FIRST');
+
+-- Business: rows 3-7, seats A-D
+INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('4','3A','BUSINESS'),('4','3B','BUSINESS'),('4','3C','BUSINESS'),('4','3D','BUSINESS'),
 ('4','4A','BUSINESS'),('4','4B','BUSINESS'),('4','4C','BUSINESS'),('4','4D','BUSINESS'),
-('4','5A','BUSINESS'),('4','5B','BUSINESS'),('4','5C','BUSINESS'),('4','5D','BUSINESS');
+('4','5A','BUSINESS'),('4','5B','BUSINESS'),('4','5C','BUSINESS'),('4','5D','BUSINESS'),
+('4','6A','BUSINESS'),('4','6B','BUSINESS'),('4','6C','BUSINESS'),('4','6D','BUSINESS'),
+('4','7A','BUSINESS'),('4','7B','BUSINESS'),('4','7C','BUSINESS'),('4','7D','BUSINESS');
 
--- Economy: rows 6-30, seats A-F
+-- Economy: rows 8-37, seats A-F
 INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
-('4','6A','ECONOMY'),('4','6B','ECONOMY'),('4','6C','ECONOMY'),('4','6D','ECONOMY'),('4','6E','ECONOMY'),('4','6F','ECONOMY'),
-('4','7A','ECONOMY'),('4','7B','ECONOMY'),('4','7C','ECONOMY'),('4','7D','ECONOMY'),('4','7E','ECONOMY'),('4','7F','ECONOMY'),
 ('4','8A','ECONOMY'),('4','8B','ECONOMY'),('4','8C','ECONOMY'),('4','8D','ECONOMY'),('4','8E','ECONOMY'),('4','8F','ECONOMY'),
 ('4','9A','ECONOMY'),('4','9B','ECONOMY'),('4','9C','ECONOMY'),('4','9D','ECONOMY'),('4','9E','ECONOMY'),('4','9F','ECONOMY'),
 ('4','10A','ECONOMY'),('4','10B','ECONOMY'),('4','10C','ECONOMY'),('4','10D','ECONOMY'),('4','10E','ECONOMY'),('4','10F','ECONOMY'),
@@ -6321,6 +6354,13 @@ INSERT INTO Seat (aircraft_id, seat_number, seat_class) VALUES
 ('4','27A','ECONOMY'),('4','27B','ECONOMY'),('4','27C','ECONOMY'),('4','27D','ECONOMY'),('4','27E','ECONOMY'),('4','27F','ECONOMY'),
 ('4','28A','ECONOMY'),('4','28B','ECONOMY'),('4','28C','ECONOMY'),('4','28D','ECONOMY'),('4','28E','ECONOMY'),('4','28F','ECONOMY'),
 ('4','29A','ECONOMY'),('4','29B','ECONOMY'),('4','29C','ECONOMY'),('4','29D','ECONOMY'),('4','29E','ECONOMY'),('4','29F','ECONOMY'),
-('4','30A','ECONOMY'),('4','30B','ECONOMY'),('4','30C','ECONOMY'),('4','30D','ECONOMY'),('4','30E','ECONOMY'),('4','30F','ECONOMY');
+('4','30A','ECONOMY'),('4','30B','ECONOMY'),('4','30C','ECONOMY'),('4','30D','ECONOMY'),('4','30E','ECONOMY'),('4','30F','ECONOMY'),
+('4','31A','ECONOMY'),('4','31B','ECONOMY'),('4','31C','ECONOMY'),('4','31D','ECONOMY'),('4','31E','ECONOMY'),('4','31F','ECONOMY'),
+('4','32A','ECONOMY'),('4','32B','ECONOMY'),('4','32C','ECONOMY'),('4','32D','ECONOMY'),('4','32E','ECONOMY'),('4','32F','ECONOMY'),
+('4','33A','ECONOMY'),('4','33B','ECONOMY'),('4','33C','ECONOMY'),('4','33D','ECONOMY'),('4','33E','ECONOMY'),('4','33F','ECONOMY'),
+('4','34A','ECONOMY'),('4','34B','ECONOMY'),('4','34C','ECONOMY'),('4','34D','ECONOMY'),('4','34E','ECONOMY'),('4','34F','ECONOMY'),
+('4','35A','ECONOMY'),('4','35B','ECONOMY'),('4','35C','ECONOMY'),('4','35D','ECONOMY'),('4','35E','ECONOMY'),('4','35F','ECONOMY'),
+('4','36A','ECONOMY'),('4','36B','ECONOMY'),('4','36C','ECONOMY'),('4','36D','ECONOMY'),('4','36E','ECONOMY'),('4','36F','ECONOMY'),
+('4','37A','ECONOMY'),('4','37B','ECONOMY'),('4','37C','ECONOMY'),('4','37D','ECONOMY'),('4','37E','ECONOMY'),('4','37F','ECONOMY');
 
 COMMIT;
