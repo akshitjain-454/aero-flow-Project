@@ -46,6 +46,14 @@
                     </div>
                     <h1 class="text-3xl font-bold text-[--charcoal] tracking-tight">Member Concierge</h1>
                     <p class="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">Private & Elite Access</p>
+                    {% if error %}
+                    <div class="mt-6 flex items-start gap-3 bg-red-50 border border-red-100 text-red-500 px-5 py-4 rounded-2xl text-left">
+                        <div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">There was a problem!</p>
+                            <p class="text-xs font-light">{{ error }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <form action="/login" method="POST" class="space-y-8">

@@ -270,6 +270,16 @@
     <main class="flex-1 overflow-y-auto p-8 h-full">
         <div class="max-w-7xl mx-auto pb-20">
 
+             {% if error %}
+            <div id="flash-error" class="flex items-center justify-between gap-4 bg-red-50 border border-red-100 text-red-500 px-6 py-4 rounded-2xl shadow-sm mb-6">
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">There was a problem!</p>
+                    <p class="text-xs font-light">{{ error }}</p>
+                </div>
+                <button onclick="window.location.href='/admin'" class="text-red-300 hover:text-red-500 transition-colors font-bold text-lg leading-none">✕</button>
+            </div>
+            {% endif %}
+
             <!-- Dashboard -->
             <section id="dashboardOverview">
                 <header class="mb-8">

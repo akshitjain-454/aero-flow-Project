@@ -60,15 +60,6 @@
                         </div>
                     </div>
                     {% endif %}
-
-                    {% if success %}
-                    <div class="mt-6 flex items-start gap-3 bg-green-50 border border-green-100 text-green-600 px-5 py-4 rounded-2xl text-left">
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">Success!</p>
-                            <p class="text-xs font-light">{{ success }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
 
                 <!-- Personal Information Section -->
