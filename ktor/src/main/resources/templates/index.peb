@@ -75,7 +75,18 @@
 {% block body_classes %}relative{% endblock %}
 
 {% block content %}
-        {% include "navbar.peb" %}
+    {% include "navbar.peb" %}
+
+    {% if error %}
+    <div id="flash-error" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-red-50 border border-red-100 text-red-500 px-6 py-4 rounded-2xl shadow-lg whitespace-nowrap">
+        <div>
+            <p class="text-[10px] font-extrabold uppercase tracking-widest mb-0.5">There was a problem!</p>
+            <p class="text-xs font-light">{{ error }}</p>
+        </div>
+        <button onclick="window.location.href='/'" class="text-red-300 hover:text-red-500 transition-colors font-bold text-lg leading-none">✕</button>
+    </div>
+    {% endif %}
+
     <a href="#main-content" class="absolute -top-[100px] left-4 bg-[--sky-blue] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest z-[1000] focus:top-4 transition-all duration-300 rounded-b-xl shadow-2xl">
         Skip to main content
     </a>
