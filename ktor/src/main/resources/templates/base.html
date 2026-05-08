@@ -45,6 +45,18 @@
             font-size: 0.95rem;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         .notification.hidden  { display: none; }
         .notification.info    { background: #3b82f6; color: white; }
         .notification.success { background: #22c55e; color: white; }
@@ -67,10 +79,16 @@
     
 
     <div id="global-notification" class="notification hidden">
-        <a href="/complaints" >
-            <span id="notification-message"></span>
+        <a href="/complaints" aria-label="View complaint notifications">
+            <span id="notification-message" aria-hidden="true"></span>
+            <span class="sr-only">View complaint notifications</span>
         </a>
-        <button onclick="closeNotification()">✕</button>
+
+        <button type="button"
+                onclick="closeNotification()"
+                aria-label="Close notification">
+            x
+        </button>
     </div>
 
     {% block content %}{% endblock %}
