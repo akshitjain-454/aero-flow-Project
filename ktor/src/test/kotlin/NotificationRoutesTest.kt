@@ -127,12 +127,13 @@ class NotificationRoutesTest : StringSpec({
         testApplication {
             configureApp(session = testSession)
 
-            val event = NotificationEvent(
-                userId = 1,
-                message = "Gate changed to B7",
-                type = "gate_change",
-                sentAt = 1700001234L,
-            )
+            val event =
+                NotificationEvent(
+                    userId = 1,
+                    message = "Gate changed to B7",
+                    type = "gate_change",
+                    sentAt = 1700001234L,
+                )
             NotificationService.send(event)
 
             client.prepareGet("/notifications/stream").execute { response ->
