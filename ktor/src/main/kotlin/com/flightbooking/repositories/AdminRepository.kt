@@ -24,7 +24,6 @@ import com.flightbooking.tables.FlightSeatTable
 import com.flightbooking.tables.FlightTable
 import com.flightbooking.tables.PassengerTable
 import com.flightbooking.tables.PaymentTable
-import com.flightbooking.tables.SeatTable
 import com.flightbooking.tables.TicketAssignmentTable
 import com.flightbooking.tables.UserTable
 import org.jetbrains.exposed.sql.CustomFunction
@@ -36,7 +35,6 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.TextColumnType
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.count
@@ -1078,16 +1076,6 @@ class AdminRepository {
                     }
                 }
 
-                // if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
-                //     val requestedFlightCode = request[FlightInfoRequestTable.requestedFlightCode]
-
-                //     if (!requestedFlightCode.isNullOrBlank()) {
-                //         applyFlightChangeToBooking(
-                //             bookingId = request[FlightInfoRequestTable.bookingId],
-                //             requestedFlightCode = requestedFlightCode,
-                //         )
-                //     }
-                // }
                 if (requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH) {
                     // Flight date change request approved.
                     // The requested date is stored in requestedDepartureDate.
@@ -1230,122 +1218,4 @@ class AdminRepository {
             }
         }
     }
-
-    /**
-     * Applies an approved flight change request to an existing booking.
-     *
-     * The booking is moved to the requested flight and passenger ticket assignments
-     * are updated to available seats on the new flight. If there are not enough
-     * available seats, the change is rejected by throwing an exception.
-     *
-     * @param bookingId: The booking to update.
-     * @param requestedFlightCode: The new flight code requested by the customer.
-     *
-     * @throws IllegalStateException
-     * If the booking, requested flight, passengers, or sufficient available seats
-     * cannot be found.
-     */
-    // private fun applyFlightChangeToBooking(
-    //     bookingId: Int,
-    //     requestedFlightCode: String,
-    // ) {
-    //     val bookingRow =
-    //         BookingTable
-    //             .select { BookingTable.id eq bookingId }.singleOrNull() ?: throw IllegalStateException("Booking not found")
-    //     val oldFlightId = bookingRow[BookingTable.flightId]
-    //     val newFlightRow =
-    //         FlightTable.select {
-    //             FlightTable.flightCode eq requestedFlightCode.uppercase()
-    //         }
-    //             .singleOrNull() ?: throw IllegalStateException("Requested flight not found")
-    //     val newFlightId = newFlightRow[FlightTable.id]
-
-    //     if (newFlightId == oldFlightId) {
-    //         return
-    //     }
-
-    //     val passengerIds = PassengerTable.select { PassengerTable.bookingId eq bookingId }.map { it[PassengerTable.id] }
-
-    //     if (passengerIds.isEmpty()) {
-    //         throw IllegalStateException("No passengers found for this booking")
-    //     }
-
-    //     val bookedNewFlightSeatIds =
-    //         TicketAssignmentTable
-    //             .join(
-    //                 FlightSeatTable,
-    //                 JoinType.INNER,
-    //                 TicketAssignmentTable.flightSeatId,
-    //                 FlightSeatTable.id,
-    //             )
-    //             .select { FlightSeatTable.flightId eq newFlightId }
-    //             .map { it[TicketAssignmentTable.flightSeatId] }
-
-    //     val availableSeatCondition =
-    //         if (bookedNewFlightSeatIds.isEmpty()) {
-    //             FlightSeatTable.flightId eq newFlightId
-    //         } else {
-    //             (FlightSeatTable.flightId eq newFlightId) and (FlightSeatTable.id notInList bookedNewFlightSeatIds)
-    //         }
-
-    //     val availableSeats =
-    //         FlightSeatTable
-    //             .join(
-    //                 SeatTable,
-    //                 JoinType.INNER,
-    //                 FlightSeatTable.seatId,
-    //                 SeatTable.id,
-    //             )
-    //             .select { availableSeatCondition }
-    //             .limit(passengerIds.size)
-    //             .map { row ->
-    //                 row[FlightSeatTable.id] to row[SeatTable.seatNumber]
-    //             }
-
-    //     if (availableSeats.size < passengerIds.size) {
-    //         throw IllegalStateException("Not enough available seats on requested flight")
-    //     }
-
-    //     BookingTable.update({ BookingTable.id eq bookingId }) {
-    //         it[BookingTable.flightId] = newFlightId
-    //     }
-    //     // Pair the passenger list (passengerIds) with the available seat list (availableSeats) one by one,
-    //     // and then process each pair individually.
-    //     passengerIds.zip(availableSeats).forEach { pair ->
-    //         val passengerId = pair.first
-    //         val newFlightSeatId = pair.second.first
-    //         val newSeatNumber = pair.second.second
-
-    //         val existingOutboundAssignmentId =
-    //             TicketAssignmentTable
-    //                 .join(
-    //                     FlightSeatTable,
-    //                     JoinType.INNER,
-    //                     TicketAssignmentTable.flightSeatId,
-    //                     FlightSeatTable.id,
-    //                 )
-    //                 .select {
-    //                     (TicketAssignmentTable.passengerId eq passengerId) and (FlightSeatTable.flightId eq oldFlightId)
-    //                 }
-    //                 .map { it[TicketAssignmentTable.id] }
-    //                 .singleOrNull()
-
-    //         if (existingOutboundAssignmentId != null) {
-    //             TicketAssignmentTable.update({
-    //                 TicketAssignmentTable.id eq existingOutboundAssignmentId
-    //             }) {
-    //                 it[TicketAssignmentTable.flightSeatId] = newFlightSeatId
-    //                 it[TicketAssignmentTable.seatNumber] = newSeatNumber
-    //                 it[TicketAssignmentTable.ticketPrice] = newFlightRow[FlightTable.minPrice]
-    //             }
-    //         } else {
-    //             TicketAssignmentTable.insert {
-    //                 it[TicketAssignmentTable.passengerId] = passengerId
-    //                 it[TicketAssignmentTable.flightSeatId] = newFlightSeatId
-    //                 it[TicketAssignmentTable.seatNumber] = newSeatNumber
-    //                 it[TicketAssignmentTable.ticketPrice] = newFlightRow[FlightTable.minPrice]
-    //             }
-    //         }
-    //     }
-    // }
 }

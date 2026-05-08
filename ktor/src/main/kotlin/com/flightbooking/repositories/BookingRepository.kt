@@ -425,7 +425,7 @@ class BookingRepository {
      * @param newFirstname The optional new first name.
      * @param newLastname The optional new last name.
      * @param newPassportCode The optional new passport code.
-     * @param requestedFlightCode The optional requested flight code.
+     * @param requestedDepartureDate The optional requested flight date.
      * @param message The optional message describing the request.
      * @return True if the request was created successfully, false otherwise.
      */
