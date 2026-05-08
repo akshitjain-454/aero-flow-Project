@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.ktor)
     kotlin("plugin.serialization") version "1.9.22"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 group = "com.flightbooking"
@@ -30,6 +31,7 @@ dependencies {
     // Unit Test
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.mockk:mockk:1.13.10")
 
     // Auth & Sessions
     implementation("io.ktor:ktor-server-auth:2.3.4")

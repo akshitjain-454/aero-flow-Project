@@ -45,7 +45,42 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+private const val TRANSACTION_ID_LENGTH = 10
+private const val BOOKING_REFERENCE_LENGTH = 8
+private const val LOYALTY_POINT_REFUND_SCALE = 2
+private val LOYALTY_POINT_DIVISOR = BigDecimal("100")
+private const val PRICE_SCALE = 2
+private val PRICE_ROUNDING_MODE = RoundingMode.HALF_UP
+private val DEFAULT_PRICE_MULTIPLIER = BigDecimal("1.0")
+private val ECONOMY_PRICE_MULTIPLIER = BigDecimal("1.0")
+private val BUSINESS_PRICE_MULTIPLIER = BigDecimal("1.75")
+private val FIRST_CLASS_PRICE_MULTIPLIER = BigDecimal("3.0")
+private val SAME_DAY_PRICE_MULTIPLIER = BigDecimal("1.75")
+private val THREE_DAY_PRICE_MULTIPLIER = BigDecimal("1.5")
+private val ONE_WEEK_PRICE_MULTIPLIER = BigDecimal("1.25")
+private val TWO_WEEK_PRICE_MULTIPLIER = BigDecimal("1.15")
+private val FOUR_WEEK_PRICE_MULTIPLIER = BigDecimal("1.1")
+private const val SHORT_TERM_BOOKING_DAYS = 3L
+private const val ONE_WEEK_BOOKING_WEEKS = 1L
+private const val TWO_WEEK_BOOKING_WEEKS = 2L
+private const val FOUR_WEEK_BOOKING_WEEKS = 4L
+private const val NO_LOYALTY_POINTS = 0
+private const val ZERO = 0
+
+/**
+ * Handles booking lifecycle operations, payments, seat selection, and customer flight information requests.
+ *
+ * This repository is responsible for persisting booking data and producing booking-related summaries.
+ */
 class BookingRepository {
+    /**
+     * Creates a new booking record for a user and flight.
+     *
+     * @param userId The ID of the user making the booking.
+     * @param flightId The ID of the outbound flight.
+     * @param returnFlightId The optional ID of a return flight.
+     * @return The newly created booking.
+     */
     fun createBooking(
         userId: Int,
         flightId: Int,
@@ -76,6 +111,14 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Creates a completed payment record for a booking.
+     *
+     * @param bookingId The ID of the booking being paid for.
+     * @param amount The payment amount.
+     * @param paymentMethod The payment method used.
+     * @return The completed payment record.
+     */
     fun createPayment(
         bookingId: Int,
         amount: BigDecimal,
@@ -83,7 +126,7 @@ class BookingRepository {
     ): Payment =
         transaction {
             val now = LocalDateTime.now()
-            val transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, 10).uppercase()
+            val transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, TRANSACTION_ID_LENGTH).uppercase()
 
             val paymentId =
                 PaymentTable.insert {
@@ -108,6 +151,13 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Retrieves the current loyalty points balance for a user.
+     *
+     * @param userId The ID of the user whose points are retrieved.
+     * @return The current loyalty points balance.
+     * @throws IllegalStateException if the user record cannot be found.
+     */
     fun getLoyaltyPointsByUserId(userId: Int): Int =
         transaction {
             val currentPoints =
@@ -119,6 +169,13 @@ class BookingRepository {
             return@transaction currentPoints
         }
 
+    /**
+     * Retrieves the redeemed loyalty points balance for a user.
+     *
+     * @param userId The ID of the user whose redeemed points are retrieved.
+     * @return The redeemed loyalty points balance.
+     * @throws IllegalStateException if the user record cannot be found.
+     */
     fun getRedeemedLoyaltyPointsByUserId(userId: Int): Int =
         transaction {
             val currentRedeemedPoints =
@@ -130,6 +187,13 @@ class BookingRepository {
             return@transaction currentRedeemedPoints
         }
 
+    /**
+     * Adds loyalty points to a user based on the booking amount.
+     *
+     * @param userId The ID of the user receiving points.
+     * @param amount The booking amount used to calculate points.
+     * @return The number of points added.
+     */
     fun addLoyaltyPointsByUserIdAndBookingAmount(
         userId: Int,
         amount: BigDecimal,
@@ -145,6 +209,13 @@ class BookingRepository {
             return@transaction points
         }
 
+    /**
+     * Applies all available loyalty points as a discount to the given price.
+     *
+     * @param userId The ID of the user applying points.
+     * @param price The original price before discount.
+     * @return The discounted price after loyalty points are applied.
+     */
     fun useUsersLoyaltyPoints(
         userId: Int,
         price: BigDecimal,
@@ -153,21 +224,30 @@ class BookingRepository {
             val loyaltyPoints = getLoyaltyPointsByUserId(userId)
             val redeemedLoyaltyPoints = getRedeemedLoyaltyPointsByUserId(userId)
 
-            val discount = loyaltyPoints.toBigDecimal() / BigDecimal(100)
-            val discountedPrice = (price - discount).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP)
+            val discount = loyaltyPoints.toBigDecimal() / LOYALTY_POINT_DIVISOR
+            val discountedPrice = (price - discount).max(BigDecimal.ZERO).setScale(PRICE_SCALE, PRICE_ROUNDING_MODE)
 
             // Set redeemed to current
             UserTable.update({ UserTable.id eq userId }) {
                 it[UserTable.redeemedLoyaltyPoints] = redeemedLoyaltyPoints + loyaltyPoints
             }
-            // set current to 0
+            // set current to no loyalty points
             UserTable.update({ UserTable.id eq userId }) {
-                it[UserTable.loyaltyPoints] = 0
+                it[UserTable.loyaltyPoints] = NO_LOYALTY_POINTS
             }
 
             return@transaction discountedPrice
         }
 
+    /**
+     * Adds a passenger record to an existing booking.
+     *
+     * @param bookingId The ID of the booking for which the passenger is added.
+     * @param firstname The passenger's first name.
+     * @param lastname The passenger's last name.
+     * @param passportCode The passenger's optional passport code.
+     * @return The created passenger record.
+     */
     fun addPassenger(
         bookingId: Int,
         firstname: String,
@@ -192,6 +272,15 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Assigns a ticket to a passenger for a specific flight seat.
+     *
+     * @param passengerId The passenger's ID.
+     * @param flightSeatId The flight seat ID for the ticket.
+     * @param ticketPrice The price of the ticket.
+     * @param seatNumber The seat number assigned to the passenger.
+     * @return The ticket assignment record.
+     */
     fun ticketAssignment(
         passengerId: Int,
         flightSeatId: Int,
@@ -216,6 +305,11 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Deletes any existing ticket assignments for a booking, releasing seat selections.
+     *
+     * @param bookingReference The booking reference used to identify the booking.
+     */
     fun deleteOldSeatSelectionsByBookingReference(bookingReference: String) =
         transaction {
             val booking = getBookingByReference(bookingReference) ?: return@transaction
@@ -228,6 +322,11 @@ class BookingRepository {
             TicketAssignmentTable.deleteWhere { SqlExpressionBuilder.run { TicketAssignmentTable.passengerId inList passengerIds } }
         }
 
+    /**
+     * Deletes a booking and all related passenger and ticket assignment records.
+     *
+     * @param bookingReference The booking reference to delete.
+     */
     fun deleteBookingByReference(bookingReference: String) =
         transaction {
             val booking = getBookingByReference(bookingReference) ?: return@transaction
@@ -239,6 +338,12 @@ class BookingRepository {
             BookingTable.deleteWhere { SqlExpressionBuilder.run { BookingTable.bookingReference eq bookingReference } }
         }
 
+    /**
+     * Cancels a booking and, when applicable, processes a refund and loyalty point adjustment.
+     *
+     * @param bookingReference The booking reference to cancel.
+     * @return The cancelled booking or null if the booking does not exist.
+     */
     fun cancelBooking(bookingReference: String): Booking? =
         transaction {
             val booking =
@@ -284,12 +389,12 @@ class BookingRepository {
             val usersLoyaltyPoints = getLoyaltyPointsByUserId(userId)
             val changedPoints = usersLoyaltyPoints - paidAmount.toInt()
             val refundAmount =
-                if (changedPoints <= 0) {
+                if (changedPoints <= ZERO) {
                     val deficitPoints = -changedPoints
 
                     val penalty =
                         BigDecimal(deficitPoints)
-                            .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+                            .divide(LOYALTY_POINT_DIVISOR, LOYALTY_POINT_REFUND_SCALE, RoundingMode.HALF_UP)
 
                     paidAmount - penalty
                 } else {
@@ -309,6 +414,21 @@ class BookingRepository {
         }
 
     // change flight info(user-side request)
+
+    /**
+     * Creates a customer flight information change request for a booking.
+     *
+     * @param userId The user submitting the request.
+     * @param bookingReference The booking reference for the request.
+     * @param requestType The type of flight information request.
+     * @param passengerId The optional passenger ID affected by the request.
+     * @param newFirstname The optional new first name.
+     * @param newLastname The optional new last name.
+     * @param newPassportCode The optional new passport code.
+     * @param requestedDepartureDate The optional requested flight date.
+     * @param message The optional message describing the request.
+     * @return True if the request was created successfully, false otherwise.
+     */
     fun createFlightInfoRequest(
         userId: Int,
         bookingReference: String,
@@ -317,7 +437,7 @@ class BookingRepository {
         newFirstname: String?,
         newLastname: String?,
         newPassportCode: String?,
-        requestedFlightCode: String?,
+        requestedDepartureDate: LocalDate?,
         message: String?,
     ): Boolean =
         transaction {
@@ -340,7 +460,7 @@ class BookingRepository {
                 it[FlightInfoRequestTable.newFirstname] = newFirstname
                 it[FlightInfoRequestTable.newLastname] = newLastname
                 it[FlightInfoRequestTable.newPassportCode] = newPassportCode
-                it[FlightInfoRequestTable.requestedFlightCode] = requestedFlightCode
+                it[FlightInfoRequestTable.requestedDepartureDate] = requestedDepartureDate
                 it[FlightInfoRequestTable.message] = message
                 it[FlightInfoRequestTable.adminReply] = null
                 it[FlightInfoRequestTable.createdAt] = LocalDateTime.now()
@@ -350,6 +470,12 @@ class BookingRepository {
             true
         }
 
+    /**
+     * Retrieves flight information change requests submitted by a specific user.
+     *
+     * @param userId The ID of the user whose requests should be retrieved.
+     * @return A list of flight information request summaries.
+     */
     fun getFlightInfoRequestsByUserId(userId: Int): List<FlightInfoRequestSummary> =
         transaction {
             FlightInfoRequestTable
@@ -385,7 +511,9 @@ class BookingRepository {
                             ).joinToString(" "),
                         email = row[UserTable.email],
                         currentFlightCode = row[FlightTable.flightCode],
-                        requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                        currentDepartureTime = row[FlightTable.departureTime],
+                        currentArrivalTime = row[FlightTable.arrivalTime],
+                        requestedDepartureDate = row[FlightInfoRequestTable.requestedDepartureDate],
                         requestType = row[FlightInfoRequestTable.requestType],
                         status = row[FlightInfoRequestTable.status],
                         passengerId = row[FlightInfoRequestTable.passengerId],
@@ -400,6 +528,12 @@ class BookingRepository {
                 }
         }
 
+    /**
+     * Confirms a booking by updating its status to CONFIRMED.
+     *
+     * @param booking The booking to confirm.
+     * @return The number of rows updated.
+     */
     fun confirmBooking(booking: Booking): Int =
         transaction {
             BookingTable.update({ BookingTable.id eq booking.id }) {
@@ -407,6 +541,14 @@ class BookingRepository {
             }
         }
 
+    /**
+     * Calculates the ticket price based on flight base price, seat class, and travel date.
+     *
+     * @param flightPrice The base flight price.
+     * @param seatClass The chosen seat class or null for economy.
+     * @param date The travel date or null if unspecified.
+     * @return The final calculated ticket price.
+     */
     fun calculatePrice(
         flightPrice: BigDecimal,
         seatClass: SeatClass?,
@@ -416,30 +558,36 @@ class BookingRepository {
             val now = LocalDate.now()
             val seatClassMultiplier =
                 when (seatClass) {
-                    SeatClass.ECONOMY -> BigDecimal("1.0")
-                    SeatClass.BUSINESS -> BigDecimal("1.75")
-                    SeatClass.FIRST -> BigDecimal("3.0")
-                    null -> BigDecimal("1.0")
+                    SeatClass.ECONOMY -> ECONOMY_PRICE_MULTIPLIER
+                    SeatClass.BUSINESS -> BUSINESS_PRICE_MULTIPLIER
+                    SeatClass.FIRST -> FIRST_CLASS_PRICE_MULTIPLIER
+                    null -> DEFAULT_PRICE_MULTIPLIER
                 }
             val dateMultiplier =
                 when {
-                    date == null -> BigDecimal("1.0")
-                    date == now -> BigDecimal("1.75")
-                    date <= now.plusDays(3) -> BigDecimal("1.5")
-                    date <= now.plusWeeks(1) -> BigDecimal("1.25")
-                    date <= now.plusWeeks(2) -> BigDecimal("1.15")
-                    date <= now.plusWeeks(4) -> BigDecimal("1.1")
-                    else -> BigDecimal("1.0")
+                    date == null -> DEFAULT_PRICE_MULTIPLIER
+                    date == now -> SAME_DAY_PRICE_MULTIPLIER
+                    date <= now.plusDays(SHORT_TERM_BOOKING_DAYS) -> THREE_DAY_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(ONE_WEEK_BOOKING_WEEKS) -> ONE_WEEK_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(TWO_WEEK_BOOKING_WEEKS) -> TWO_WEEK_PRICE_MULTIPLIER
+                    date <= now.plusWeeks(FOUR_WEEK_BOOKING_WEEKS) -> FOUR_WEEK_PRICE_MULTIPLIER
+                    else -> DEFAULT_PRICE_MULTIPLIER
                 }
             val ticketPrice =
                 flightPrice
                     .multiply(seatClassMultiplier)
                     .multiply(dateMultiplier)
-                    .setScale(2, RoundingMode.HALF_UP)
+                    .setScale(PRICE_SCALE, PRICE_ROUNDING_MODE)
 
             return@transaction ticketPrice
         }
 
+    /**
+     * Retrieves seat availability for a specific flight.
+     *
+     * @param flightId The ID of the flight to check.
+     * @return A list of seat availability details for the flight.
+     */
     fun getSeatsByFlightId(flightId: Int): List<SeatAvailability> =
         transaction {
             FlightSeatTable
@@ -458,6 +606,13 @@ class BookingRepository {
                 }
         }
 
+    /**
+     * Retrieves seat selections for a flight and specific passengers.
+     *
+     * @param flightId The flight ID used to find seats.
+     * @param passengers The list of passengers whose seat assignments are retrieved.
+     * @return A list of selected seats for the passengers.
+     */
     fun getSelectedSeatsByFlightIdAndPassengers(
         flightId: Int,
         passengers: List<Passenger>,
@@ -485,6 +640,12 @@ class BookingRepository {
                 }
         }
 
+    /**
+     * Retrieves all passengers associated with a booking.
+     *
+     * @param bookingId The ID of the booking.
+     * @return A list of passengers for the booking.
+     */
     fun getPassengersByBookingId(bookingId: Int): List<Passenger> =
         transaction {
             PassengerTable
@@ -492,6 +653,12 @@ class BookingRepository {
                 .map { resultRowToPassenger(it) }
         }
 
+    /**
+     * Retrieves all bookings for a specific user.
+     *
+     * @param userId The user whose bookings are retrieved.
+     * @return A list of bookings for the user.
+     */
     fun getBookingsByUserId(userId: Int): List<Booking> =
         transaction {
             BookingTable
@@ -499,6 +666,12 @@ class BookingRepository {
                 .map { resultRowToBooking(it) }
         }
 
+    /**
+     * Retrieves a booking by its reference code.
+     *
+     * @param bookingReference The booking reference string.
+     * @return The matching booking, or null if not found.
+     */
     fun getBookingByReference(bookingReference: String): Booking? =
         transaction {
             BookingTable
@@ -507,6 +680,12 @@ class BookingRepository {
                 .singleOrNull()
         }
 
+    /**
+     * Calculates the total ticket price for a booking.
+     *
+     * @param bookingId The ID of the booking.
+     * @return The total ticket amount for the booking.
+     */
     fun getBookingPricePriceByBookingId(bookingId: Int): BigDecimal =
         transaction {
             val ticketPrice =
@@ -640,6 +819,13 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Builds detailed booking information including flight, passenger, and payment data.
+     *
+     * @param booking The booking used to construct the information.
+     * @return The booking information summary.
+     * @throws IllegalStateException if required flight or airport details cannot be found.
+     */
     fun getBookingInfoByBooking(booking: Booking): BookingInfo =
         transaction {
             val flight =
@@ -716,6 +902,12 @@ class BookingRepository {
             )
         }
 
+    /**
+     * Retrieves the seat class for a specific flight seat.
+     *
+     * @param flightSeatId The flight seat ID.
+     * @return The seat class or null if no seat is found.
+     */
     fun getSeatClassByFlightSeatId(flightSeatId: Int): SeatClass? =
         transaction {
             FlightSeatTable
@@ -725,6 +917,12 @@ class BookingRepository {
                 .singleOrNull()
         }
 
+    /**
+     * Retrieves a seat number by flight seat ID.
+     *
+     * @param flightSeatId The flight seat ID.
+     * @return The seat number, or null if the seat is not found.
+     */
     fun getSeatNumberByFlightSeatId(flightSeatId: Int): String? =
         transaction {
             FlightSeatTable
@@ -734,6 +932,12 @@ class BookingRepository {
                 .singleOrNull()
         }
 
+    /**
+     * Maps a database row to a Booking model.
+     *
+     * @param row The result row containing booking column values.
+     * @return The booking model.
+     */
     fun resultRowToBooking(row: ResultRow): Booking {
         return Booking(
             id = row[BookingTable.id],
@@ -746,6 +950,12 @@ class BookingRepository {
         )
     }
 
+    /**
+     * Maps a database row to a Passenger model.
+     *
+     * @param row The result row containing passenger column values.
+     * @return The passenger model.
+     */
     fun resultRowToPassenger(row: ResultRow): Passenger {
         return Passenger(
             id = row[PassengerTable.id],
@@ -756,6 +966,12 @@ class BookingRepository {
         )
     }
 
+    /**
+     * Maps a database row to a Seat model.
+     *
+     * @param row The result row containing seat column values.
+     * @return The seat model.
+     */
     fun resultRowToSeat(row: ResultRow): Seat {
         return Seat(
             id = row[SeatTable.id],
@@ -765,7 +981,12 @@ class BookingRepository {
         )
     }
 
+    /**
+     * Generates a new booking reference code.
+     *
+     * @return A random uppercase booking reference string.
+     */
     fun generateBookingReference(): String {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 8).uppercase()
+        return UUID.randomUUID().toString().replace("-", "").substring(0, BOOKING_REFERENCE_LENGTH).uppercase()
     }
 }

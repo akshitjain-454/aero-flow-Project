@@ -5,29 +5,31 @@
 {% block content %}
 <header class="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
     <a href="/" class="text-2xl font-bold tracking-tighter serif text-[--sky-blue] z-10" style="text-decoration: none;">AETHERIA</a>
-    <nav class="hidden lg:block absolute left-1/2 -translate-x-1/2">
-        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">
-            <li><a href="/" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Book</a></li>
-            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors" style="text-decoration: none;">Manage</a></li>
+    <nav aria-label="Main Navigation" class="hidden lg:block absolute left-1/2 -translate-x-1/2">
+        <ul class="flex space-x-8 text-xs uppercase tracking-[0.2em] font-extrabold text-gray-600">
+            <li><a href="/" class="nav-link hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--sky-blue] rounded-sm" style="text-decoration: none;">Book</a></li>
+            <li><a href="/review_bookings" class="nav-link hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--sky-blue] rounded-sm" style="text-decoration: none;">Manage</a></li>
         </ul>
     </nav>
     <div class="flex items-center gap-6 z-10">
-        <div class="w-10 h-10 rounded-full bg-[--sky-blue] text-white flex items-center justify-center text-sm font-bold shadow-lg">
+        <div class="w-10 h-10 rounded-full bg-[--sky-blue] text-white flex items-center justify-center text-sm font-bold shadow-lg" aria-label="User Initials: {{ userInitials }}">
             {{ userInitials }}
         </div>
     </div>
 </header>
 
-<section class="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-24">
-    <div class="w-full max-w-4xl"> <div class="rounded-[35px] p-8 md:p-10 shadow-[0_20px_50px_rgba(8,_14,_44,_0.3)] mb-8 relative overflow-hidden bg-slate-900 border border-slate-700/50">
+<main class="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-24">
+    <div class="w-full max-w-4xl"> 
+        <div class="rounded-[35px] p-8 md:p-10 shadow-[0_20px_50px_rgba(8,_14,_44,_0.3)] mb-8 relative overflow-hidden bg-slate-900 border border-slate-700/50">
             
             <div class="absolute -left-40 -top-40 w-96 h-96 bg-blue-600 rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
             <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-indigo-500 rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
 
             <div class="relative z-10">
                 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"> <div class="lg:col-span-7">
-                        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4 backdrop-blur-md shadow-inner">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"> 
+                    <div class="lg:col-span-7">
+                        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4 backdrop-blur-md shadow-inner" aria-live="polite">
                             <span class="relative flex h-3 w-3">
                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                               <span class="relative inline-flex rounded-full h-3 w-3 bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,1)]"></span>
@@ -44,17 +46,18 @@
 
                         <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm max-w-md">
                             <p class="text-[9px] font-bold tracking-widest uppercase text-sky-400 mb-2 flex items-center gap-2">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                 Next Tier Perks: <span id="nextTierPerkName" class="text-white">...</span>
                             </p>
-                            <ul id="perksList" class="space-y-1.5 text-xs text-slate-300 font-medium">
+                            <ul id="perksList" class="space-y-1.5 text-xs text-slate-300 font-medium" aria-live="polite">
                                 <li class="flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-indigo-400"></div> Loading perks...</li>
                             </ul>
                         </div>
                     </div>
                     
                     <div class="lg:col-span-5 flex flex-col items-center lg:items-end">
-                        <div class="relative w-40 h-40 mb-4"> <canvas id="pointsBreakdownChart" class="drop-shadow-[0_0_15px_rgba(56,189,248,0.3)]"></canvas>
+                        <div class="relative w-40 h-40 mb-4"> 
+                            <canvas id="pointsBreakdownChart" role="img" aria-label="Donut chart showing available versus redeemed loyalty points" class="drop-shadow-[0_0_15px_rgba(56,189,248,0.3)]"></canvas>
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-white">
                                 <span class="text-2xl font-light serif text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300">{{ user.loyaltyPoints }}</span>
                                 <span class="text-[8px] uppercase tracking-widest text-sky-400 font-bold mt-1">Available</span>
@@ -66,7 +69,7 @@
                                 <p class="text-[9px] font-bold tracking-widest uppercase text-slate-400 mb-0.5">Lifetime</p>
                                 <p class="text-lg font-light serif text-white" id="lifetimePointsDisplay">--</p>
                             </div>
-                            <div class="w-px bg-white/10"></div>
+                            <div class="w-px bg-white/10" aria-hidden="true"></div>
                             <div>
                                 <p class="text-[9px] font-bold tracking-widest uppercase text-slate-400 mb-0.5">Redeemed</p>
                                 <p class="text-lg font-light serif text-white">{{ user.redeemedLoyaltyPoints | default(0) }}</p>
@@ -75,7 +78,7 @@
                     </div>
                 </div>
 
-                <div class="mt-12 relative pt-2 px-2">
+                <div class="mt-12 relative pt-2 px-2" aria-hidden="true">
                     <div class="flex justify-between items-end mb-4">
                         <p class="text-[9px] font-bold tracking-widest uppercase text-slate-400">Journey to Upgrade</p>
                         <p class="text-[9px] font-bold tracking-widest uppercase text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/20 shadow-[0_0_10px_rgba(14,165,233,0.2)]" id="pointsToNextBadge">
@@ -123,46 +126,46 @@
             <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full hover:shadow-xl transition-shadow border border-gray-100">
                 <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
                     <h2 class="text-xl serif italic text-gray-900">Account Details</h2>
-                    <a href="/settings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-black transition-colors" style="text-decoration: none;">Settings</a>
+                    <a href="/settings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--sky-blue] rounded-sm" style="text-decoration: none;">Settings</a>
                 </div>
                 <div class="grid grid-cols-1 gap-6 text-sm flex-grow">
                     {% if user.firstname %}
                         <div>
-                            <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
+                            <p class="text-gray-500 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
                             <p class="font-medium text-lg">{{ user.firstname }} {{ user.lastname }}</p>
                         </div>
                     {% else %}
-                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
+                        <p class="text-gray-500 uppercase text-[10px] tracking-widest font-bold mb-1">Full Name</p>
                         <form action="/overview/add_name" method="POST" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="group">
-                                    <label for="first-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">First Name</label>
-                                    <input type="text" id="first-name" name="firstname" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                                    <label for="first-name" class="text-[10px] uppercase font-extrabold text-gray-500 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">First Name</label>
+                                    <input type="text" id="first-name" name="firstname" class="w-full bg-transparent border-b border-gray-300 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-400">
                                 </div>
                                 <div class="group">
-                                    <label for="last-name" class="text-[10px] uppercase font-extrabold text-gray-400 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Last Name</label>
-                                    <input type="text" id="last-name" name="lastname" class="w-full bg-transparent border-b border-gray-200 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-300">
+                                    <label for="last-name" class="text-[10px] uppercase font-extrabold text-gray-500 mb-2 block tracking-widest group-focus-within:text-[--sky-blue] transition-colors">Last Name</label>
+                                    <input type="text" id="last-name" name="lastname" class="w-full bg-transparent border-b border-gray-300 pb-2 text-lg font-medium outline-none focus:border-[--sky-blue] transition-colors placeholder:text-gray-400">
                                 </div>
                             </div>
-                            <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg">
+                            <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-extrabold uppercase tracking-widest text-[10px] hover:bg-[--sky-blue] transition-all duration-300 active:scale-95 shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[--sky-blue]">
                                 Add Name
                             </button>
                         </form>
                     {% endif %}
                     <div>
-                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Email Address</p>
+                        <p class="text-gray-500 uppercase text-[10px] tracking-widest font-bold mb-1">Email Address</p>
                         <p class="font-medium text-lg">{{ user.email }}</p>
                     </div>
                     <div>
-                        <p class="text-gray-400 uppercase text-[10px] tracking-widest font-bold mb-1">Total Flights Booked</p>
+                        <p class="text-gray-500 uppercase text-[10px] tracking-widest font-bold mb-1">Total Flights Booked</p>
                         <p class="font-medium text-lg">{{ totalBookings }}</p>
                     </div>
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-gray-100">
                     <form action="/logout" method="POST" class="m-0 p-0 w-full">
-                        <button type="submit" class="w-full text-[10px] font-extrabold uppercase tracking-[0.2em] text-red-500 hover:text-white transition-all px-6 py-4 border border-red-50 rounded-full hover:bg-red-500 hover:border-red-500 flex items-center justify-center gap-2 cursor-pointer bg-transparent">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <button type="submit" aria-label="Sign Out Securely" class="w-full text-[10px] font-extrabold uppercase tracking-[0.2em] text-red-600 hover:text-white transition-all px-6 py-4 border border-red-100 rounded-full hover:bg-red-600 hover:border-red-600 flex items-center justify-center gap-2 cursor-pointer bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600">
+                            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                             Sign Out Securely
                         </button>
                     </form>
@@ -172,34 +175,34 @@
             <div class="bg-white rounded-[30px] p-10 shadow-lg flex flex-col h-full hover:shadow-xl transition-shadow border border-gray-100">
                 <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
                     <h2 class="text-xl serif italic text-gray-900">Recent Bookings</h2>
-                    <a href="/review_bookings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-indigo-600 transition-colors" style="text-decoration: none;">View All &rarr;</a>
+                    <a href="/review_bookings" class="text-[10px] text-[--sky-blue] font-bold uppercase tracking-widest hover:text-indigo-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--sky-blue] rounded-sm" style="text-decoration: none;">View All &rarr;</a>
                 </div>
 
                 <div class="flex-grow flex flex-col gap-4">
                     {% if recentBookings is empty %}
                         <div class="flex-grow flex flex-col items-center justify-center text-center py-8">
-                            <span class="text-3xl mb-3 opacity-30">✈️</span>
+                            <span class="text-3xl mb-3 opacity-30" aria-hidden="true">✈️</span>
                             <p class="text-sm text-gray-500 font-medium">No recent trips found.</p>
-                            <a href="/" class="mt-4 text-xs font-bold text-white bg-slate-900 px-6 py-3 rounded-full uppercase tracking-widest hover:bg-indigo-600 shadow-lg transition-all" style="text-decoration: none;">Book a Flight</a>
+                            <a href="/" class="mt-4 text-xs font-bold text-white bg-slate-900 px-6 py-3 rounded-full uppercase tracking-widest hover:bg-indigo-600 shadow-lg transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600" style="text-decoration: none;">Book a Flight</a>
                         </div>
                     {% else %}
                         {% for booking in recentBookings %}
-                            <a href="/review_bookings" class="block bg-slate-50 rounded-2xl p-5 hover:bg-indigo-50/50 transition-all border border-slate-100 hover:border-indigo-100 hover:shadow-sm" style="text-decoration: none;">
+                            <a href="/review_bookings" aria-label="View booking reference {{ booking.bookingReference }}" class="block bg-slate-50 rounded-2xl p-5 hover:bg-indigo-50/50 transition-all border border-slate-200 hover:border-indigo-200 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" style="text-decoration: none;">
                                 <div class="flex justify-between items-center mb-3">
-                                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Ref: {{ booking.bookingReference }}</span>
+                                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-500">Ref: {{ booking.bookingReference }}</span>
                                     <span class="text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-full 
-                                        {% if booking.bookingStatus == 'CONFIRMED' %}bg-green-100 text-green-700
-                                        {% elseif booking.bookingStatus == 'CANCELLED' %}bg-slate-200 text-slate-600
-                                        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                        {% if booking.bookingStatus == 'CONFIRMED' %}bg-green-100 text-green-800
+                                        {% elseif booking.bookingStatus == 'CANCELLED' %}bg-slate-200 text-slate-700
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
                                         {{ booking.bookingStatus }}
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-800">
                                     <span class="font-bold text-sm truncate max-w-[120px]">{{ booking.departureAirportNameCode }}</span>
-                                    <span class="text-slate-300 px-2">✈️</span>
+                                    <span class="text-slate-400 px-2" aria-hidden="true">✈️</span>
                                     <span class="font-bold text-sm truncate max-w-[120px] text-right">{{ booking.arrivalAirportNameCode }}</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-2">{{ booking.departureTime | date("dd MMM yyyy") }}</p>
+                                <p class="text-xs text-slate-600 mt-2">{{ booking.departureTime | date("dd MMM yyyy") }}</p>
                             </a>
                         {% endfor %}
                     {% endif %}
@@ -208,7 +211,7 @@
         </div>
 
     </div>
-</section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -299,7 +302,7 @@
         const perksUl = document.getElementById('perksList');
         perksUl.innerHTML = ''; // Clear loading
         perksToDisplay.forEach(perk => {
-            perksUl.innerHTML += `<li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_5px_#38bdf8]"></div> ${perk}</li>`;
+            perksUl.innerHTML += `<li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_5px_#38bdf8]" aria-hidden="true"></div> ${perk}</li>`;
         });
         
         if (lifetimePoints >= PLATINUM) {

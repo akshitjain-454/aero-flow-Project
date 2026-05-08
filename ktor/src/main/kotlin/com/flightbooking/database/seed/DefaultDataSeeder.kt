@@ -13,6 +13,8 @@ import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDateTime
 
 object DefaultDataSeeder {
+    private const val FLIGHT_SEAT_BATCH_SIZE = 10000
+
     fun seed() {
         val now = LocalDateTime.now()
 
@@ -97,7 +99,7 @@ object DefaultDataSeeder {
         }
 
         // Batch insert in chunks to avoid memory issues
-        data.chunked(10000).forEach { chunk ->
+        data.chunked(FLIGHT_SEAT_BATCH_SIZE).forEach { chunk ->
             FlightSeatTable.batchInsert(chunk) { seatData ->
                 this[FlightSeatTable.flightId] = seatData.flightId
                 this[FlightSeatTable.seatId] = seatData.seatId

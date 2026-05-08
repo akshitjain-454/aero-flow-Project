@@ -32,6 +32,8 @@ import io.ktor.util.hex
 import io.pebbletemplates.pebble.loader.ClasspathLoader
 import kotlin.time.Duration.Companion.minutes
 
+private const val VERIFICATION_SESSION_MAX_AGE_MINUTES = 15
+
 suspend fun ApplicationCall.respondPebble(
     template: String,
     model: Map<String, Any> = emptyMap(),
@@ -86,7 +88,7 @@ fun Application.module() {
         }
         cookie<VerificationSession>("verification_session") {
             cookie.path = "/register"
-            cookie.maxAge = 15.minutes
+            cookie.maxAge = VERIFICATION_SESSION_MAX_AGE_MINUTES.minutes
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
             val encryptKey = hex("ab20f82cfea398ffffac69ae2d14bf50")

@@ -1,3 +1,7 @@
+// This Page is 99% AI created done by Google's Gemini ,
+// We only make some 1% changes :
+// The colours which we needed , some positonal and button layout changes.
+
 {% extends "base.html" %}
 
 {% block title %}Flight Route | Aetheria{% endblock %}

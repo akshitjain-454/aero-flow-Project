@@ -20,7 +20,14 @@ import io.ktor.server.sessions.set
 import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDateTime
 
-fun Route.userRoutes(userRepository: UserRepository = UserRepository()) {
+private const val OTP_MIN = 100000
+private const val OTP_MAX = 999999
+private const val DASHBOARD_PREVIEW_COUNT = 2
+private const val SILVER_TIER_THRESHOLD = 5000
+private const val GOLD_TIER_THRESHOLD = 10000
+private const val PLATINUM_TIER_THRESHOLD = 25000
+
+fun Route.userRoutes() {
     val userRepository = UserRepository()
 
     route("/register") {
@@ -32,7 +39,8 @@ fun Route.userRoutes(userRepository: UserRepository = UserRepository()) {
 
             val email =
                 params["email"]?.trim()
-                    ?: return@post call.respondPebble("register.peb", mapOf("error" to "Missing email")) // shouldnt happen unless frontend is bypassed
+                    ?: return@post call.respondPebble("register.peb", mapOf("error" to "Missing email"))
+            // shouldnt happen unless frontend is bypassed
 
             val atIndex = email.indexOf('@')
 
@@ -46,7 +54,7 @@ fun Route.userRoutes(userRepository: UserRepository = UserRepository()) {
             if (userRepository.getUserByEmail(email) != null) {
                 return@post call.respondPebble("getemail.peb", mapOf("error" to "Already a member. Please Sign in instead!"))
             }
-            val otp = (100000..999999).random().toString()
+            val otp = (OTP_MIN..OTP_MAX).random().toString()
             userRepository.sendEmail(email, "Verify Your Email", "Your one time code is: $otp")
             call.sessions.set(VerificationSession(email, otp, false))
             call.respondRedirect("/register/verify")
@@ -151,32 +159,32 @@ fun Route.userRoutes(userRepository: UserRepository = UserRepository()) {
                 bookingRepository.getBookingsByUserId(session.userId)
                     .map { bookingRepository.getBookingInfoByBooking(it) }
 
-            // Grab just the first 2 bookings for the dashboard preview
-            val recentBookings = allBookings.take(2)
+            // Grab the first preview bookings for the dashboard
+            val recentBookings = allBookings.take(DASHBOARD_PREVIEW_COUNT)
 
             val points = user.loyaltyPoints
 
             val currentTier =
                 when {
-                    points >= 25000 -> "Platinum"
-                    points >= 10000 -> "Gold"
-                    points >= 5000 -> "Silver"
+                    points >= PLATINUM_TIER_THRESHOLD -> "Platinum"
+                    points >= GOLD_TIER_THRESHOLD -> "Gold"
+                    points >= SILVER_TIER_THRESHOLD -> "Silver"
                     else -> "Bronze"
                 }
             val nextTierName =
                 when {
-                    points >= 25000 -> "Max Tier"
-                    points >= 10000 -> "Platinum"
-                    points >= 5000 -> "Gold"
+                    points >= PLATINUM_TIER_THRESHOLD -> "Max Tier"
+                    points >= GOLD_TIER_THRESHOLD -> "Platinum"
+                    points >= SILVER_TIER_THRESHOLD -> "Gold"
                     else -> "Silver"
                 }
 
             val nextMilestone =
                 when {
-                    points >= 25000 -> points // Maxed out
-                    points >= 10000 -> 25000
-                    points >= 5000 -> 10000
-                    else -> 5000
+                    points >= PLATINUM_TIER_THRESHOLD -> points // Maxed out
+                    points >= GOLD_TIER_THRESHOLD -> PLATINUM_TIER_THRESHOLD
+                    points >= SILVER_TIER_THRESHOLD -> GOLD_TIER_THRESHOLD
+                    else -> SILVER_TIER_THRESHOLD
                 }
 
             val pointsToNext = if (nextMilestone > points) nextMilestone - points else 0
