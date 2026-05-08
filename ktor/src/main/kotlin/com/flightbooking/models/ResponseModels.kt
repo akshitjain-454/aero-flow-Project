@@ -7,6 +7,7 @@ import com.flightbooking.enums.FlightInfoRequestType
 import com.flightbooking.enums.FlightStatus
 import com.flightbooking.enums.SeatClass
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class SeatAvailability(
@@ -199,7 +200,9 @@ data class FlightInfoRequestSummary(
     val customerName: String,
     val email: String,
     val currentFlightCode: String,
-    val requestedFlightCode: String?,
+    val currentDepartureTime: LocalDateTime,
+    val currentArrivalTime: LocalDateTime,
+    val requestedDepartureDate: LocalDate?,
     val requestType: FlightInfoRequestType,
     val status: FlightInfoRequestStatus,
     val passengerId: Int?,

@@ -22,7 +22,9 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
 
 private const val BOOKING_EXPIRY_MINUTES = 30L
 
@@ -535,57 +537,110 @@ fun Route.bookingRoutes() {
         }
 
         post("/submit") {
-            val session =
-                call.sessions.get<UserSession>()
-                    ?: return@post call.respondRedirect("/login")
+            val session = call.sessions.get<UserSession>() ?: return@post call.respondRedirect("/login")
             val params = call.receiveParameters()
-            val bookingReference =
-                params["bookingReference"]?.trim()
-                    ?: return@post call.respond(HttpStatusCode.BadRequest, "Booking reference is required")
 
+            val selectedReference = params["bookingReference"]?.trim().orEmpty()
+
+            val bookings = bookingRepository.getBookingsByUserId(session.userId)
+
+            val bookingOptions =
+                bookings.map { booking ->
+                    mapOf(
+                        "booking" to booking,
+                        "info" to bookingRepository.getBookingInfoByBooking(booking),
+                        "passengers" to bookingRepository.getPassengersByBookingId(booking.id),
+                    )
+                }
+
+            val requests = bookingRepository.getFlightInfoRequestsByUserId(session.userId)
+
+            val baseModel: Map<String, Any> =
+                mapOf(
+                    "bookingOptions" to bookingOptions,
+                    "requests" to requests,
+                    "selectedReference" to selectedReference,
+                )
+
+            if (selectedReference.isBlank()) {
+                return@post call.respondPebble(
+                    "flight-info-requests.peb",
+                    baseModel + mapOf("error" to "Booking reference is required"),
+                )
+            }
+
+            val bookingReference = selectedReference
             val requestType =
                 try {
                     FlightInfoRequestType.valueOf(
-                        params["requestType"]
-                            ?: "BOTH",
+                        params["requestType"] ?: "BOTH",
                     )
                 } catch (error: IllegalArgumentException) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        "Invalid request type",
+                    return@post call.respondPebble(
+                        "flight-info-requests.peb",
+                        baseModel + mapOf("error" to "Invalid request type"),
                     )
                 }
-            val passengerId = params["passengerId"]?.toIntOrNull()
-            val newFirstname = params["newFirstname"]?.trim()
-            val newLastname = params["newLastname"]?.trim()
-            val newPassportCode = params["newPassportCode"]?.trim()
-            val requestedFlightCode = params["requestedFlightCode"]?.trim()?.uppercase()
-            val message = params["message"]?.trim()
+            val needsPassengerInfo =
+                requestType == FlightInfoRequestType.PASSENGER_INFO ||
+                    requestType == FlightInfoRequestType.BOTH
 
-            val needsPassengerInfo = requestType == FlightInfoRequestType.PASSENGER_INFO || requestType == FlightInfoRequestType.BOTH
-            val needsFlightChange = requestType == FlightInfoRequestType.FLIGHT_CHANGE || requestType == FlightInfoRequestType.BOTH
-            val hasPassengerInfoChange = !newFirstname.isNullOrBlank() || !newLastname.isNullOrBlank() || !newPassportCode.isNullOrBlank()
+            val needsFlightChange =
+                requestType == FlightInfoRequestType.FLIGHT_CHANGE ||
+                    requestType == FlightInfoRequestType.BOTH
 
+            val rawPassengerId = params["passengerId"]?.toIntOrNull()
+            val rawNewFirstname = params["newFirstname"]?.trim()?.takeIf { it.isNotBlank() }
+            val rawNewLastname = params["newLastname"]?.trim()?.takeIf { it.isNotBlank() }
+            val rawNewPassportCode = params["newPassportCode"]?.trim()?.takeIf { it.isNotBlank() }
+            val requestedDepartureDateText = params["requestedDepartureDate"]?.trim()
+
+            val passengerId = if (needsPassengerInfo) rawPassengerId else null
+            val newFirstname = if (needsPassengerInfo) rawNewFirstname else null
+            val newLastname = if (needsPassengerInfo) rawNewLastname else null
+            val newPassportCode = if (needsPassengerInfo) rawNewPassportCode else null
+
+            val requestedDepartureDate =
+                if (needsFlightChange && !requestedDepartureDateText.isNullOrBlank()) {
+                    try {
+                        LocalDate.parse(requestedDepartureDateText)
+                    } catch (_: DateTimeParseException) {
+                        return@post call.respondPebble(
+                            "flight-info-requests.peb",
+                            baseModel + mapOf("error" to "Invalid requested flight date"),
+                        )
+                    }
+                } else {
+                    null
+                }
+
+            val message = params["message"]?.trim()?.takeIf { it.isNotBlank() }
+
+            val hasPassengerInfoChange =
+                newFirstname != null ||
+                    newLastname != null ||
+                    newPassportCode != null
             if (needsPassengerInfo && passengerId == null) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Please select a passenger for passenger information changes",
+                return@post call.respondPebble(
+                    "flight-info-requests.peb",
+                    baseModel + mapOf("error" to "Please select a passenger for passenger information changes"),
                 )
             }
 
             if (needsPassengerInfo && !hasPassengerInfoChange) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Please enter at least one passenger information change",
+                return@post call.respondPebble(
+                    "flight-info-requests.peb",
+                    baseModel + mapOf("error" to "Please enter at least one passenger information change"),
                 )
             }
 
-            if (needsFlightChange && requestedFlightCode.isNullOrBlank()) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Requested flight code is required",
+            if (needsFlightChange && requestedDepartureDate == null) {
+                return@post call.respondPebble(
+                    "flight-info-requests.peb",
+                    baseModel + mapOf("error" to "Requested flight date is required"),
                 )
             }
+
             val success =
                 bookingRepository.createFlightInfoRequest(
                     userId = session.userId,
@@ -595,14 +650,14 @@ fun Route.bookingRoutes() {
                     newFirstname = newFirstname,
                     newLastname = newLastname,
                     newPassportCode = newPassportCode,
-                    requestedFlightCode = requestedFlightCode,
+                    requestedDepartureDate = requestedDepartureDate,
                     message = message,
                 )
 
             if (!success) {
-                return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Booking not found, passenger not found, or booking does not belong to you",
+                return@post call.respondPebble(
+                    "flight-info-requests.peb",
+                    baseModel + mapOf("error" to "Booking not found, passenger not found, or booking does not belong to you"),
                 )
             }
             call.respondRedirect("/flight-info-requests")

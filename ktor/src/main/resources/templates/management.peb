@@ -924,8 +924,8 @@
 
         setSection(
             "flightInfoRequests",
-            "Flight Information Update Requests",
-            "Review customer requests for passenger information updates and flight changes."
+            "Booking Update Requests",
+            "Review customer requests for passenger information updates and flight date changes."
         );
 
         if (shouldScroll) scrollToPanel();
@@ -941,13 +941,31 @@
                     item.newPassportCode ? `Passport: ${escapeHtml(item.newPassportCode)}` : ""
                 ].filter(Boolean).join("<br>");
 
-                const flightChange = item.requestedFlightCode
-                    ? `Flight: ${escapeHtml(item.currentFlightCode)} → ${escapeHtml(item.requestedFlightCode)}`
+                const requestedDate =
+                    item.requestedDepartureDate ||
+                    item.requestedFlightDate ||
+                    item.newDepartureDate ||
+                    "";
+
+                const flightDateChange = requestedDate
+                    ? `Requested flight date: ${escapeHtml(requestedDate)}`
                     : "";
 
-                const requestedChanges = [flightChange, passengerChange]
-                    .filter(Boolean)
-                    .join("<br>") || "-";
+                const requestedChanges = [
+                    flightDateChange,
+                    passengerChange
+                ].filter(Boolean).join("<br>") || "-";
+
+                const currentFlightCell = `
+                    <div class="font-bold text-gray-900">
+                        ${escapeHtml(item.currentFlightCode)}
+                    </div>
+                    ${
+                        item.currentDepartureTime
+                            ? `<div class="text-xs text-gray-400">${formatDateTime(item.currentDepartureTime)}</div>`
+                            : ""
+                    }
+                `;
 
                 return `
                     <tr class="hover:bg-gray-50">
@@ -963,7 +981,7 @@
                             <div class="text-xs text-gray-400">${escapeHtml(item.email)}</div>
                         </td>
 
-                        <td class="px-6 py-4 font-bold">${escapeHtml(item.currentFlightCode)}</td>
+                        <td class="px-6 py-4">${currentFlightCell}</td>
 
                         <td class="px-6 py-4">${requestedChanges}</td>
 
@@ -995,8 +1013,10 @@
                 `;
             });
 
+            setSummary(`Booking update requests shown: ${results.length}`);
+
             renderTable(
-                ["ID", "Booking", "Customer", "Current Flight", "Requested Changes", "Message", "Status", "Handle"],
+                ["ID", "Booking", "Customer", "Current Flight", "Requested Updates", "Message", "Status", "Handle"],
                 rows
             );
         } catch (error) {

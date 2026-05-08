@@ -425,7 +425,7 @@ class BookingRepository {
      * @param newFirstname The optional new first name.
      * @param newLastname The optional new last name.
      * @param newPassportCode The optional new passport code.
-     * @param requestedFlightCode The optional requested flight code.
+     * @param requestedDepartureDate The optional requested flight date.
      * @param message The optional message describing the request.
      * @return True if the request was created successfully, false otherwise.
      */
@@ -437,7 +437,7 @@ class BookingRepository {
         newFirstname: String?,
         newLastname: String?,
         newPassportCode: String?,
-        requestedFlightCode: String?,
+        requestedDepartureDate: LocalDate?,
         message: String?,
     ): Boolean =
         transaction {
@@ -460,7 +460,7 @@ class BookingRepository {
                 it[FlightInfoRequestTable.newFirstname] = newFirstname
                 it[FlightInfoRequestTable.newLastname] = newLastname
                 it[FlightInfoRequestTable.newPassportCode] = newPassportCode
-                it[FlightInfoRequestTable.requestedFlightCode] = requestedFlightCode
+                it[FlightInfoRequestTable.requestedDepartureDate] = requestedDepartureDate
                 it[FlightInfoRequestTable.message] = message
                 it[FlightInfoRequestTable.adminReply] = null
                 it[FlightInfoRequestTable.createdAt] = LocalDateTime.now()
@@ -511,7 +511,9 @@ class BookingRepository {
                             ).joinToString(" "),
                         email = row[UserTable.email],
                         currentFlightCode = row[FlightTable.flightCode],
-                        requestedFlightCode = row[FlightInfoRequestTable.requestedFlightCode],
+                        currentDepartureTime = row[FlightTable.departureTime],
+                        currentArrivalTime = row[FlightTable.arrivalTime],
+                        requestedDepartureDate = row[FlightInfoRequestTable.requestedDepartureDate],
                         requestType = row[FlightInfoRequestTable.requestType],
                         status = row[FlightInfoRequestTable.status],
                         passengerId = row[FlightInfoRequestTable.passengerId],
