@@ -36,8 +36,8 @@ out/
 .vscode/
 
 ### Database files ###
-/data/*.db
-*.db
+### /data/*.db  ###
+### *.db ###
 
 ### Test/session cookie files ###
 cookies.txt
