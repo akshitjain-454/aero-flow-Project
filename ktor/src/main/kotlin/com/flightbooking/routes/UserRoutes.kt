@@ -334,6 +334,12 @@ fun Route.userRoutes() {
     get("/login") {
         call.respondPebble("login.peb")
     }
+    get("/all_destinations") {
+        call.respondPebble("allDestinations.peb")
+    }
+    get("/destinations") {
+        call.respondPebble("destinations.peb")
+    }
 
     post("/logout") {
         call.sessions.clear<UserSession>()

@@ -83,7 +83,7 @@
 
   <!-- Button -->
   <div class="mt-12 flex justify-center">
-    <a href="#"
+    <a href="all_destinations"
       class="inline-flex items-center px-10 py-4 border border-gray-900 text-gray-900 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-gray-900 hover:text-white transition">
       View All Destinations
     </a>
