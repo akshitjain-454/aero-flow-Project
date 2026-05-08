@@ -1,80 +1,94 @@
-<section class="max-w-[1440px] mx-auto px-8 pt-4 pb-4">
-    <div class="flex justify-between items-end mb-12 max-w-7xl mx-auto px-6">
-        <div>
-            <span class="text-[10px] uppercase tracking-[0.3em] text-[--sky-blue] font-bold block mb-4">Curated Journeys</span>
-            <h2 class="text-4xl md:text-5xl serif leading-tight">Featured Destinations</h2>
-        </div>
-        <a href="#" class="border-b border-gray-300 pb-1 text-[10px] uppercase tracking-widest font-extrabold text-gray-500 hover:text-black transition-all">Explore All Routes</a>
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 max-w-7xl mx-auto">
+
+    <div>
+      <span class="text-[10px] uppercase tracking-[0.3em] text-sky-500 font-bold block mb-4">
+        Curated Journeys
+      </span>
+
+      <h2 class="text-4xl md:text-5xl font-serif leading-tight text-gray-900">
+        Featured Destinations
+      </h2>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=800&q=80" alt="Singapore" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Urban Oasis</p>
-                <h3 class="text-2xl serif">Singapore</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80" alt="Dubai" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Desert Majesty</p>
-                <h3 class="text-2xl serif">Dubai</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=800&q=80" alt="Austria" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Imperial Heritage</p>
-                <h3 class="text-2xl serif">Austria</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80" alt="Tokyo" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Neon Metropolis</p>
-                <h3 class="text-2xl serif">Tokyo</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80" alt="Paris" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Cultural Capital</p>
-                <h3 class="text-2xl serif">Paris</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=800&q=80" alt="Maldives" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Ultimate Seclusion</p>
-                <h3 class="text-2xl serif">Maldives</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80" alt="New York" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Metropolitan Energy</p>
-                <h3 class="text-2xl serif">New York</h3>
-            </div>
-        </a>
-        <a href="#" class="dest-card zoom-img group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
-            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80" alt="Santorini" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-            <div class="absolute bottom-8 left-8 text-white">
-                <p class="text-[9px] uppercase tracking-widest font-bold mb-2">Aegean Elegance</p>
-                <h3 class="text-2xl serif">Santorini</h3>
-            </div>
-        </a>
-    </div>
+    <a href="#"
+      class="border-b border-gray-300 pb-1 text-[10px] uppercase tracking-widest font-extrabold text-gray-500 hover:text-black transition">
+      Explore All Routes
+    </a>
 
-    <div class="mt-6 flex justify-center pb-6">
-        <a href="#" class="inline-flex items-center px-10 py-4 border border-[--charcoal] text-[--charcoal] rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--charcoal] hover:text-white transition-all">View All Destinations</a>
-    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <a href="#" class="group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
+      <img src="https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=800&q=80"
+        class="w-full h-full object-cover transition duration-700 group-hover:scale-110"
+        alt="Singapore">
+
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+      <div class="absolute bottom-6 left-6 text-white">
+        <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Urban Oasis</p>
+        <h3 class="text-2xl font-serif">Singapore</h3>
+      </div>
+    </a>
+
+    <a href="#" class="group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
+      <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80"
+        class="w-full h-full object-cover transition duration-700 group-hover:scale-110"
+        alt="Dubai">
+
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+      <div class="absolute bottom-6 left-6 text-white">
+        <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Desert Majesty</p>
+        <h3 class="text-2xl font-serif">Dubai</h3>
+      </div>
+    </a>
+
+    <a href="#" class="group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
+      <img src="https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=800&q=80"
+        class="w-full h-full object-cover transition duration-700 group-hover:scale-110"
+        alt="Austria">
+
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+      <div class="absolute bottom-6 left-6 text-white">
+        <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Imperial Heritage</p>
+        <h3 class="text-2xl font-serif">Austria</h3>
+      </div>
+    </a>
+
+    <a href="#" class="group relative aspect-square rounded-[32px] overflow-hidden shadow-lg border border-gray-100">
+      <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80"
+        class="w-full h-full object-cover transition duration-700 group-hover:scale-110"
+        alt="Tokyo">
+
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+      <div class="absolute bottom-6 left-6 text-white">
+        <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Neon Metropolis</p>
+        <h3 class="text-2xl font-serif">Tokyo</h3>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- Button -->
+  <div class="mt-12 flex justify-center">
+    <a href="#"
+      class="inline-flex items-center px-10 py-4 border border-gray-900 text-gray-900 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-gray-900 hover:text-white transition">
+      View All Destinations
+    </a>
+  </div>
+
 </section>
+
+{% endblock %}

@@ -31,6 +31,7 @@ import io.ktor.server.sessions.sessions
 import io.ktor.util.hex
 import io.pebbletemplates.pebble.loader.ClasspathLoader
 import kotlin.time.Duration.Companion.minutes
+import io.ktor.server.routing.post
 
 private const val VERIFICATION_SESSION_MAX_AGE_MINUTES = 15
 
@@ -102,6 +103,18 @@ fun Application.module() {
         get("/") {
             call.respondPebble("index.peb")
         }
+        get("/comingsoon"){
+            call.respondPebble("comingsoon.peb")
+        }
+        get("destinations"){
+            call.respondPebble("destinations.peb")
+        }
+        get("/contact"){
+            call.respondPebble("Contact.peb")
+        }
+        post("/submit-contact") {
+    call.respondPebble("submitcontact.peb")
+}
         complaintRoutes()
         userRoutes()
         flightRoutes()
