@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Aetheria | Request Received{% endblock %}
+
+{% block content %}
+
+<main class="min-h-screen flex items-center justify-center bg-[--pearl] px-8">
+
+    <div class="text-center max-w-2xl">
+
+      
+        <div class="w-20 h-20 mx-auto mb-8 bg-green-50 rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl serif font-light mb-6">
+            Your query has been <span class="italic text-[--sky-blue]">accepted</span>
+        </h1>
+
+        
+        <p class="text-gray-500 text-sm uppercase tracking-widest leading-relaxed mb-10">
+            Our concierge team has received your message and will respond shortly.
+        </p>
+
+       
+        <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm mb-10">
+            <p class="text-sm text-gray-400">
+                You will receive a confirmation email shortly. Response time is typically within 24 hours.
+            </p>
+        </div>
+
+   
+        <a href="/"
+           class="inline-block bg-[--charcoal] text-white px-10 py-4 rounded-full text-[10px] font-extrabold uppercase tracking-[0.2em] hover:bg-[--sky-blue] transition-all">
+            Return Home
+        </a>
+
+    </div>
+
+</main>
+
+{% endblock %}

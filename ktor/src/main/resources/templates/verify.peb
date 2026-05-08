@@ -1,5 +1,3 @@
-//FILE IS AN AI GENERATED COPY OF REGISTER FOR TESTING WITH ATM
-
 {% extends "base.html" %}
 
 {% block title %}Verify Email | Aetheria{% endblock %}

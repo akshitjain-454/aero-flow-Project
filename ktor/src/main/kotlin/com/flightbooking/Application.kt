@@ -21,6 +21,7 @@ import io.ktor.server.pebble.PebbleContent
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.SessionTransportTransformerEncrypt
 import io.ktor.server.sessions.Sessions
@@ -101,6 +102,18 @@ fun Application.module() {
     routing {
         get("/") {
             call.respondPebble("index.peb")
+        }
+        get("/comingsoon") {
+            call.respondPebble("comingsoon.peb")
+        }
+        get("destinations") {
+            call.respondPebble("destinations.peb")
+        }
+        get("/contact") {
+            call.respondPebble("Contact.peb")
+        }
+        post("/submit-contact") {
+            call.respondPebble("submitcontact.peb")
         }
         complaintRoutes()
         userRoutes()
