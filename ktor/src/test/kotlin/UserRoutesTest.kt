@@ -15,7 +15,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.HttpClient
-import io.ktor.client.request.contentType
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -23,14 +22,17 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.install
 import io.ktor.server.pebble.Pebble
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.ktor.server.sessions.SessionTransportTransformerEncrypt
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import io.ktor.server.sessions.maxAge
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.util.hex
