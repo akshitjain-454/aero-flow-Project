@@ -17,3 +17,7 @@ PROJECT COMP2850
 - feature branches used for development
 - pull requests used before merging
 - GitHub Actions used for CI (build + test automation)
+
+## Running Instructions
+
+- use ./gradlew run to launch the website and follow the link to the homepage
