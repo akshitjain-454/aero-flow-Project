@@ -20,7 +20,7 @@ import io.ktor.server.sessions.set
 import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDateTime
 
-fun Route.userRoutes() {
+fun Route.userRoutes(userRepository: UserRepository = UserRepository()) {
     val userRepository = UserRepository()
 
     route("/register") {
