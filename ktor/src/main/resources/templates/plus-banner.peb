@@ -6,6 +6,5 @@
         <h2 class="text-5xl md:text-7xl serif mb-8 leading-tight drop-shadow-lg font-light">
             Enhance benefits with <br><span class="italic">AetherianFly Plus</span>
         </h2>
-        <a href="#" class="inline-flex items-center bg-white text-black px-12 py-5 rounded-full text-[10px] uppercase tracking-widest font-extrabold hover:bg-[--gold-light] hover:text-white transition-all shadow-lg active:scale-95">Learn More</a>
     </div>
 </section>

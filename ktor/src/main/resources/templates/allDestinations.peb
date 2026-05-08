@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Aetheria | Destinations{% endblock %}
+
+{% block extra_css %}
+    body {
+        background-color: var(--pearl);
+        color: var(--charcoal);
+    }
+    .dest-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
+    }
+    .dest-row:last-child { border-bottom: none; }
+    .dest-row:hover { background: #f5f8ff; }
+
+    .iata {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        color: var(--sky-blue);
+        background: rgba(0, 102, 255, 0.07);
+        border-radius: 6px;
+        padding: 0.3rem 0.5rem;
+        flex-shrink: 0;
+    }
+{% endblock %}
+
+{% block content %}
+    {% include "navbar.peb" %}
+
+    <main id="main-content" class="max-w-2xl mx-auto px-4 py-16">
+
+        <p class="text-xs font-extrabold uppercase tracking-[0.2em] mb-3" style="color: var(--sky-blue)">Where we fly</p>
+        <h1 class="serif text-4xl font-bold mb-2" style="color: var(--charcoal)">Destinations</h1>
+        <p class="text-sm text-gray-400 font-light mb-10">37 destinations worldwide</p>
+
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow: 0 40px 100px -20px rgba(0,40,100,0.08)">
+
+            <div class="dest-row" style="background: #fafafa; border-bottom: 2px solid #f0f0f0;">
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Airport</span>
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Code</span>
+            </div>
+
+            <div class="dest-row"><span class="text-sm font-medium">Leeds Bradford Airport</span><span class="iata">LBA</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">London Heathrow Airport</span><span class="iata">LHR</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Manchester Airport</span><span class="iata">MAN</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Birmingham Airport</span><span class="iata">BHX</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Edinburgh Airport</span><span class="iata">EDI</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Bristol Airport</span><span class="iata">BRS</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Newcastle Airport</span><span class="iata">NCL</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Paris Charles de Gaulle Airport</span><span class="iata">CDG</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Amsterdam Schiphol Airport</span><span class="iata">AMS</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Frankfurt Airport</span><span class="iata">FRA</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Munich Airport</span><span class="iata">MUC</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Zurich Airport</span><span class="iata">ZRH</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Vienna International Airport</span><span class="iata">VIE</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Copenhagen Airport</span><span class="iata">CPH</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Lisbon Humberto Delgado Airport</span><span class="iata">LIS</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Barcelona El Prat Airport</span><span class="iata">BCN</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Rome Fiumicino Airport</span><span class="iata">FCO</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Athens Eleftherios Venizelos Airport</span><span class="iata">ATH</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Santorini Airport</span><span class="iata">JTR</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Istanbul Airport</span><span class="iata">IST</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Dubai International Airport</span><span class="iata">DXB</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Maldives Velana International Airport</span><span class="iata">MLE</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Indira Gandhi International Airport</span><span class="iata">DEL</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Singapore Changi Airport</span><span class="iata">SIN</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Kuala Lumpur International Airport</span><span class="iata">KUL</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Bangkok Suvarnabhumi Airport</span><span class="iata">BKK</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Hong Kong International Airport</span><span class="iata">HKG</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Tokyo Haneda Airport</span><span class="iata">HND</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Seoul Incheon International Airport</span><span class="iata">ICN</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Sydney Kingsford Smith Airport</span><span class="iata">SYD</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Cape Town International Airport</span><span class="iata">CPT</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">John F Kennedy International Airport</span><span class="iata">JFK</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Los Angeles International Airport</span><span class="iata">LAX</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Miami International Airport</span><span class="iata">MIA</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Chicago O'Hare International Airport</span><span class="iata">ORD</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Nashville International Airport</span><span class="iata">BNA</span></div>
+            <div class="dest-row"><span class="text-sm font-medium">Toronto Pearson International Airport</span><span class="iata">YYZ</span></div>
+
+        </div>
+    </main>
+
+    {% include "footer.peb" %}
+{% endblock %}

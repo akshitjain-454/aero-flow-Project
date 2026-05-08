@@ -95,7 +95,9 @@
 
     <main id="main-content">
         {% include "search.peb" %}
-        {% include "membership-banner.peb" %}
+        {% if isLoggedIn == false %}
+            {% include "membership-banner.peb" %}
+        {% endif %}
         {% include "destinations.peb" %}
         {% include "plus-banner.peb" %}
         {% include "cabins.peb" %}

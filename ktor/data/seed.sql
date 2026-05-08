@@ -1,4 +1,4 @@
--- Get-Content seed.sql | sqlite3 data/flight_app.db  (use this to seed it)
+-- Get-Content data/seed.sql | sqlite3 data/flight_app.db  (use this to seed it)
 PRAGMA synchronous = OFF;
 PRAGMA journal_mode = MEMORY;
 BEGIN TRANSACTION;
