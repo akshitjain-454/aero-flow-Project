@@ -1,7 +1,6 @@
-package com.flightbooking.repositories
-
 import com.flightbooking.enums.UserRole
 import com.flightbooking.models.User
+import com.flightbooking.repositories.UserRepository
 import com.flightbooking.tables.UserTable
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
