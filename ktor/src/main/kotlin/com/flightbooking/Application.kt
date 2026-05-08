@@ -34,6 +34,7 @@ import io.pebbletemplates.pebble.loader.ClasspathLoader
 import kotlin.time.Duration.Companion.minutes
 
 private const val VERIFICATION_SESSION_MAX_AGE_MINUTES = 15
+private const val USER_SESSION_MAX_AGE_MINUTES = 180
 
 suspend fun ApplicationCall.respondPebble(
     template: String,
@@ -80,6 +81,7 @@ fun Application.module() {
     install(Sessions) {
         cookie<UserSession>("user_session") {
             cookie.path = "/"
+            cookie.maxAge = USER_SESSION_MAX_AGE_MINUTES.minutes
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
             val encryptKey = hex("ef82ffacc3920ae250206ead14bfcfff")
