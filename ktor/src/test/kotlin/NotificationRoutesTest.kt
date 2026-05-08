@@ -1,6 +1,5 @@
-package com.flightbooking.routes
-
 import com.flightbooking.enums.UserRole
+import com.flightbooking.routes.notificationRoutes
 import com.flightbooking.services.NotificationEvent
 import com.flightbooking.services.NotificationService
 import com.flightbooking.sessions.UserSession
